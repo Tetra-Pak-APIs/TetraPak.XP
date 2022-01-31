@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.DynamicEntities\TetraPak.XP.DynamicEntities.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Configurations>Debug;Release;SimulatedAuth</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <LangVersion>8</LangVersion>
+        <Nullable>enable</Nullable>
+        <RootNamespace>authClient</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DebugType>pdbonly</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'SimulatedAuth' ">
+      <DebugType>pdbonly</DebugType>
+      <DebugSymbols>true</DebugSymbols>
+      <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+      <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SegmentedControl.FormsPlugin" Version="2.0.1" />
+        <PackageReference Include="Xamarin.Essentials" Version="1.0.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.2" />
+        <PackageReference Include="System.Text.Json" Version="4.7.1" />
+        <PackageReference Include="Xamarin.Forms" Version="4.8.0.1364" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="controls" />
+      <Folder Include="dependencies\" />
+      <Folder Include="animations\" />
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Update="views\TokenPage.xaml.cs">
+        <DependentUpon>TokenPage.xaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Update="views\TokenPage.xaml.cs">
+        <DependentUpon>TokenPage.xaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Update="views\LogPage.xaml">
+        <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Update="views\LogPage.xaml">
+        <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="views\UserInfoPage.xaml">
+        <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Xamarin\TetraPak.XP.Xamarin.csproj" />
+    </ItemGroup>
+    <!--<ItemGroup>
+      <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" />
+    </ItemGroup>-->
+</Project>
