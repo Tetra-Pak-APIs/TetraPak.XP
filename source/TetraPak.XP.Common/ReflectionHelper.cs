@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     public static class ReflectionHelper
     {

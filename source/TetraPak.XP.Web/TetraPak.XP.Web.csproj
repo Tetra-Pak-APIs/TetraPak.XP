@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+        <PackageVersion>1.0.0-alpha.2</PackageVersion>
+        <Title>Tetra Pak common library for native applications</Title>
+        <Description>A common set of code APIs and tools for Tetra Pak .NET native development</Description>
+        <Copyright>Tetra Pak</Copyright>
+        <PackageReleaseNotes>Early alpha for internal testing</PackageReleaseNotes>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.DynamicEntities\TetraPak.XP.DynamicEntities.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.Streaming\TetraPak.XP.Streaming.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.2.0" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
+    </ItemGroup>
+
+</Project>

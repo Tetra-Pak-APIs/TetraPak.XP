@@ -7,13 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using TetraPak.AspNet.Diagnostics;
-using TetraPak.Logging;
-using TetraPak.Serialization;
+using TetraPak.XP.Web.credentialsAndTokens;
 
-namespace TetraPak.AspNet
+namespace TetraPak.XP.Web
 {
     /// <summary>
     ///   Provides extension and convenience method for <see cref="HttpContext"/>.
@@ -36,201 +33,201 @@ namespace TetraPak.AspNet
 
         static readonly IDictionary<string, HttpMethod> s_httpStringVerbToMethodMap = s_httpMethodToStringVerbMap.ToInverted();
 
-        /// <summary>
-        ///   Returns the request access token, or <c>null</c> if unavailable. 
-        /// </summary>
-        /// <returns>
-        ///   An <see cref="ActorToken"/> instance representing the request's access token if one can be obtained;
-        ///   otherwise <c>null</c>.
-        /// </returns>
-        /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpContext)"/>
-        /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpRequest)"/>
-        public static ActorToken? GetAccessToken(this HttpRequest self) 
-            => self.HttpContext.GetAccessToken();
+        // /// <summary>
+        // ///   Returns the request access token, or <c>null</c> if unavailable. 
+        // /// </summary>
+        // /// <returns>
+        // ///   An <see cref="ActorToken"/> instance representing the request's access token if one can be obtained;
+        // ///   otherwise <c>null</c>.
+        // /// </returns>
+        // /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpContext)"/>
+        // /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpRequest)"/>
+        // public static ActorToken? GetAccessToken(this HttpRequest self) 
+        //     => self.HttpContext.GetAccessToken();
 
-        /// <summary>
-        ///   Returns the request access token, or <c>null</c> if unavailable. 
-        /// </summary>
-        /// <returns>
-        ///   An <see cref="ActorToken"/> instance representing the request's access token if one can be obtained;
-        ///   otherwise <c>null</c>.
-        /// </returns>
-        /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpRequest)"/>
-        /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpContext, bool)"/>
-        public static ActorToken? GetAccessToken(this HttpContext self)
-        {
-            var task = GetAccessTokenAsync(self);
-            var outcome = task.ConfigureAwait(false).GetAwaiter().GetResult();
-            return outcome
-                ? outcome.Value
-                : null;
-        }
+        // /// <summary>
+        // ///   Returns the request access token, or <c>null</c> if unavailable. 
+        // /// </summary>
+        // /// <returns>
+        // ///   An <see cref="ActorToken"/> instance representing the request's access token if one can be obtained;
+        // ///   otherwise <c>null</c>.
+        // /// </returns>
+        // /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpRequest)"/>
+        // /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpContext, bool)"/>
+        // public static ActorToken? GetAccessToken(this HttpContext self)
+        // {
+        //     var task = GetAccessTokenAsync(self);
+        //     var outcome = task.ConfigureAwait(false).GetAwaiter().GetResult();
+        //     return outcome
+        //         ? outcome.Value
+        //         : null;
+        // }
         
-        /// <summary>
-        ///   Tries obtaining an access token from the request. 
-        /// </summary>
-        /// <returns>
-        ///   An <see cref="Outcome{T}"/> instance indicating success/failure. On success the outcome
-        ///   holds the access token in its <see cref="Outcome{T}.Value"/> property. On failure the outcome 
-        ///   declares the problem via its <see cref="Outcome.Exception"/> property. 
-        /// </returns>
-        /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpRequest)"/>
-        /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpContext,bool)"/>
-        public static Task<Outcome<ActorToken>> GetAccessTokenAsync(this HttpRequest self)
-            => self.HttpContext.GetAccessTokenAsync();
+        // /// <summary>
+        // ///   Tries obtaining an access token from the request. 
+        // /// </summary>
+        // /// <returns>
+        // ///   An <see cref="Outcome{T}"/> instance indicating success/failure. On success the outcome
+        // ///   holds the access token in its <see cref="Outcome{T}.Value"/> property. On failure the outcome 
+        // ///   declares the problem via its <see cref="Outcome.Exception"/> property. 
+        // /// </returns>
+        // /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpRequest)"/>
+        // /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpContext,bool)"/>
+        // public static Task<Outcome<ActorToken>> GetAccessTokenAsync(this HttpRequest self)
+        //     => self.HttpContext.GetAccessTokenAsync();
 
-        /// <summary>
-        ///   Tries obtaining an access token from the request. 
-        /// </summary>
-        /// <param name="self">
-        ///   The <see cref="HttpContext"/>.
-        /// </param>
-        /// <param name="forceStandardHeader">
-        ///   (optional; default=<c>false</c>)<br/>
-        ///   When set the configured (see <see cref="TetraPakConfig.AuthorizationHeader"/>) authorization
-        ///   header is ignored in favour of the HTTP standard <see cref="HeaderNames.Authorization"/> header. 
-        /// </param>
-        /// <returns>
-        ///   An <see cref="Outcome{T}"/> instance indicating success/failure. On success the outcome
-        ///   holds the access token in its <see cref="Outcome{T}.Value"/> property. On failure the outcome 
-        ///   declares the problem via its <see cref="Outcome.Exception"/> property. 
-        /// </returns>
-        /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpContext)"/>
-        /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpRequest)"/>
-        public static Task<Outcome<ActorToken>> GetAccessTokenAsync(
-            this HttpContext? self,
-            bool forceStandardHeader = false)
-        {
-            if (self is null)
-                return Task.FromResult(Outcome<ActorToken>.Fail(new Exception("No HTTP context available")));
-            
-            var headerKey = AmbientData.Keys.AccessToken;
-            if (self.Items.TryGetValue(headerKey, out var o) && o is string s && ActorToken.TryParse(s, out var actorToken))
-                return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
+        // /// <summary>
+        // ///   Tries obtaining an access token from the request. 
+        // /// </summary>
+        // /// <param name="self">
+        // ///   The <see cref="HttpContext"/>.
+        // /// </param>
+        // /// <param name="forceStandardHeader">
+        // ///   (optional; default=<c>false</c>)<br/>
+        // ///   When set the configured (see <see cref="TetraPakConfig.AuthorizationHeader"/>) authorization
+        // ///   header is ignored in favour of the HTTP standard <see cref="HeaderNames.Authorization"/> header. 
+        // /// </param>
+        // /// <returns>
+        // ///   An <see cref="Outcome{T}"/> instance indicating success/failure. On success the outcome
+        // ///   holds the access token in its <see cref="Outcome{T}.Value"/> property. On failure the outcome 
+        // ///   declares the problem via its <see cref="Outcome.Exception"/> property. 
+        // /// </returns>
+        // /// <seealso cref="GetAccessToken(Microsoft.AspNetCore.Http.HttpContext)"/>
+        // /// <see cref="GetAccessTokenAsync(Microsoft.AspNetCore.Http.HttpRequest)"/>
+        // public static Task<Outcome<ActorToken>> GetAccessTokenAsync(
+        //     this HttpContext? self,
+        //     bool forceStandardHeader = false)
+        // {
+        //     if (self is null)
+        //         return Task.FromResult(Outcome<ActorToken>.Fail(new Exception("No HTTP context available")));
+        //     
+        //     var headerKey = AmbientData.Keys.AccessToken;
+        //     if (self.Items.TryGetValue(headerKey, out var o) && o is string s && ActorToken.TryParse(s, out var actorToken))
+        //         return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
+        //
+        //     var tetraPakConfig = self.RequestServices.GetRequiredService<TetraPakConfig>();
+        //     headerKey = forceStandardHeader //|| tetraPakConfig.AuthorizationHeader is null obsolete
+        //         ? HeaderNames.Authorization
+        //         : tetraPakConfig.AuthorizationHeader;
+        //     var ss = self.Request.Headers[headerKey].FirstOrDefault();
+        //     if (ss is {} && ActorToken.TryParse(ss, out actorToken))
+        //         return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
+        //
+        //     var messageId = self.Request.GetMessageId(tetraPakConfig);
+        //     tetraPakConfig.Logger.Warning($"Could not find an access token. Was looking for header '{headerKey}'", messageId);
+        //     
+        //     return Task.FromResult(Outcome<ActorToken>.Fail(new Exception("Access token not found")));
+        // }
 
-            var tetraPakConfig = self.RequestServices.GetRequiredService<TetraPakConfig>();
-            headerKey = forceStandardHeader //|| tetraPakConfig.AuthorizationHeader is null obsolete
-                ? HeaderNames.Authorization
-                : tetraPakConfig.AuthorizationHeader;
-            var ss = self.Request.Headers[headerKey].FirstOrDefault();
-            if (ss is {} && ActorToken.TryParse(ss, out actorToken))
-                return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
+        // /// <summary>
+        // ///   Returns the request access token, or <c>null</c> if unavailable. 
+        // /// </summary>
+        // /// <returns>
+        // ///   An <see cref="ActorToken"/> instance representing the request's access token if one can be obtained;
+        // ///   otherwise <c>null</c>.
+        // /// </returns>
+        // /// <seealso cref="GetIdentityToken(Microsoft.AspNetCore.Http.HttpContext,TetraPakConfig)"/>
+        // public static ActorToken? GetIdentityToken(this HttpRequest self, TetraPakConfig config) 
+        //     => self.HttpContext.GetIdentityToken(config);
 
-            var messageId = self.Request.GetMessageId(tetraPakConfig);
-            tetraPakConfig.Logger.Warning($"Could not find an access token. Was looking for header '{headerKey}'", messageId);
-            
-            return Task.FromResult(Outcome<ActorToken>.Fail(new Exception("Access token not found")));
-        }
-
-        /// <summary>
-        ///   Returns the request access token, or <c>null</c> if unavailable. 
-        /// </summary>
-        /// <returns>
-        ///   An <see cref="ActorToken"/> instance representing the request's access token if one can be obtained;
-        ///   otherwise <c>null</c>.
-        /// </returns>
-        /// <seealso cref="GetIdentityToken(Microsoft.AspNetCore.Http.HttpContext,TetraPakConfig)"/>
-        public static ActorToken? GetIdentityToken(this HttpRequest self, TetraPakConfig config) 
-            => self.HttpContext.GetIdentityToken(config);
-
-        /// <summary>
-        ///   Returns the request identity token, or <c>null</c> if unavailable.
-        /// </summary>
-        /// <param name="self">
-        ///   The request <see cref="HttpContext"/> object.
-        /// </param>
-        /// <param name="config">
-        ///   (optional)<br/>
-        ///   The Tetra Pak integration configuration object. When passed the method will look
-        ///   for the identity token in the header specified by <see cref="TetraPakConfig.AuthorizationHeader"/>.
-        ///   If not the identity token is assumed to be carried by the header named as <see cref="AmbientData.Keys.IdToken"/>.
-        /// </param>
-        /// <returns>
-        ///   An <see cref="ActorToken"/> object representing the request's identity token if one can be obtained;
-        ///   otherwise <c>null</c>.
-        /// </returns>
-        /// <seealso cref="GetIdentityToken(Microsoft.AspNetCore.Http.HttpRequest,TetraPakConfig)"/>
-        public static ActorToken? GetIdentityToken(this HttpContext self, TetraPakConfig? config = null)
-        {
-            var task = GetIdentityTokenAsync(self, config);
-            var outcome = task.ConfigureAwait(false).GetAwaiter().GetResult();
-            return outcome
-                ? outcome.Value
-                : null;
-        }
+        // /// <summary>
+        // ///   Returns the request identity token, or <c>null</c> if unavailable.
+        // /// </summary>
+        // /// <param name="self">
+        // ///   The request <see cref="HttpContext"/> object.
+        // /// </param>
+        // /// <param name="config">
+        // ///   (optional)<br/>
+        // ///   The Tetra Pak integration configuration object. When passed the method will look
+        // ///   for the identity token in the header specified by <see cref="TetraPakConfig.AuthorizationHeader"/>.
+        // ///   If not the identity token is assumed to be carried by the header named as <see cref="AmbientData.Keys.IdToken"/>.
+        // /// </param>
+        // /// <returns>
+        // ///   An <see cref="ActorToken"/> object representing the request's identity token if one can be obtained;
+        // ///   otherwise <c>null</c>.
+        // /// </returns>
+        // /// <seealso cref="GetIdentityToken(Microsoft.AspNetCore.Http.HttpRequest,TetraPakConfig)"/>
+        // public static ActorToken? GetIdentityToken(this HttpContext self, TetraPakConfig? config = null)
+        // {
+        //     var task = GetIdentityTokenAsync(self, config);
+        //     var outcome = task.ConfigureAwait(false).GetAwaiter().GetResult();
+        //     return outcome
+        //         ? outcome.Value
+        //         : null;
+        // }
         
-        /// <summary>
-        ///   Asynchronously returns the request identity token, or <c>null</c> if unavailable.
-        /// </summary>
-        /// <param name="self">
-        ///   The request <see cref="HttpContext"/> object.
-        /// </param>
-        /// <param name="authConfig">
-        ///   (optional)<br/>
-        ///   The Tetra Pak integration configuration object. When passed the method will look
-        ///   for the identity token in the header specified by <see cref="TetraPakConfig.AuthorizationHeader"/>.
-        ///   If not the identity token is assumed to be carried by the header named as <see cref="AmbientData.Keys.IdToken"/>.
-        /// </param>
-        /// <returns>
-        ///   An <see cref="ActorToken"/> object representing the request's identity token if one can be obtained;
-        ///   otherwise <c>null</c>.
-        /// </returns>
-        public static Task<Outcome<ActorToken>> GetIdentityTokenAsync(this HttpContext self, TetraPakConfig? authConfig = null)
-        {
-            if (self.Items.TryGetValue(AmbientData.Keys.IdToken, out var obj) && obj is string s 
-                    && ActorToken.TryParse(s, out var actorToken))
-                return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
-            
-            var headerIdent = authConfig?.AuthorizationHeader ?? AmbientData.Keys.IdToken;
-            s = self.Request.Headers[headerIdent].ToString();
-            if (s is {} && ActorToken.TryParse(s, out actorToken))
-                return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
-
-            return Task.FromResult(Outcome<ActorToken>.Fail(new Exception("Id token not found")));
-        }
+        // /// <summary>
+        // ///   Asynchronously returns the request identity token, or <c>null</c> if unavailable.
+        // /// </summary>
+        // /// <param name="self">
+        // ///   The request <see cref="HttpContext"/> object.
+        // /// </param>
+        // /// <param name="authConfig">
+        // ///   (optional)<br/>
+        // ///   The Tetra Pak integration configuration object. When passed the method will look
+        // ///   for the identity token in the header specified by <see cref="TetraPakConfig.AuthorizationHeader"/>.
+        // ///   If not the identity token is assumed to be carried by the header named as <see cref="AmbientData.Keys.IdToken"/>.
+        // /// </param>
+        // /// <returns>
+        // ///   An <see cref="ActorToken"/> object representing the request's identity token if one can be obtained;
+        // ///   otherwise <c>null</c>.
+        // /// </returns>
+        // public static Task<Outcome<ActorToken>> GetIdentityTokenAsync(this HttpContext self, TetraPakConfig? authConfig = null)
+        // {
+        //     if (self.Items.TryGetValue(AmbientData.Keys.IdToken, out var obj) && obj is string s 
+        //             && ActorToken.TryParse(s, out var actorToken))
+        //         return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
+        //     
+        //     var headerIdent = authConfig?.AuthorizationHeader ?? AmbientData.Keys.IdToken;
+        //     s = self.Request.Headers[headerIdent].ToString();
+        //     if (s is {} && ActorToken.TryParse(s, out actorToken))
+        //         return Task.FromResult(Outcome<ActorToken>.Success(actorToken));
+        //
+        //     return Task.FromResult(Outcome<ActorToken>.Fail(new Exception("Id token not found")));
+        // }
         
-        /// <summary>
-        ///   Gets all tokens from an <see cref="HttpContext"/>.
-        /// </summary>
-        /// <param name="self">
-        ///   The <see cref="HttpContext"/>.
-        /// </param>
-        /// <returns>
-        ///   
-        /// </returns>
-        public static async Task<EnumOutcome<ActorToken>> GetActorTokensAsync(this HttpContext? self)
-        {
-            if (self is null)
-                return EnumOutcome<ActorToken>.Fail(new Exception("No HTTP context available"));
-                
-            var values = self.Request.Headers[HeaderNames.Authorization];
-            if (!values.Any())
-            {
-                // the context is still in auth flow; use different mechanism ...
-                var tokenList = new List<ActorToken>();
-                var accessTokenOutcome = await self.GetAccessTokenAsync();
-                if (accessTokenOutcome)
-                {
-                    tokenList.Add(accessTokenOutcome.Value!);
-                }
-                var idTokenOutcome = await self.GetIdentityTokenAsync();
-                if (idTokenOutcome)
-                {
-                    tokenList.Add(idTokenOutcome.Value!);
-                }
-                return tokenList.Any()
-                    ? EnumOutcome<ActorToken>.Success(tokenList.ToArray())
-                    : EnumOutcome<ActorToken>.Fail(new Exception("Tokens not found"));
-            }
-        
-            var list = new List<ActorToken>();
-            foreach (var stringValue in values)
-            {
-                if (ActorToken.TryParse(stringValue, out var token))
-                    list.Add(token);
-            }
-            return EnumOutcome<ActorToken>.Success(list.ToArray());
-        }
+        // /// <summary>
+        // ///   Gets all tokens from an <see cref="HttpContext"/>.
+        // /// </summary>
+        // /// <param name="self">
+        // ///   The <see cref="HttpContext"/>.
+        // /// </param>
+        // /// <returns>
+        // ///   
+        // /// </returns>
+        // public static async Task<EnumOutcome<ActorToken>> GetActorTokensAsync(this HttpContext? self)
+        // {
+        //     if (self is null)
+        //         return EnumOutcome<ActorToken>.Fail(new Exception("No HTTP context available"));
+        //         
+        //     var values = self.Request.Headers[HeaderNames.Authorization];
+        //     if (!values.Any())
+        //     {
+        //         // the context is still in auth flow; use different mechanism ...
+        //         var tokenList = new List<ActorToken>();
+        //         var accessTokenOutcome = await self.GetAccessTokenAsync();
+        //         if (accessTokenOutcome)
+        //         {
+        //             tokenList.Add(accessTokenOutcome.Value!);
+        //         }
+        //         var idTokenOutcome = await self.GetIdentityTokenAsync();
+        //         if (idTokenOutcome)
+        //         {
+        //             tokenList.Add(idTokenOutcome.Value!);
+        //         }
+        //         return tokenList.Any()
+        //             ? EnumOutcome<ActorToken>.Success(tokenList.ToArray())
+        //             : EnumOutcome<ActorToken>.Fail(new Exception("Tokens not found"));
+        //     }
+        //
+        //     var list = new List<ActorToken>();
+        //     foreach (var stringValue in values)
+        //     {
+        //         if (ActorToken.TryParse(stringValue, out var token))
+        //             list.Add(token);
+        //     }
+        //     return EnumOutcome<ActorToken>.Success(list.ToArray());
+        // }
 
         /// <summary>
         ///   Gets (and, optionally, sets) a single header value.
@@ -273,62 +270,62 @@ namespace TetraPak.AspNet
             return useDefault;
         }
 
-        /// <summary>
-        ///   Gets a standardized value used for referencing a unique request. 
-        /// </summary>
-        /// <param name="request">
-        ///   The <see cref="HttpRequest"/>.
-        /// </param>
-        /// <param name="tetraPakConfig">
-        ///   Carries the Tetra Pak authorization configuration.
-        /// </param>
-        /// <param name="enforce">
-        ///   (optional; default=<c>false</c>)<br/>
-        ///   When set, a random unique string will be generated and attached to the request.  
-        /// </param>
-        /// <returns>
-        ///   A unique <see cref="string"/> value. 
-        /// </returns>
-        public static string? GetMessageId(
-            this HttpRequest request,
-            TetraPakConfig? tetraPakConfig,
-            bool enforce = false)
-        {
-            var key = tetraPakConfig?.RequestMessageIdHeader ?? AmbientData.Keys.RequestMessageId;
-            return request.Headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
-        }
+        // /// <summary>
+        // ///   Gets a standardized value used for referencing a unique request. 
+        // /// </summary>
+        // /// <param name="request">
+        // ///   The <see cref="HttpRequest"/>.
+        // /// </param>
+        // /// <param name="tetraPakConfig">
+        // ///   Carries the Tetra Pak authorization configuration.
+        // /// </param>
+        // /// <param name="enforce">
+        // ///   (optional; default=<c>false</c>)<br/>
+        // ///   When set, a random unique string will be generated and attached to the request.  
+        // /// </param>
+        // /// <returns>
+        // ///   A unique <see cref="string"/> value. 
+        // /// </returns>
+        // public static string? GetMessageId(
+        //     this HttpRequest request,
+        //     TetraPakConfig? tetraPakConfig,
+        //     bool enforce = false)
+        // {
+        //     var key = tetraPakConfig?.RequestMessageIdHeader ?? AmbientData.Keys.RequestMessageId;
+        //     return request.Headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
+        // }
 
-        /// <summary>
-        ///   Gets a telemetry level from the request (if any).
-        /// </summary>
-        /// <param name="request">
-        ///   The <see cref="HttpRequest"/>.
-        /// </param>
-        /// <param name="logger">
-        ///   A logger provider.
-        /// </param>
-        /// <param name="useDefault">
-        ///   A default telemetry level to be returned when no level was specified, or when
-        ///   the specified telemetry level could not be successfully parsed.  
-        /// </param>
-        /// <returns>
-        ///   A <see cref="ServiceDiagnosticsLevel"/> value.
-        /// </returns>
-        public static ServiceDiagnosticsLevel GetDiagnosticsLevel(
-            this HttpRequest request,
-            ILogger? logger,
-            ServiceDiagnosticsLevel useDefault = ServiceDiagnosticsLevel.None)
-        {
-            if (!request.Headers.TryGetValue(Headers.ServiceDiagnostics, out var values))
-                return useDefault;
-
-            var value = values.First();
-            if (Enum.TryParse<ServiceDiagnosticsLevel>(values, true, out var level)) 
-                return level;
-            
-            logger.Warning($"Unknown telemetry level requested: '{value}'");
-            return useDefault;
-        }
+        // /// <summary>
+        // ///   Gets a telemetry level from the request (if any).
+        // /// </summary>
+        // /// <param name="request">
+        // ///   The <see cref="HttpRequest"/>.
+        // /// </param>
+        // /// <param name="logger">
+        // ///   A logger provider.
+        // /// </param>
+        // /// <param name="useDefault">
+        // ///   A default telemetry level to be returned when no level was specified, or when
+        // ///   the specified telemetry level could not be successfully parsed.  
+        // /// </param>
+        // /// <returns>
+        // ///   A <see cref="ServiceDiagnosticsLevel"/> value.
+        // /// </returns>
+        // public static ServiceDiagnosticsLevel GetDiagnosticsLevel(
+        //     this HttpRequest request,
+        //     ILogger? logger,
+        //     ServiceDiagnosticsLevel useDefault = ServiceDiagnosticsLevel.None)
+        // {
+        //     if (!request.Headers.TryGetValue(Headers.ServiceDiagnostics, out var values))
+        //         return useDefault;
+        //
+        //     var value = values.First();
+        //     if (Enum.TryParse<ServiceDiagnosticsLevel>(values, true, out var level)) 
+        //         return level;
+        //     
+        //     logger.Warning($"Unknown telemetry level requested: '{value}'");
+        //     return useDefault;
+        // }
 
         /// <summary>
         ///   Sets a value to the <see cref="HttpContext"/>.
@@ -367,108 +364,96 @@ namespace TetraPak.AspNet
         public static T GetValue<T>(this HttpContext self, string key, T? useDefault = default)
             => self.Items.TryGetValue(key, out var obj) && obj is T tValue ? tValue : useDefault!; 
 
-        /// <summary>
-        ///   Writes a HTTP response.
-        /// </summary>
-        /// <param name="context">
-        ///   The <see cref="HttpContext"/>.
-        /// </param>
-        /// <param name="statusCode">
-        ///   The status code to be returned.
-        /// </param>
-        /// <param name="content">
-        ///   (optional)<br/>
-        ///   Content to be returned (objects will be JSON serialized).
-        /// </param>
-        /// <param name="cancellationToken">
-        ///   (optional)<br/>
-        ///   A cancellation token.
-        /// </param>
-        public static Task RespondAsync(this HttpContext context, 
-            HttpStatusCode statusCode, 
-            object? content = null,
-            CancellationToken cancellationToken = default)
-        {
-            string? contentType = null;
-            string? stringContent;
-            if (content is string stringValue)
-            {
-                stringContent = stringValue;
-            }
-            else
-            {
-                stringContent = content?.ToJson();
-                contentType = stringContent is { } ? "application/json" : null;
-            }
+        // /// <summary>
+        // ///   Writes a HTTP response.
+        // /// </summary>
+        // /// <param name="context">
+        // ///   The <see cref="HttpContext"/>.
+        // /// </param>
+        // /// <param name="statusCode">
+        // ///   The status code to be returned.
+        // /// </param>
+        // /// <param name="content">
+        // ///   (optional)<br/>
+        // ///   Content to be returned (objects will be JSON serialized).
+        // /// </param>
+        // /// <param name="cancellationToken">
+        // ///   (optional)<br/>
+        // ///   A cancellation token.
+        // /// </param>
+        // public static Task RespondAsync(this HttpContext context, 
+        //     HttpStatusCode statusCode, 
+        //     object? content = null,
+        //     CancellationToken cancellationToken = default)
+        // {
+        //     string? contentType = null;
+        //     string? stringContent;
+        //     if (content is string stringValue)
+        //     {
+        //         stringContent = stringValue;
+        //     }
+        //     else
+        //     {
+        //         stringContent = content?.ToJson();
+        //         contentType = stringContent is { } ? "application/json" : null;
+        //     }
+        //
+        //     return context.RespondAsync(statusCode, stringContent, contentType, cancellationToken);
+        // }
 
-            return context.RespondAsync(statusCode, stringContent, contentType, cancellationToken);
-        }
-
-        /// <summary>
-        ///   Writes a HTTP response.
-        /// </summary>
-        /// <param name="context">
-        ///   The <see cref="HttpContext"/>.
-        /// </param>
-        /// <param name="statusCode">
-        ///   The status code to be returned.
-        /// </param>
-        /// <param name="content">
-        ///   (optional)<br/>
-        ///   Content to be returned.
-        /// </param>
-        /// <param name="contentType">
-        ///   (optional)<br/>
-        ///   A content MIME type tp be returned.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///   (optional)<br/>
-        ///   A cancellation token.
-        /// </param>
-        public static async Task RespondAsync(this HttpContext context,
-            HttpStatusCode statusCode, 
-            string? content = null,
-            string? contentType = null, 
-            CancellationToken cancellationToken = default)
-        {
-            context.Response.StatusCode = (int) statusCode;
-            if (content is null)
-                return;
-
-            if (contentType is null)
-            {
-                if (isProbablyJson())
-                {
-                    contentType = "application/json";
-                }
-            }
-            context.Response.ContentType = contentType ?? "";
-            await context.Response.WriteAsync(content, cancellationToken);
-
-            bool isProbablyJson()
-            {
-                if (content.Length < 2)
-                    return false;
-
-                if (content.StartsWith('{') && content.EndsWith('}'))
-                    return true;
-
-                return content.StartsWith('[') && content.EndsWith(']');
-            }
-        }
+        // /// <summary>
+        // ///   Writes a HTTP response.
+        // /// </summary>
+        // /// <param name="context">
+        // ///   The <see cref="HttpContext"/>.
+        // /// </param>
+        // /// <param name="statusCode">
+        // ///   The status code to be returned.
+        // /// </param>
+        // /// <param name="content">
+        // ///   (optional)<br/>
+        // ///   Content to be returned.
+        // /// </param>
+        // /// <param name="contentType">
+        // ///   (optional)<br/>
+        // ///   A content MIME type tp be returned.
+        // /// </param>
+        // /// <param name="cancellationToken">
+        // ///   (optional)<br/>
+        // ///   A cancellation token.
+        // /// </param>
+        // public static async Task RespondAsync(this HttpContext context,
+        //     HttpStatusCode statusCode, 
+        //     string? content = null,
+        //     string? contentType = null, 
+        //     CancellationToken cancellationToken = default)
+        // {
+        //     context.Response.StatusCode = (int) statusCode;
+        //     if (content is null)
+        //         return;
+        //
+        //     if (contentType is null)
+        //     {
+        //         if (isProbablyJson())
+        //         {
+        //             contentType = "application/json";
+        //         }
+        //     }
+        //     context.Response.ContentType = contentType ?? "";
+        //     await context.Response.WriteAsync(content, cancellationToken);
+        //
+        //     bool isProbablyJson()
+        //     {
+        //         if (content.Length < 2)
+        //             return false;
+        //
+        //         if (content.StartsWith('{') && content.EndsWith('}'))
+        //             return true;
+        //
+        //         return content.StartsWith('[') && content.EndsWith(']');
+        //     }
+        // }
         
-        /// <summary>
-        ///   Examines the resolved endpoint of the context (if any) and returns a value indicating whether
-        ///   it is protected (decorated with 
-        /// </summary>
-        /// <param name="self">
-        ///   The extended <see cref="HttpContext"/>.
-        /// </param>
-        /// <returns>
-        ///   <c>true</c> if an endpoint is resolved and protected. 
-        /// </returns>
-        public static bool IsEndpointProtected(this HttpContext self) => self.GetEndpoint().IsAuthorizationRequired();
-
         /// <summary>
         ///   Obtains a value from a specified <see cref="HttpRequest"/> element (such as headers or query). 
         /// </summary>

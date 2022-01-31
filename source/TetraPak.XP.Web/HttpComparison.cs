@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 
-namespace TetraPak.AspNet
+namespace TetraPak.XP.Web
 {
     /// <summary>
     ///   A string compatible (criteria) expression for use with HTTP requests.

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     public static class Parsing
     {

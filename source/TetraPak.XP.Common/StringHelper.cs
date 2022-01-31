@@ -6,13 +6,76 @@ using System.Text.RegularExpressions;
 
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     /// <summary>
     ///   Convenient extension methods for <see cref="string"/> operations.
     /// </summary>
     public static class StringHelper
     {
+        public static bool StartsWith(this string self, char c) => self.IsAssigned() && self[0] == c;
+        
+        public static bool EndsWith(this string self, char c) => self.IsAssigned() && self[self.Length-1] == c;
+        
+        // todo Copy to TetraPak.Common (.NET 5+ / Core)
+        public static string EnsureAssigned(
+            this string? self,
+            string identifier,
+            string? useDefault, 
+            Func<string>? fallback = null,
+            bool allowWhitespace = false) 
+            => self.EnsureAssigned(
+                useDefault,
+                new Exception($"{identifier} was not assigned"),
+                fallback,
+                allowWhitespace);
+
+        // todo Copy to TetraPak.Common (.NET 5+ / Core)
+        public static string EnsureAssigned(
+            this string? self,
+            string? useDefault, 
+            Exception throwWenUnassigned,
+            Func<string>? fallback = null,
+            bool allowWhitespace = false)
+        {
+            var result = self ?? useDefault ?? fallback?.Invoke();
+            if (result is null || !allowWhitespace && result.IsWhitespace())
+                throw throwWenUnassigned;
+
+            return result;
+        }
+        
+        /// <summary>
+        ///   Examines the string and returns a value to indicate it is a non-<c>null</c> value  of one or
+        ///   more whitespace characters.
+        /// </summary>
+        public static bool IsWhitespace(this string? self)
+        {
+            if (self is null || self.Length == 0)
+                return false;
+
+            var ca = self.ToCharArray();
+            for (var i = 0; i < ca.Length; i++)
+            {
+                if (!char.IsWhiteSpace(ca[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///   Examines the string and returns a value to indicate it a non-<c>null</c> value that is
+        ///   either of zero length or contains only whitespace characters.
+        /// </summary>
+        public static bool IsWhitespaceOrEmpty(this string? self)
+        {
+            if (self is null)
+                return false;
+
+            return self.Length == 0 || self.IsWhitespace();
+        }
+        
         /// <summary>
         ///   Ensures the first letter in the string is lowercase.
         /// </summary>
@@ -57,7 +120,7 @@ namespace TetraPak
             }
 
             if (i < ca.Length)
-                sb.Append(self[i..]);
+                sb.Append(self.Substring(i));
 
             return sb.ToString();
         }
@@ -106,7 +169,7 @@ namespace TetraPak
             }
 
             if (i < ca.Length)
-                sb.Append(self[i..]);
+                sb.Append(self.Substring(i));
 
             return sb.ToString();
         }
@@ -307,7 +370,7 @@ namespace TetraPak
             if (string.IsNullOrEmpty(self))
                 return new string(postfix, 1);
             
-            return self[^1].Equals(postfix, ignoreCase) 
+            return self[self.Length-1].Equals(postfix, ignoreCase) 
                 ? self
                 : $"{self}{postfix.ToString()}";
         }
@@ -375,7 +438,7 @@ namespace TetraPak
         {
             return string.IsNullOrEmpty(self) || !self[0].Equals(prefix, ignoreCase) 
                 ? self 
-                : self[1..];
+                : self.Substring(1);
         }
 
         /// <summary>
@@ -408,7 +471,7 @@ namespace TetraPak
         {
             return !self.EndsWith(postfix, comparison)
                 ? self 
-                : self[^postfix.Length..];
+                : self.Substring(self.Length - postfix.Length);
         }
         
         /// <summary>
@@ -439,9 +502,9 @@ namespace TetraPak
             char postfix,
             bool ignoreCase = false)
         {
-            return string.IsNullOrEmpty(self) || !self[^1].Equals(postfix, ignoreCase) 
+            return string.IsNullOrEmpty(self) || !self[self.Length-1].Equals(postfix, ignoreCase) 
                 ? self 
-                : self[1..];
+                : self.Substring(1);
         }
 
         /// <summary>
@@ -467,27 +530,27 @@ namespace TetraPak
             return sb.ToString();
         }
 
-        public static string ReplaceEnding(
-            this string self, 
-            string ending, 
-            string replace,
-            StringComparison comparison = StringComparison.CurrentCultureIgnoreCase)
-        {
-            if (!self.EndsWith(ending, comparison))
-                return self;
-
-            var i = self.Length - ending.Length;
-            var sb = new StringBuilder(self[..^i]);
-            for (var j = 0; j < ending.Length; i++, j++)
-            {
-                var c = self[i];
-                var e = ending[j];
-                var isLower = char.IsLower(c);
-                sb.Append(isLower ? char.ToLower(e) : char.ToUpper(e));
-            }
-
-            return sb.ToString();
-        }
+        // public static string ReplaceEnding(
+        //     this string self, 
+        //     string ending, 
+        //     string replace,
+        //     StringComparison comparison = StringComparison.CurrentCultureIgnoreCase)
+        // {
+        //     if (!self.EndsWith(ending, comparison))
+        //         return self;
+        //
+        //     var i = self.Length - ending.Length;
+        //     var sb = new StringBuilder(self[..^i]);
+        //     for (var j = 0; j < ending.Length; i++, j++)
+        //     {
+        //         var c = self[i];
+        //         var e = ending[j];
+        //         var isLower = char.IsLower(c);
+        //         sb.Append(isLower ? char.ToLower(e) : char.ToUpper(e));
+        //     }
+        //
+        //     return sb.ToString();
+        // }
 
         /// <summary>
         ///   Examines a <see cref="char"/> and returns a value indicating it is a vowel.
@@ -596,8 +659,7 @@ namespace TetraPak
 
             string safeToString(KeyValuePair<TKey, TValue> pair)
             {
-                var (key, value) = pair;
-                return $"{key}={SafeToString(value, separator:separator)}";
+                return $"{pair.Key}={SafeToString(pair.Value, separator:separator)}";
             }
         }
 
@@ -763,14 +825,14 @@ namespace TetraPak
         /// <param name="self">
         ///   The string to be examined.
         /// </param>
-        /// <param name="isWhitespaceAllowed">
+        /// <param name="allowWhitespace">
         ///   (optional; default=<c>false</c>)<br/>
         ///   Specifies whether a string with only whitespace is considered to be assigned.
         /// </param>
         /// <returns>
         ///   <c>true</c> if the string is considered to be assigned; otherwise <c>false</c>.
         /// </returns>
-        public static bool IsAssigned(this string? self, bool isWhitespaceAllowed = false)
+        public static bool IsAssigned(this string? self, bool allowWhitespace = false)
         {
             if (self is null)
                 return false;
@@ -778,7 +840,7 @@ namespace TetraPak
             if (self.Length == 0)
                 return false;
             
-            return isWhitespaceAllowed || self.Any(c => !char.IsWhiteSpace(c));
+            return allowWhitespace || self.Any(c => !char.IsWhiteSpace(c));
         }
 
         public static bool IsUnassigned(this string self, bool isWhitespaceAllowed = false) =>

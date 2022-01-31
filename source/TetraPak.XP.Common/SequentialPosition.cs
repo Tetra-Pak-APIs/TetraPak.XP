@@ -1,4 +1,4 @@
-﻿namespace TetraPak
+﻿namespace TetraPak.XP
 {
     /// <summary>
     ///   Represents the relative position of an arbitrary sequence of data. 

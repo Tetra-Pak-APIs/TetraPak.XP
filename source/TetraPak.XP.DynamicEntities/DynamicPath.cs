@@ -153,7 +153,7 @@ namespace TetraPak.XP.DynamicEntities
         /// </exception>
         public static implicit operator DynamicPath(string? stringValue) 
             => 
-                stringValue is {} ? new DynamicPath(stringValue) : null!;
+            stringValue is {} ? new DynamicPath(stringValue) : null!;
 
         /// <summary>
         ///   Implicitly converts a <see cref="DynamicPath"/> value into its <see cref="string"/> representation.

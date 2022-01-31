@@ -1,4 +1,4 @@
-﻿namespace TetraPak.AspNet.Debugging
+﻿namespace TetraPak.XP.Web.Debugging
 {
     /// <summary>
     ///   An abstract representation of a HTTP request (note: the class itself is not <c>abstract</c>).

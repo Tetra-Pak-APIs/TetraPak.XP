@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace TetraPak.XP
+namespace TetraPak.XP.Caching.Abstractions
 {
     /// <summary>
-    ///   Implementors of this contract can act as a repository for arbitrary values
-    ///   with a for a limited time, which can be useful for caching purposes.
+    ///   Implementors of this contract can support repositories for arbitrary values
+    ///   with a limited lifespan, which can be useful for caching purposes.
     /// </summary>
     public interface ITimeLimitedRepositories
     {

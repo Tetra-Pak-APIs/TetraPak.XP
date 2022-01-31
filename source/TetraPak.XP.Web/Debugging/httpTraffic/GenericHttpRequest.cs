@@ -1,4 +1,4 @@
-﻿namespace TetraPak.AspNet.Debugging
+﻿namespace TetraPak.XP.Web.Debugging
 {
     /// <summary>
     ///   An generic representation of a HTTP request.

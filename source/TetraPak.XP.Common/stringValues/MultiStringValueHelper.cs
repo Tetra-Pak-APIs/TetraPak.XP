@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     /// <summary>
     ///   Convenient helper methods for working with <see cref="MultiStringValue"/>s.
@@ -35,7 +35,7 @@ namespace TetraPak
         /// <exception cref="ArgumentNullException">
         ///   The <see cref="MultiStringValue"/> was <c>null</c>.
         /// </exception>
-        /// <seealso cref="Join(TetraPak.MultiStringValue,string[],bool)"/>
+        /// <seealso cref="Join(MultiStringValue,string[],bool)"/>
         public static MultiStringValue Join(this MultiStringValue self, MultiStringValue other, bool trimDuplicates)
         {
             if (self == null) throw new ArgumentNullException(nameof(self));
@@ -71,7 +71,7 @@ namespace TetraPak
         /// <exception cref="ArgumentNullException">
         ///   The <see cref="MultiStringValue"/> was <c>null</c>.
         /// </exception>
-        /// <seealso cref="Join(TetraPak.MultiStringValue,TetraPak.MultiStringValue,bool)"/>
+        /// <seealso cref="Join(MultiStringValue,MultiStringValue,bool)"/>
         public static MultiStringValue Join(this MultiStringValue self, string[]? items, bool trimDuplicates)
         {
             if (self == null) throw new ArgumentNullException(nameof(self));
@@ -267,7 +267,7 @@ namespace TetraPak
                     : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot pop {count} items from end of {self}");
 
             if (count == 1)
-                return new MultiStringValue(self.Items[^1]);
+                return new MultiStringValue(self.Items[self.Items.Length-1]);
 
             var items = new string[count];
             var j = 0;

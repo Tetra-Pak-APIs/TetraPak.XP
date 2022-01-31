@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     /// <summary>
     ///   A string compatible value.
@@ -10,6 +10,6 @@ namespace TetraPak
         /// <summary>
         ///   The value's string representation.
         /// </summary>
-        string? StringValue { get; } // todo Consider removing the nullability aspect of StringValue (just doesn't make sense)
+        string StringValue { get; }
     }
 }

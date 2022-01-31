@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace TetraPak.XP.SimpleDI
+namespace TetraPak.XP.DependencyInjection
 {
     public class XpServiceCollection : IServiceCollection
     {

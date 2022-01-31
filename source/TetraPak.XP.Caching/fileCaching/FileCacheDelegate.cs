@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TetraPak.XP.Caching.Abstractions;
+using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Caching

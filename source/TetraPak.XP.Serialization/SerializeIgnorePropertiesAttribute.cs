@@ -6,7 +6,7 @@ namespace TetraPak.XP.Serialization
     [AttributeUsage(AttributeTargets.Class)]
     public class SerializeIgnorePropertiesAttribute : Attribute
     {
-        internal string[] PropertyNames { get; }
+        public string[] PropertyNames { get; }
         
         public SerializeIgnorePropertiesAttribute(params string[] propertyNames)
         {

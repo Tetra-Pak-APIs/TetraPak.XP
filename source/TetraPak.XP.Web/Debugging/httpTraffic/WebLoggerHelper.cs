@@ -5,51 +5,48 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using TetraPak.Serialization;
+using TetraPak.XP.Streaming;
 
-namespace TetraPak.AspNet.Debugging
+namespace TetraPak.XP.Web.Debugging
 {
     partial class WebLoggerHelper // HTTP traffic
     {
-        static bool s_isTraceRequestAdded;
-        static TraceRequestMiddleware? s_traceRequestMiddleware;
+        // static bool s_isTraceRequestAdded;
+        // static TraceRequestMiddleware? s_traceRequestMiddleware;
         
-        /// <summary>
-        ///   (fluent api)<br/>
-        ///   Injects middleware that traces all requests to the logger provider
-        ///   when <see cref="LogLevel.Trace"/> is set.
-        /// </summary>
-        /// <param name="app">
-        ///   The extended application builder. 
-        /// </param>
-        public static IApplicationBuilder UseTetraPakTraceRequestAsync(this IApplicationBuilder app)
-        {
-            lock (s_syncRoot)
-            {
-                if (s_isTraceRequestAdded)
-                    return app;
-
-                s_isTraceRequestAdded = true;
-                var config = app.ApplicationServices.GetRequiredService<TetraPakConfig>();
-                var logger = app.ApplicationServices.GetService<ILogger<TraceRequestMiddleware>>();
-                if (logger is null || !logger.IsEnabled(LogLevel.Trace))
-                    return app;
-
-                s_traceRequestMiddleware = new TraceRequestMiddleware(config, logger);
-                app.Use(async (context, next) =>
-                {
-                    await s_traceRequestMiddleware.InvokeAsync(context);
-                    await next();
-                });
-            }
-
-            return app;
-        }
+        // /// <summary>
+        // ///   (fluent api)<br/>
+        // ///   Injects middleware that traces all requests to the logger provider obsolete
+        // ///   when <see cref="LogLevel.Trace"/> is set.
+        // /// </summary>
+        // /// <param name="app">
+        // ///   The extended application builder. 
+        // /// </param>
+        // public static IApplicationBuilder UseTetraPakTraceRequestAsync(this IApplicationBuilder app)
+        // {
+        //     lock (s_syncRoot)
+        //     {
+        //         if (s_isTraceRequestAdded)
+        //             return app;
+        //
+        //         s_isTraceRequestAdded = true;
+        //         var config = app.ApplicationServices.GetRequiredService<TetraPakConfig>();
+        //         var logger = app.ApplicationServices.GetService<ILogger<TraceRequestMiddleware>>();
+        //         if (logger is null || !logger.IsEnabled(LogLevel.Trace))
+        //             return app;
+        //
+        //         s_traceRequestMiddleware = new TraceRequestMiddleware(config, logger);
+        //         app.Use(async (context, next) =>
+        //         {
+        //             await s_traceRequestMiddleware.InvokeAsync(context);
+        //             await next();
+        //         });
+        //     }
+        //
+        //     return app;
+        // }
         
         /// <summary>
         ///   Attempts building and returning a textual representation of a <see cref="Stream"/>. 
@@ -65,7 +62,7 @@ namespace TetraPak.AspNet.Debugging
         ///   Options for how tracing is conducted. 
         /// </param>
         /// <returns></returns>
-        public static async Task<string> GetRawBodyStringAsync(
+        public static async Task<string> GetRawBodyStringAsync( // todo Consider skipping this for .NET Standard 2.0 (cannot retain stream)
             this Stream? stream, 
             Encoding encoding, 
             AbstractTraceHttpMessageOptions? options = null)
@@ -99,17 +96,23 @@ namespace TetraPak.AspNet.Debugging
             var isTruncated = false;
 
             var bodyStream = new MemoryStream();
-            await using var writer = new StreamWriter(bodyStream);
+            using var writer = new StreamWriter(bodyStream);
             using var reader = new StreamReader(stream, encoding, true, bufferSize, true);
-            
-            while (await reader.ReadBlockAsync(buffer) != 0 && !isTruncated)
+
+            var index = 0;
+            while (await reader.ReadBlockAsync(buffer, index, bufferSize) != 0 && !isTruncated)
             {
                 await writer.WriteAsync(buffer);
                 remaining -= bufferSize;
+                index += bufferSize;
                 isTruncated = remaining <= 0; 
             }
             bodyStream.Position = 0;
+#if NET5_0_OR_GREATER
             using (var memoryReader = new StreamReader(bodyStream, leaveOpen:true)) // leave open (`writer` will close)
+#else
+            using (var memoryReader = new StreamReader(bodyStream)) // leave open (`writer` will close)
+#endif            
             {
                 body = await memoryReader.ReadToEndAsync();
             }
@@ -211,10 +214,7 @@ namespace TetraPak.AspNet.Debugging
         public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ToKeyValuePairs(
             this IDictionary<string, StringValues> dict)
         {
-            foreach (var (key, values) in dict)
-            {
-                yield return new KeyValuePair<string, IEnumerable<string>>(key, values);
-            }
+            return dict.Select(pair => new KeyValuePair<string, IEnumerable<string>>(pair.Key, pair.Value));
         }
         
         /// <summary>

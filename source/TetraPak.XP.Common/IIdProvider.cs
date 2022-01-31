@@ -1,4 +1,4 @@
-namespace TetraPak
+namespace TetraPak.XP
 {
     public interface IIdProvider<out TId>
     {

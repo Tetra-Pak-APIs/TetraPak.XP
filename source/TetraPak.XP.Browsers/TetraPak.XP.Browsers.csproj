@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <PackageVersion>1.0.0-alpha.2</PackageVersion>
+        <Title>Tetra Pak common library for native applications</Title>
+        <Description>A common set of code APIs and tools for Tetra Pak .NET native development</Description>
+        <Copyright>Tetra Pak</Copyright>
+        <PackageReleaseNotes>Early alpha for internal testing</PackageReleaseNotes>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
+      <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.Web\TetraPak.XP.Web.csproj" />
+    </ItemGroup>
+
+</Project>

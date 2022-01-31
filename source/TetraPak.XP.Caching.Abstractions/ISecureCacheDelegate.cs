@@ -1,4 +1,4 @@
-﻿namespace TetraPak.XP.Caching
+﻿namespace TetraPak.XP.Caching.Abstractions
 {
     public interface ISecureCacheDelegate : IITimeLimitedRepositoriesDelegate
     {

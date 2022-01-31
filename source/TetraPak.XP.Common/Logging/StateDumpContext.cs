@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Extensions.Logging;
 
-namespace TetraPak.Logging
+namespace TetraPak.XP.Logging
 {
      /// <summary>
     ///   Used to specify data for getting the current state.
@@ -16,7 +15,7 @@ namespace TetraPak.Logging
         
         internal StringBuilder StringBuilder { get; }
 
-        internal ILogger? Logger { get; private set; }
+        internal ILog? Log { get; private set; }
 
         /// <summary>
         ///   (default=<c>false</c>)<br/>
@@ -105,16 +104,16 @@ namespace TetraPak.Logging
         /// <param name="caption">
         ///   
         /// </param>
-        /// <param name="logger">
+        /// <param name="log">
         ///   (optional)<br/>
         ///   A target logger provider. Adding this to the options is necessary if you need to disclose
         ///   restricted values, based on the declared <see cref="LogLevel"/>. 
         /// </param>
         /// <seealso cref="RestrictedValueAttribute"/>
-        public StateDumpContext(string? caption, ILogger? logger = null)
+        public StateDumpContext(string? caption, ILog? log = null)
         {
             Caption = caption;
-            Logger = logger;
+            Log = log;
             StringBuilder = new StringBuilder();
             Indentation = new Indentation(3);
         }

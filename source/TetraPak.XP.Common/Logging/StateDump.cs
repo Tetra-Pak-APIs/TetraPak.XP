@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 #nullable enable
 
-namespace TetraPak.Logging
+namespace TetraPak.XP.Logging
 {
     /// <summary>
     ///   Assists in creating a well formatted state dump of one or more objects.
@@ -15,8 +14,6 @@ namespace TetraPak.Logging
     /// <seealso cref="RestrictedValueAttribute"/>
     public class StateDump
     {
-        // readonly StringBuilder _stringBuilder = new(); obsolete
-        // readonly ILogger? _logger;
         static readonly List<AttachedStateDumpHandler> s_attachedStateDumpHandlers = new();
         readonly StateDumpContext _context;
 
@@ -137,8 +134,8 @@ namespace TetraPak.Logging
             _context = (context ?? new StateDumpContext(null!)).WithAttachedStateDumps(s_attachedStateDumpHandlers);
         }
 
-        public StateDump(string caption, ILogger? logger)
-        : this(new StateDumpContext(caption, logger))
+        public StateDump(string caption, ILog? log)
+        : this(new StateDumpContext(caption, log))
         {
         }
     }

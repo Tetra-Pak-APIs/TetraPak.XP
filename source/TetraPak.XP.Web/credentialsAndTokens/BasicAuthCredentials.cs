@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace TetraPak
+namespace TetraPak.XP.Web.credentialsAndTokens
 {
     /// <summary>
     ///   Represents basic authentication credentials. 
@@ -36,11 +36,15 @@ namespace TetraPak
             try
             {
                 var bytes = Convert.FromBase64String(encoded);
-                var credentials = Encoding.UTF8.GetString(bytes).Split(new[] {SecretQualifier[0]});
+                var credentials = Encoding.UTF8.GetString(bytes).Split(SecretQualifier[0]);
                 if (credentials.Length != 2)
-                    return Outcome<(string, string, string)>.Fail();
+                    return Outcome<(string, string, string)>.Fail(new FormatException($"Expected two elements but found {credentials.Length}"));
 
+#if NET5_0_OR_GREATER
                 var splitSecret = credentials[1].Split(NewSecretQualifier, StringSplitOptions.RemoveEmptyEntries);
+#else
+                var splitSecret = credentials[1].Split(new[] {NewSecretQualifier}, StringSplitOptions.RemoveEmptyEntries);
+#endif
                 return Outcome<(string identity, string secret, string newSecret)>.Success(splitSecret.Length == 1
                     ? (credentials[0], credentials[1], null!)
                     : (credentials[0], splitSecret[0], splitSecret[1]));

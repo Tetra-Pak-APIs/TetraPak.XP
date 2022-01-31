@@ -1,7 +1,6 @@
-﻿using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-namespace TetraPak.Logging
+namespace TetraPak.XP.Logging
 {
     public delegate Task<bool> AttachedStateDumpHandler(object source, /*StringBuilder stringBuilder, obsolete */StateDumpContext context);
 }

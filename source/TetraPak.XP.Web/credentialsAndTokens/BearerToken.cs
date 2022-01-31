@@ -1,9 +1,11 @@
 ﻿using System;
+#if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP.Web.credentialsAndTokens
 {
     /// <summary>
     ///   Represents a bearer token (a token with 'Bearer ' prefix).
@@ -54,7 +56,11 @@ namespace TetraPak
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
         protected override bool OnTryParse(string value, [NotNullWhen(true)] out string? identity) 
+#else
+        protected override bool OnTryParse(string value, out string? identity) 
+#endif
             => tryParse(value, out identity);
 
         /// <summary>
@@ -73,7 +79,11 @@ namespace TetraPak
         /// <returns>
         ///   <c>true</c> if <paramref name="s"/> was converted successfully; otherwise, <c>false</c>.
         /// </returns>
+#if NET5_0_OR_GREATER
         public static bool TryParse(string s, [NotNullWhen(true)] out BearerToken? token)
+#else
+        public static bool TryParse(string s, out BearerToken? token)
+#endif
         {
             token = null;
             if (string.IsNullOrWhiteSpace(s) || !tryParse(s, out var identity))
@@ -83,7 +93,11 @@ namespace TetraPak
             return true;
         }
 
+#if NET5_0_OR_GREATER
         static bool tryParse(string value, [NotNullWhen(true)] out string? identity)
+#else
+        static bool tryParse(string value, out string? identity)
+#endif
         {
             identity = null;
             if (string.IsNullOrWhiteSpace(value))
@@ -93,7 +107,7 @@ namespace TetraPak
             if (!value.StartsWith(Qualifier))
                 return false;
 
-            identity = value[Qualifier.Length..];
+            identity = value.Substring(Qualifier.Length);
             return true;
         }
 

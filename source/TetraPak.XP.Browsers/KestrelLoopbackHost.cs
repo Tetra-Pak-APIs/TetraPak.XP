@@ -12,6 +12,8 @@ namespace TetraPak.XP.Browsers
 {
     sealed class LoopbackHost : IDisposable
     {
+        readonly object _syncRoot = new();
+        
         internal static readonly TimeSpan DefaultTimeout =
 #if DEBUG 
             TimeSpan.FromMinutes(1);
@@ -22,20 +24,11 @@ namespace TetraPak.XP.Browsers
         readonly IWebHost _host;
         readonly TaskCompletionSource<HttpRequest?> _loopbackTcs = new();
         readonly ILog? _log;
+        bool _isDisposed;
 
         public LoopbackFilter? LoopbackFilter { get; set; }
 
         static int methodNotAllowed() => (int) HttpStatusCode.MethodNotAllowed;
-
-        public void Dispose()
-        {
-            Task.Run(async () =>
-            {
-                _loopbackTcs.TrySetCanceled();
-                await Task.Delay(500);
-                _host.Dispose();
-            });
-        }
 
         async Task setResultAsync(HttpContext ctx)
         {
@@ -70,6 +63,7 @@ namespace TetraPak.XP.Browsers
         
         public LoopbackHost(Uri loopbackHost, ILog? log)
         {
+            _log = log;
             try
             {
                 var builder = new WebHostBuilder();
@@ -93,7 +87,9 @@ namespace TetraPak.XP.Browsers
                         {
                             // todo add tracing with ILog
                             
-                            var filter = LoopbackFilter ?? InteractiveBrowser.DefaultLoopbackFilter;
+                            
+                            
+                            var filter = LoopbackFilter ?? LoopbackBrowser.DefaultLoopbackFilter;
                             switch (await filter.Invoke(ctx.Request))
                             {
                                 case LoopbackFilterOutcome.Accept:
@@ -120,6 +116,23 @@ namespace TetraPak.XP.Browsers
                 Console.WriteLine(ex);
                 throw;
             }
+        }
+        
+        public void Dispose()
+        {
+            Task.Run(async () =>
+            {
+                lock (_syncRoot)
+                {
+                    if (_isDisposed)
+                        return;
+                }
+
+                _isDisposed = true;
+                _loopbackTcs.TrySetCanceled();
+                await Task.Delay(500);
+                _host.Dispose();
+            });
         }
     }
 }

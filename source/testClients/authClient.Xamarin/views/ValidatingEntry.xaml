@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView 
+    xmlns="http://xamarin.com/schemas/2014/forms" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+    x:Class="authClient.views.ValidatingEntry"
+    x:Name="Self">
+    
+    <ContentView.Content>
+        <Grid>
+            <Entry 
+                Text="{Binding Text, Source={x:Reference Self}}"
+                BackgroundColor="Transparent"
+                TextColor="{Binding TextColor, Source={x:Reference Self}}"
+                FontSize="{Binding FontSize, Source={x:Reference Self}}"
+                Placeholder="{Binding Placeholder, Source={x:Reference Self}}"
+                PlaceholderColor="{Binding PlaceholderColor, Source={x:Reference Self}}"
+                />
+            
+            <BoxView 
+                Color="Red"
+                WidthRequest="3" HeightRequest="15" VerticalOptions="Center"
+                HorizontalOptions="Start" 
+                IsVisible="{Binding IsInvalid, Source={x:Reference Self}}"
+                />
+
+            <BoxView 
+                Color="Red"
+                WidthRequest="3" HeightRequest="15" VerticalOptions="Center"
+                HorizontalOptions="End"
+                IsVisible="{Binding IsInvalid, Source={x:Reference Self}}"
+                />
+            
+        </Grid>
+    </ContentView.Content>
+</ContentView>

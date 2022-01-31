@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace TetraPak.AspNet.Debugging
+namespace TetraPak.XP.Web.Debugging
 {
     /// <summary>
     ///   An abstract representation of a HTTP request.

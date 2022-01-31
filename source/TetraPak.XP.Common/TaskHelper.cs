@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     public static class TaskHelper
     {
@@ -91,7 +91,7 @@ namespace TetraPak
         ///   The type of result being requested.
         /// </typeparam>
         /// <returns>
-        ///   An <see cref="Outcome{T}"/> value, signalling success/failure while also carrying the requested
+        ///   An <see cref="Outcome"/> value, signalling success/failure while also carrying the requested
         ///   result on success; otherwise an <see cref="Exception"/>.
         /// </returns>
         public static Outcome<T> AwaitResult<T>(

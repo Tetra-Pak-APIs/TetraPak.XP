@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Caching

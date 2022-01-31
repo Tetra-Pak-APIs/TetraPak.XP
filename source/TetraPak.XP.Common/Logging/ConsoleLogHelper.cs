@@ -8,7 +8,11 @@ namespace TetraPak.XP.Logging
     /// </summary>
     public static class ConsoleLogHelper
     {
-        public static ILog WithConsoleLog(this ILog log)
+        /// <summary>
+        ///   (fluent api)<br/>
+        ///   Adds a logger provider to write all events to the <see cref="Console"/> and then return the log instance.
+        /// </summary>
+        public static ILog WithConsoleLogging(this ILog log)
         {
             log.Logged += writeToConsole;
             return log;
@@ -16,31 +20,15 @@ namespace TetraPak.XP.Logging
 
         static void writeToConsole(object sender, LogEventArgs args)
         {
-            switch (args.Rank)
+            Console.ForegroundColor = args.Rank switch
             {
-                case LogRank.Trace:
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    break;
-                
-                case LogRank.Debug:
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    break;
-
-                case LogRank.Information:
-                    Console.ForegroundColor = ConsoleColor.White;
-                    break;
-
-                case LogRank.Warning:
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
-
-                case LogRank.Error:
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(args.Rank), args.Rank, null);
-            }
+                LogRank.Trace => ConsoleColor.Cyan,
+                LogRank.Debug => ConsoleColor.Magenta,
+                LogRank.Information => ConsoleColor.White,
+                LogRank.Warning => ConsoleColor.Yellow,
+                LogRank.Error => ConsoleColor.Red,
+                _ => throw new ArgumentOutOfRangeException(nameof(args.Rank), args.Rank, null)
+            };
             Console.WriteLine(args.Format());
             Console.ResetColor();
         }

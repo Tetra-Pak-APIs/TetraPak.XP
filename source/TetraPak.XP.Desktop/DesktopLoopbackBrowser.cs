@@ -2,15 +2,15 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using TetraPak.XP.Browsers;
+using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;
-using TetraPak.XP.SimpleDI;
 
-[assembly:XpService(typeof(LoopbackDesktopBrowser))]
+[assembly:XpService(typeof(DesktopLoopbackBrowser))]
 
 namespace TetraPak.XP.Desktop
 {
-    public class LoopbackDesktopBrowser : LoopbackBrowser
+    public class DesktopLoopbackBrowser : LoopbackBrowser
     {
         protected override void OnOpenBrowser(Uri uri) // todo redesign to support opening browsers on all (also mobile) platforms
         {
@@ -42,7 +42,7 @@ namespace TetraPak.XP.Desktop
             }
         }
 
-        public LoopbackDesktopBrowser(ILog? log) 
+        public DesktopLoopbackBrowser(ILog? log) 
         : base(log)
         {
         }

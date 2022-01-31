@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TetraPak.XP
+namespace TetraPak.XP.Caching.Abstractions
 {
     /// <summary>
     ///   Implementors of this class can represent options for an individual

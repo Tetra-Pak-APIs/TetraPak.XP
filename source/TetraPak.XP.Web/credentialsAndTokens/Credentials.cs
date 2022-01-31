@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Logging;
-using TetraPak.DynamicEntities;
-using TetraPak.Logging;
-using TetraPak.Serialization;
+using TetraPak.XP.DynamicEntities;
+using TetraPak.XP.Logging;
 
-namespace TetraPak
+namespace TetraPak.XP.Web.credentialsAndTokens
 {
     /// <summary>
     ///   Represents a generic credentials value, typically used for authentication use purposes.
     /// </summary>
-    [JsonConverter(typeof(DynamicEntityJsonConverter<Credentials>))]
+    //[JsonConverter(typeof(DynamicEntityJsonConverter<Credentials>))]
     public class Credentials : DynamicIdentifiableEntity<string>, IDisposable
     {
         const string KeySecret = "secret";
@@ -19,7 +17,6 @@ namespace TetraPak
         /// <summary>
         ///   Gets or sets the credentials identity element.
         /// </summary>
-        [Newtonsoft.Json.JsonIgnore]
         [JsonIgnore]
         [StateDump]
         public string Identity
@@ -32,7 +29,7 @@ namespace TetraPak
         ///   Gets or sets the credentials secret/password element.
         /// </summary>
         [JsonPropertyName(KeySecret)]
-        [StateDump, RestrictedValue(DisclosureLogLevel = LogLevel.Debug)]
+        [StateDump, RestrictedValue(DisclosureLogLevel = LogRank.Debug)]
         public string? Secret
         {
             get => GetValue<string>(KeySecret);
@@ -43,7 +40,7 @@ namespace TetraPak
         ///   Gets or sets a new credentials secret/password element.
         /// </summary>
         [JsonPropertyName(KeyNewSecret)]
-        [StateDump, RestrictedValue(DisclosureLogLevel = LogLevel.Debug)]
+        [StateDump, RestrictedValue(DisclosureLogLevel = LogRank.Debug)]
         public string? NewSecret
         {
             get => GetValue<string>(KeyNewSecret);

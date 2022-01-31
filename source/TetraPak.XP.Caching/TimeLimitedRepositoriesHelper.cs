@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using TetraPak.XP.Caching.Abstractions;
 
 namespace TetraPak.XP.Caching
 {

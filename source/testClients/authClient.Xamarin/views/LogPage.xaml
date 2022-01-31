@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:authClient.viewModels;assembly=authClient.Xamarin"
+             x:Class="authClient.views.LogPage"
+             BackgroundColor="#333333"
+             NavigationPage.HasNavigationBar="True"
+             >
+    
+    <ContentPage.BindingContext>
+        <vm:LogVM/>
+    </ContentPage.BindingContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Button 
+            Grid.Row="0"
+            Text="Copy" Command="{Binding CopyCommand}"
+            >
+            <Button.BackgroundColor>
+                <OnPlatform x:TypeArguments="Color">
+                    <On Platform="Android" Value="GreenYellow"/>
+                </OnPlatform>
+            </Button.BackgroundColor>
+            <Button.TextColor>
+                <OnPlatform x:TypeArguments="Color">
+                    <On Platform="iOS" Value="GreenYellow"/>
+                    <On Platform="Android" Value="Black"/>
+                </OnPlatform>
+            </Button.TextColor>
+        </Button>
+        
+        <ListView 
+            Grid.Row="1"
+            ItemsSource="{Binding Items}" 
+            HasUnevenRows="True" 
+            BackgroundColor="Transparent"
+            SeparatorColor="AliceBlue">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Frame Padding="5" BackgroundColor="Transparent" HasShadow="False">
+                            <Label
+                                Text="{Binding Message}" 
+                                TextColor="{Binding MessageColor}" 
+                                Margin="0,0,20,0"
+                            />
+                        </Frame>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+
+</ContentPage>

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>TetraPak.XP</RootNamespace>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <PackageVersion>1.0.0-alpha.2</PackageVersion>
+        <Title>Tetra Pak common library for native applications</Title>
+        <Description>A common set of code APIs and tools for Tetra Pak .NET native development</Description>
+        <Copyright>Tetra Pak</Copyright>
+        <PackageReleaseNotes>Early alpha for internal testing</PackageReleaseNotes>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.2" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.2" />
+      <PackageReference Include="System.Text.Json" Version="4.7.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Configuration" />
+      <Folder Include="Serialization" />
+    </ItemGroup>
+
+</Project>

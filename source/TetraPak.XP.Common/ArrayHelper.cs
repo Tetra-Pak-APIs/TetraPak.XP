@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     public static class ArrayHelper
     {

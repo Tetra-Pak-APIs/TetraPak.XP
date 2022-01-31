@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
-using System.Text.Json.Serialization;
-using TetraPak.Serialization;
 
-namespace TetraPak
+namespace TetraPak.XP
 {
-    [JsonConverter(typeof(JsonStringValueSerializer<RandomString>))]
+    //[JsonConverter(typeof(JsonStringValueSerializer<RandomString>))]
     [DebuggerDisplay("{" + nameof(StringValue) + "}")]
     public class RandomString : IStringValue
     {

@@ -1,0 +1,1689 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TetraPak.Auth.Xamarin</name>
+    </assembly>
+    <members>
+        <member name="P:TetraPak.Auth.Xamarin.AbstractAuthenticator.Log">
+            <summary>
+              Gets a logger (if any).
+            </summary>
+            <seealso cref="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.LogInfo(System.String)"/>
+            <seealso cref="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.LogDebug(System.String)"/>
+            <seealso cref="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.LogError(System.Exception,System.String)"/>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AbstractAuthenticator.Config">
+            <summary>
+              Gets the configuration.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AbstractAuthenticator.CacheKey">
+            <summary>
+              Gets a default cache key (the client Id).
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.LogInfo(System.String)">
+            <summary>
+              Logs a message of <see cref="F:TetraPak.Auth.Xamarin.logging.LogRank.Info"/>.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.LogDebug(System.String)">
+            <summary>
+              Logs a message of <see cref="F:TetraPak.Auth.Xamarin.logging.LogRank.Debug"/>.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.LogError(System.Exception,System.String)">
+            <summary>
+              Logs an error an an optional message (of <see cref="F:TetraPak.Auth.Xamarin.logging.LogRank.Error"/>).
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AbstractAuthenticator.IsCaching">
+            <summary>
+              Gets a value indicating whether token can be persisted.
+            </summary>
+            <seealso cref="P:TetraPak.Auth.Xamarin.AuthConfig.TokenCache"/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.GetAccessTokenAsync(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.GetAccessTokenSilentlyAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AbstractAuthenticator.#ctor(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.logging.ILog)">
+            <summary>
+              Initializes the authenticator.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.AuthApplication">
+            <summary>
+              Describes an application to be authorized.
+              The type can be expressed in textual format:
+              "[&lt;Platform&gt;]; &lt;Environment&gt;; &lt;Client Id&gt;; &lt;Redirect Uri&gt;";
+            </summary>
+            <remarks>
+              This class is used to easily describe your application to allow the <see cref="T:TetraPak.Auth.Xamarin.Authorization"/>
+              API to configure a <see cref="T:TetraPak.Auth.Xamarin.IAuthenticator"/> as you request it. 
+            </remarks>
+            <seealso cref="M:TetraPak.Auth.Xamarin.Authorization.GetAuthenticator(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.logging.ILog)"/>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthApplication.ClientId">
+            <summary>
+              Gets the application client id.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthApplication.RedirectUri">
+            <summary>
+              Gets the application redirect <see cref="T:System.Uri"/>.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthApplication.Environment">
+            <summary>
+              Gets the application redirect <see cref="P:TetraPak.Auth.Xamarin.AuthApplication.Environment"/>.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthApplication.RuntimePlatform">
+            <summary>
+              Gets the application redirect <see cref="P:TetraPak.Auth.Xamarin.AuthApplication.RuntimePlatform"/>.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthApplication.StringValue">
+            <summary>
+              Gets the value's textual representation.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.op_Implicit(System.String)~TetraPak.Auth.Xamarin.AuthApplication">
+            <summary>
+              Implicitly converts a string literal into a <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/>.
+            </summary>
+            <param name="stringValue">
+              A string representation of the <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/> value.
+            </param>
+            <returns>
+              A <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/> value.
+            </returns>
+            <exception cref="T:System.FormatException">
+              The <paramref name="stringValue"/> string representation was incorrectly formed.
+            </exception>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.op_Implicit(TetraPak.Auth.Xamarin.AuthApplication)~System.String">
+            <summary>
+              Implicitly converts a <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/> value into its <see cref="T:System.String"/> representation.
+            </summary>
+            <param name="value">
+              A <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/> value to be implicitly converted into its <see cref="T:System.String"/> representation.
+            </param>
+            <returns>
+              The <see cref="T:System.String"/> representation of <paramref name="value"/>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.ToString">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.Equals(TetraPak.Auth.Xamarin.AuthApplication)">
+            <summary>
+              Determines whether this instance and another specified <seealso cref="T:TetraPak.Auth.Xamarin.AuthApplication"/>
+              object are semantically equal.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.#ctor(System.String,System.Uri,TetraPak.Auth.Xamarin.RuntimeEnvironment,TetraPak.Auth.Xamarin.RuntimePlatform)">
+            <summary>
+              Initializes an <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/> instance.
+            </summary>
+            <exception cref="T:System.ArgumentNullException">
+              The <paramref name="clientId"/> was unassigned.
+            </exception>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthApplication.#ctor(System.String)">
+            <summary>
+              Initializes the value.
+            </summary>
+            <param name="stringValue">
+              The new value's string representation (will automatically be parsed).
+            </param>
+            <exception cref="T:System.FormatException">
+              The <paramref name="stringValue"/> string representation was incorrectly formed.
+            </exception>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.AuthConfig">
+            <summary>
+              Used to configure a <see cref="T:TetraPak.Auth.Xamarin.TetraPakAuthenticator"/>.
+            </summary>
+            <remarks>
+              Used to configure a `IAuthenticator` used for acquiring access tokens.
+              The <b>TAX</b> system can create this configuration behind the scene if you describe your application
+              using the more simplified <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/> when invoking
+              <see cref="M:TetraPak.Auth.Xamarin.Authorization.GetAuthenticator(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.logging.ILog)"/>
+              but an `AuthConfig` allows for more custom configuration.
+            </remarks>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.IsRequestingUserId">
+            <summary>
+              Gets a value indicating whether user identity will be requested during the auth flow. 
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.Authority">
+            <summary>
+              Gets or sets the <see cref="T:System.Uri"/> to the authority endpoint.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.TokenIssuer">
+            <summary>
+              Gets or sets the <see cref="T:System.Uri"/> to the token issuing endpoint.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.RedirectUri">
+            <summary>
+              Gets or sets a redirect <see cref="T:System.Uri"/>, used for passing back an auth code.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.ClientId">
+            <summary>
+              Gets or sets the client id (a.k.a. "app id").
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.Scope">
+            <summary>
+              Gets or sets a scope value when applicable.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.IsStateUsed">
+            <summary>
+              Gets or sets a value indicating whether to use state in the auth code flow.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.IsPkceUsed">
+            <summary>
+              Gets or sets a value indicating whether to use the PKCE extension with the auth code flow.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.IsCaching">
+            <summary>
+              Gets or sets a value specifying whether authorizations (tokens)
+              should be cached. Default value is <c>true</c>.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthConfig.TokenCache">
+            <summary>
+              Gets or sets a (custom) token cache. This value cannot be unassigned
+              and a default token cache will always be provided.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfig.Default(TetraPak.Auth.Xamarin.RuntimeEnvironment,System.String,System.Uri,TetraPak.Auth.Xamarin.RuntimePlatform)">
+            <summary>
+              Creates a default OAuth configuration for a specified application.
+            </summary>
+            <param name="environment">
+              The targeted runtime environment.
+            </param>
+            <param name="clientId">
+              The application's client id (a.k.a. "app id").
+            </param>
+            <param name="redirectUri">
+                The application's redirect <see cref="T:System.Uri"/>.
+            </param>
+            <param name="platform">
+              (optional; default = <see cref="F:TetraPak.Auth.Xamarin.RuntimePlatform.Any"/>)<br/>
+              An intended runtime platform.
+            </param>
+            <returns>
+              A <see cref="T:TetraPak.Auth.Xamarin.AuthConfig"/> object with a default configuration for the specified application.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfig.Default(TetraPak.Auth.Xamarin.AuthApplication)">
+            <summary>
+              Creates a default OAuth configuration for a specified application.
+            </summary>
+            <param name="application">
+              Describes the application to be authorized.
+            </param>
+            <returns>
+              A <see cref="T:TetraPak.Auth.Xamarin.AuthConfig"/> object with a default configuration for the specified application.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfig.WithUserIdentity">
+            <summary>
+              Flags the authorization request to also request user identity.
+              This is often required by APIs when making requests for data. 
+            </summary>
+            <remarks>
+              This is mainly a clear-code way to ask for the <c>"openid"</c> scope.
+            </remarks>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfig.#ctor(System.Uri,System.Uri,System.Uri,System.String,System.String,System.Boolean,System.Boolean,System.Boolean,TetraPak.Auth.Xamarin.TokenCache)">
+            <summary>
+              Initializes the configuration.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.AuthConfigExtensions">
+            <summary>
+              Offers convenient extensions for the <see cref="T:TetraPak.Auth.Xamarin.AuthConfig"/> class.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.WithAuthority(TetraPak.Auth.Xamarin.AuthConfig,System.Uri)">
+            <summary>
+              Fluent API to assign the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Authority"/>. 
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.WithTokenIssuer(TetraPak.Auth.Xamarin.AuthConfig,System.Uri)">
+            <summary>
+              Fluent API to assign the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.TokenIssuer"/>. 
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.WithEndpoints(TetraPak.Auth.Xamarin.AuthConfig,System.Uri,System.Uri)">
+            <summary>
+              Fluent API to assign the two endpoint properties
+              (<see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Authority"/> and <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.TokenIssuer"/>). 
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.WithScope(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.AuthScope)">
+            <summary>
+              Adds one or more scope identifiers to the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Scope"/> value.
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.ClearScope(TetraPak.Auth.Xamarin.AuthConfig)">
+            <summary>
+              Clears the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Scope"/> value.
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.AddScope(TetraPak.Auth.Xamarin.AuthConfig,System.String[])">
+            <summary>
+              Adds one or more scope types (not already supported) to the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Scope"/> value.
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.AddScope(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.AuthScope)">
+            <summary>
+              Adds one or more scope types (not already supported) to the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Scope"/> value.
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.RemoveScope(TetraPak.Auth.Xamarin.AuthConfig,System.String[])">
+            <summary>
+              Removes one or more scope types from the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Scope"/> value.
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.RemoveScope(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.AuthScope)">
+            <summary>
+              Removes one or more scope types from the <see cref="P:TetraPak.Auth.Xamarin.AuthConfig.Scope"/> value.
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthConfigExtensions.WithTokenCache(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.TokenCache)">
+            <summary>
+              Replaces the default <see cref="T:TetraPak.Auth.Xamarin.TokenCache"/> with a (custom) one.
+            </summary>
+            <returns>
+              <c>this</c>
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.Authorization">
+            <summary>
+              Provides a starting point for authorization.
+            </summary>
+            <remarks>
+              This class can be used to start authorization of your client.
+            </remarks>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.Authorization.IsAppDelegateRegistered">
+            <summary>
+              Intended for internal use only.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.Authorization.RegisterAppDelegate(System.Func{TetraPak.Auth.Xamarin.IAuthorizingAppDelegate})">
+            <summary>
+              Intended for internal use only.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.Authorization.GetAuthorizingAppDelegate">
+            <summary>
+              Intended for internal use only.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.Authorization.GetAuthenticator(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.logging.ILog)">
+            <summary>
+              Resolves and returns a suitable authenticator.  
+            </summary>
+            <param name="config">
+              The app configuration (<see cref="T:TetraPak.Auth.Xamarin.AuthConfig"/>).
+            </param>
+            <param name="log">
+              (optional)<br/>
+              A logger, for diagnostics purposes. 
+            </param>
+            <returns>
+              An authenticator (implements <see cref="T:TetraPak.Auth.Xamarin.IAuthenticator"/>).
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.Authorization.GetAuthenticator(TetraPak.Auth.Xamarin.AuthApplication,TetraPak.Auth.Xamarin.logging.ILog)">
+            <summary>
+              Resolves and returns a suitable authenticator. 
+            </summary>
+            <param name="application">
+              A <see cref="T:TetraPak.Auth.Xamarin.AuthApplication"/> descriptor value.
+              Can be passed as a string.
+            </param>
+            <param name="log">
+              (optional)<br/>
+              A logger, for diagnostics purposes. 
+            </param>
+            <returns>
+              An authenticator (implements <see cref="T:TetraPak.Auth.Xamarin.IAuthenticator"/>).
+            </returns>
+            <returns>
+              An authenticator (implements <see cref="T:TetraPak.Auth.Xamarin.IAuthenticator"/>).
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.Authorization.GetAuthenticator(System.String,System.Uri,TetraPak.Auth.Xamarin.RuntimeEnvironment,TetraPak.Auth.Xamarin.logging.ILog)">
+            <summary>
+              Resolves and returns a suitable authenticator.
+            </summary>
+            <param name="clientId">
+              Specifies the client id (a.k.a. app id). 
+            </param>
+            <param name="redirectUri">
+              Specifies the redirect <see cref="T:System.Uri"/>.
+            </param>
+            <param name="environment">
+              (optional; default = <see cref="F:TetraPak.Auth.Xamarin.RuntimeEnvironment.Production"/>)<br/>
+              Specifies the targeted runtime environment. 
+            </param>
+            <param name="log">
+              (optional)<br/>
+              A logger, for diagnostics purposes. 
+            </param>
+            <returns>
+              An authenticator (implements <see cref="T:TetraPak.Auth.Xamarin.IAuthenticator"/>).
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.AuthResult">
+            <summary>
+              Represents the result of an authorization operation.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthResult.Tokens">
+            <summary>
+              A collection of tokens (represented as <see cref="T:TetraPak.Auth.Xamarin.TokenInfo"/> objects) returned from the issuer.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthResult.AccessToken">
+            <summary>
+              Gets the access token when successful.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthResult.RefreshToken">
+            <summary>
+              Gets an optional refresh token when successful.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthResult.IdToken">
+            <summary>
+              Gets an optional identity token when successful.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthResult.Expires">
+            <summary>
+              Gets any provided expiration time when successful.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthResult.IsValid">
+            <summary>
+              Indicates whether the authorization is (still) valid.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthResult.TryGetUserInformationAsync">
+            <summary>
+              Attempts obtaining user information.
+            </summary>
+            <returns></returns>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.TokenInfo">
+            <summary>
+              Carries an individual token and its meta data.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.TokenInfo.TokenValue">
+            <summary>
+              Gets the actual token as a <see cref="T:System.String"/> value.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.TokenInfo.Role">
+            <summary>
+              Gets the token role (see <see cref="T:TetraPak.Auth.Xamarin.TokenRole"/>).
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.TokenInfo.Expires">
+            <summary>
+              Gets a expiration date/time, if available.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.TokenInfo.IsValidatable">
+            <summary>
+              Gets a value that indicates whether the token can be validated (other than just by its longevity).
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TokenInfo.IsValidAsync">
+            <summary>
+              Validates the token and returns a value to indicate whether it is valid at this point. 
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.AuthScope">
+            <summary>
+              Represents supported OAuth/OIDC scopes.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.StringValue">
+            <summary>
+              Gets the scope string value.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.IsEmpty">
+            <summary>
+              Gets a value to indicate whether the scope is empty/unassigned.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.Count">
+            <summary>
+              Returns the number of individual scope identifiers.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.Empty">
+            <summary>
+              Returns an empty <see cref="T:TetraPak.Auth.Xamarin.AuthScope"/> value.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.Supported">
+            <summary>
+              Returns all currently supported scopes as items of an array. Please note that
+              for this value to be accurate, the <see cref="T:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument"/> must be p to date.
+            </summary>
+            <seealso cref="T:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument"/>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.Wellknown">
+            <summary>
+              Returns all currently known scopes as items of an array. One or more of these
+              scopes might not be supported.
+            </summary>
+            <seealso cref="P:TetraPak.Auth.Xamarin.AuthScope.Supported"/>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.Items">
+            <summary>
+              Returns the individual scope identifiers as items in a <see cref="T:System.String"/> array.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.AuthScope.IsSupported">
+            <summary>
+              Gets a value indicating whether the scope is fully supported.
+            </summary>
+            <seealso cref="M:TetraPak.Auth.Xamarin.AuthScope.IsScopeSupported(System.String,System.String@)"/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.AuthScope.IsScopeSupported(System.String,System.String@)">
+            <summary>
+              Examines a specified scope and returns a value to indicate whether it is supported.
+            </summary>
+            <param name="scope">
+              A string value representing one or more scopes (separated by whitespace).
+            </param>
+            <param name="unsupportedScope">
+              Passes back any unsupported scope identifiers found (separated by whitespace).
+            </param>
+            <returns>
+              <c>true</c> if all specified scopes are supported; otherwise <c>false</c>.
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.BoolValue`1">
+            <summary>
+              A boolean value that can also carry another value. This is
+              very useful as a typical return value where you need an indication
+              for "success" and, when successful, a value.
+            </summary>
+            <typeparam name="T">
+              The type of value carried by the <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/>.
+            </typeparam>
+            <remarks>
+              Instances of type <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> can be implicitly cast to
+              a <c>bool</c> value. Very useful for testing purposes.
+            </remarks>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.common.BoolValue`1.Value">
+            <summary>
+              The value carried by the object.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.BoolValue`1.Success(`0)">
+            <summary>
+              Creates a <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> that equals <c>true</c> when cast to a
+              <see cref="T:System.Boolean"/> value.
+            </summary>
+            <param name="value">
+              The value (of type <typeparamref name="T"/>) to be carried by the
+              new <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> object.
+            </param>
+            <returns>
+              A <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> that represents a <c>true</c> value when
+              cast as a <see cref="T:System.Boolean"/> while also carrying a specified value.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.BoolValue`1.Fail(System.String,System.Exception)">
+            <summary>
+              Creates a <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> that equals <c>false</c> when cast to a
+              <see cref="T:System.Boolean"/> value.
+            </summary>
+            <param name="message">
+              (optional)<br/>
+              A message to be carried by the <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> object
+              (useful for error handling).
+            </param>
+            <param name="exception">
+              (optional)<br/>
+              An <see cref="T:System.Exception"/> to be carried by the <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> object
+              (useful for error handling).
+            </param>
+            <returns>
+              A <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> that represents a <c>true</c> value when
+              cast as a <see cref="T:System.Boolean"/> while also carrying a specified value.
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.BoolValue">
+            <summary>
+              An abstract base class for a boolean value. 
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.common.BoolValue.Evaluated">
+            <summary>
+              Gets the value used when objects of this class is cast
+              to a <see cref="T:System.Boolean"/> value.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.common.BoolValue.Message">
+            <summary>
+              A message to be carried by the <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> object
+              (useful for error handling).
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.common.BoolValue.Exception">
+            <summary>
+              An <see cref="P:TetraPak.Auth.Xamarin.common.BoolValue.Exception"/> to be carried by the <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> object
+              (useful for error handling).
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.BoolValue.op_Implicit(TetraPak.Auth.Xamarin.common.BoolValue)~System.Boolean">
+            <summary>
+              Implicitly casts the <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue"/> to a <see cref="T:System.Boolean"/> value.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.BoolValue.#ctor(System.Boolean,System.String,System.Exception)">
+            <summary>
+              Initializes a <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue"/>.
+            </summary>
+            <param name="evaluated">
+              Initializes the <see cref="P:TetraPak.Auth.Xamarin.common.BoolValue.Evaluated"/> property.
+            </param>
+            <param name="message">
+              Initializes the <see cref="P:TetraPak.Auth.Xamarin.common.BoolValue.Message"/> property.
+            </param>
+            <param name="exception">
+              Initializes the <see cref="P:TetraPak.Auth.Xamarin.common.BoolValue.Exception"/> property.
+            </param>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.FileCache`1">
+            <summary>
+              This implementation of the <see cref="T:TetraPak.Auth.Xamarin.common.ICache`1"/> interface relies on files saved within
+              a specified folder of the file system.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.ICache`1">
+            <summary>
+              Classes implementing this interface can support the caching of items. 
+            </summary>
+            <typeparam name="T">
+              The type of item(s) that can be cached by the implementing class.
+            </typeparam>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.common.ICache`1.DefaultKey">
+            <summary>
+              Useful for situations where an instance of the cache only holds one item. 
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.ICache`1.ContainsAsync(System.String)">
+            <summary>
+              Examines the cache and returns a value indicating whether a specified item is currently cached.
+            </summary>
+            <param name="key">'
+              The key associated with the requested item.
+            </param>
+            <returns>
+              <c>true</c> if the specified <paramref name="key"/> is present in the cache;
+              otherwise <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.ICache`1.TryGetAsync(System.String)">
+            <summary>
+              Looks up and retrieves a cached item.
+            </summary>
+            <param name="key">'
+              The key associated with the requested item.
+            </param>
+            <returns>
+              A <see cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> indicating the outcome while also holding the
+              requested item as its <see cref="P:TetraPak.Auth.Xamarin.common.BoolValue`1.Value"/>. 
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.ICache`1.AddAsync(System.String,`0,System.Boolean,System.Nullable{System.DateTime})">
+            <summary>
+              Adds an (or replaces an existing) item in the cache.
+            </summary>
+            <param name="key">'
+              A key to be associated with the added <paramref name="item"/>.
+            </param>
+            <param name="item">
+              The item to be cached.   
+            </param>
+            <param name="replace">
+              (optional; default = <c>false</c>)
+              When set, an existing item will be replaced. When unset, and an item is already 
+              associated with the <paramref name="key"/>, an <see cref="T:System.ArgumentException"/>
+              is thrown.
+            </param>
+            <param name="expires">
+              (optional; default = <see cref="F:System.DateTime.MaxValue"/>)
+              Specifies when this item should become unavailable and marked for removal (see <see cref="M:TetraPak.Auth.Xamarin.common.ICache`1.CleanAsync"/>). 
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.ICache`1.AddAsync(`0,System.Boolean,System.Nullable{System.DateTime})">
+            <summary>
+              Adds an (or replaces an existing) item in the cache.
+            </summary>
+            <param name="item">
+              The item to be cached.   
+            </param>
+            <param name="replace">
+              (optional; default = <c>false</c>)
+              When set, an existing item will be replaced. When unset, and an item is already 
+              associated with the <see cref="P:TetraPak.Auth.Xamarin.common.ICache`1.DefaultKey"/>, an <see cref="T:System.ArgumentException"/>
+              is thrown.
+            </param>
+            <param name="expires">
+              (optional; default = <see cref="F:System.DateTime.MaxValue"/>)
+              Specifies when this item should become unavailable and marked for removal (see <see cref="M:TetraPak.Auth.Xamarin.common.ICache`1.CleanAsync"/>). 
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.ICache`1.RemoveAsync(System.String)">
+            <summary>
+              Removes a specified item from the cache.
+            </summary>
+            <param name="key">
+              Identifies the item to be removed.   
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.ICache`1.CleanAsync">
+            <summary>
+              Initiates cleaning out all items that have expired. 
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.ICache`1.WithDefaultKey(System.String)">
+            <summary>
+              A fluent API, useful for initializing a cache while also setting the <see cref="P:TetraPak.Auth.Xamarin.common.ICache`1.DefaultKey"/>.
+            </summary>
+            <param name="key">
+              The value to be assigned as the <see cref="P:TetraPak.Auth.Xamarin.common.ICache`1.DefaultKey"/>.
+            </param>
+            <returns>
+              The cache instance.
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.MemoryCache`1">
+            <summary>
+              A basic memory cached that supports item longevity.
+            </summary>
+            <typeparam name="T">
+              Type of items stored by the cache.
+            </typeparam>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.common.MemoryCache`1.DefaultKey">
+            <inheritdoc/>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.common.MemoryCache`1.Count">
+            <summary>
+              Gets the number of cached items.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.AddAsync(`0,System.Boolean,System.Nullable{System.DateTime})">
+            <inheritdoc/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.AddAsync(System.String,`0,System.Boolean,System.Nullable{System.DateTime})">
+            <inheritdoc/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.TryGetAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.ContainsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.CleanAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.RemoveAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.OnRemoveAsync(TetraPak.Auth.Xamarin.common.CachedItem{`0})">
+            <summary>
+              Called internally to remove an item from the cache.
+              Override this method to perform the removal logics of a derived cache.
+            </summary>
+            <param name="item">
+              The item to be removed.
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.MemoryCache`1.WithDefaultKey(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.StringExtensions">
+            <summary>
+              Extends <see cref="T:System.String"/> objects and operations.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.StringExtensions.SplitCamelCase(System.String)">
+            <summary>
+              Splits a camel-case formatted string into its separate elements
+              (e.g. "CamelCase" => "Camel Case" or "helloWorld" => "hello World") 
+            </summary>
+            <param name="camelCaseValue">
+              The string to be split. 
+            </param>
+            <returns>
+              A <see cref="T:System.String"/>, split into its separate elements.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.StringExtensions.EnsureEndsWith(System.String,System.String,System.StringComparison)">
+            <summary>
+              Returns a <see cref="T:System.String"/> that is guaranteed to end with a specified suffix.
+            </summary>
+            <param name="self">
+              The original string.
+            </param>
+            <param name="suffix">
+              A <see cref="T:System.String"/> that will be appended to <paramref name="self"/> if not already present.
+            </param>
+            <param name="comparison">
+              (optional; default = <see cref="F:System.StringComparison.Ordinal"/>)<br/>
+              Used when detecting whether <paramref name="self"/> is already suffixed with the <paramref name="suffix"/> value.
+            </param>
+            <returns>
+              A <see cref="T:System.String"/> that is identical to<paramref name="self"/>, suffixed with <paramref name="suffix"/>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.StringExtensions.EnsureNotEndsWith(System.String,System.String,System.StringComparison)">
+            <summary>
+              Returns a <see cref="T:System.String"/> that is guaranteed to not end with a specified suffix.
+            </summary>
+            <param name="self">
+              The original string.
+            </param>
+            <param name="suffix">
+              A <see cref="T:System.String"/> that will be removed if <paramref name="suffix"/> is found as suffix to <paramref name="self"/>.
+            </param>
+            <param name="comparison">
+              (optional; default = <see cref="F:System.StringComparison.Ordinal"/>)<br/>
+              Used when detecting whether <paramref name="self"/> is suffixed with the <paramref name="suffix"/> value.
+            </param>
+            <returns>
+              A <see cref="T:System.String"/> that is guaranteed to not end with <paramref name="suffix"/>.
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.TypeExtensions">
+            <summary>
+              Helpers for type/reflection related operations.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.TypeExtensions.IsDerivedFrom(System.Type,System.Type)">
+            <summary>
+              Analyzes a <seealso cref="T:System.Type"/> and returns a value indicating whether
+              it is derived from another <seealso cref="T:System.Type"/>.
+            </summary>
+            <param name="derivedType">
+              The (potentially derived) type to be tested.
+            </param>
+            <param name="baseType">
+              A type to be tested as a base type.
+            </param>
+            <returns>
+              <c>true</c> if <paramref name="derivedType"/> derives from <paramref name="baseType"/>;
+              otherwise <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.TypeExtensions.IsNullable``1(``0)">
+            <summary>
+              Examines a specified value and returns a value to indicate whether
+              it is a nullable value.
+            </summary>
+            <param name="_">
+              The value to be examined.
+            </param>
+            <typeparam name="T">
+              The type of value.
+            </typeparam>
+            <returns>
+              <c>true</c> if the value is nullable; otherwise <c>false</c>.
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.common.UriExtensions">
+            <summary>
+              Extension operations for <seealso cref="T:System.Uri"/> instances.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.UriExtensions.TryGetQueryValue(System.Uri,System.String)">
+            <summary>
+              Looks for a query parameter value in a <see cref="T:System.Uri"/>.
+            </summary>
+            <param name="uri">
+              The <seealso cref="T:System.Uri"/> containing the query.
+            </param>
+            <param name="key">
+              A query property name to look for.
+            </param>
+            <returns>
+              A <seealso cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> indicating whether the specified value
+              was present in the query. On success this object will also carry the
+              requested query property value (<seealso cref="P:TetraPak.Auth.Xamarin.common.BoolValue`1.Value"/>).
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.common.UriExtensions.EqualsBasePath(System.Uri,System.Uri,System.Boolean,System.StringComparison)">
+            <summary>
+              Compares a <see cref="T:System.Uri"/> with another <seealso cref="T:System.Uri"/> to check for
+              matching base base paths.
+            </summary>
+            <param name="self">
+              The <seealso cref="T:System.Uri"/>.
+            </param>
+            <param name="uri">
+              Another <seealso cref="T:System.Uri"/> to compare with.
+            </param>
+            <param name="enforceMatchingScheme">
+              (optional; default=<c>false</c>)<br/>
+              Specifies whether the two <see cref="T:System.Uri"/> schemes must also match (e.g. "http" / "https").
+            </param>
+            <param name="comparison">
+              (optional; default = <see cref="F:System.StringComparison.OrdinalIgnoreCase"/>)<br/>
+              Specifies the string comparison method.
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.#ctor(System.Nullable{System.UInt32},System.Boolean)">
+            <summary>
+              Initializes the value.
+            </summary>
+            <param name="length">
+              (optional; default = <see cref="P:TetraPak.Auth.Xamarin.debugging.RandomString.DefaultLength"/>)<br/>
+              Specifies a length for the random string.
+            </param>
+            <param name="allowSpecialCharacters">
+              (optional; default = <c>true</c>)<br/>
+              Specifies whether special characters (other than alfa numeric ones) are allowed in the random string.    
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.op_Implicit(TetraPak.Auth.Xamarin.debugging.RandomString)~System.String">
+            <summary>
+              Implicitly converts a <see cref="T:TetraPak.Auth.Xamarin.debugging.RandomString"/> value into its <see cref="T:System.String"/> representation.
+            </summary>
+            <param name="value">
+              A <see cref="T:TetraPak.Auth.Xamarin.debugging.RandomString"/> value to be implicitly converted into its <see cref="T:System.String"/> representation.
+            </param>
+            <returns>
+              The <see cref="T:System.String"/> representation of <paramref name="value"/>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.ToString">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.Equals(TetraPak.Auth.Xamarin.debugging.RandomString)">
+            <summary>
+              Determines whether the specified value is equal to the current value.
+            </summary>
+            <param name="other">
+              A <see cref="T:TetraPak.Auth.Xamarin.debugging.RandomString"/> value to compare to this value.
+            </param>
+            <returns>
+              <c>true</c> if <paramref name="other"/> is equal to the current value; otherwise <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.Equals(System.Object)">
+            <summary>
+              Determines whether the specified object is equal to the current version.
+            </summary>
+            <param name="obj">
+              An object to compare to this value.
+            </param>
+            <returns>
+              <c>true</c> if the specified object is equal to the current version; otherwise <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.GetHashCode">
+            <summary>
+              Serves as the default hash function.
+            </summary>
+            <returns>
+              A hash code for the current value.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.op_Equality(TetraPak.Auth.Xamarin.debugging.RandomString,TetraPak.Auth.Xamarin.debugging.RandomString)">
+            <summary>
+              Comparison operator overload.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.debugging.RandomString.op_Inequality(TetraPak.Auth.Xamarin.debugging.RandomString,TetraPak.Auth.Xamarin.debugging.RandomString)">
+            <summary>
+              Comparison operator overload.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.IAuthCallbackHandler">
+            <summary>
+              For internal use by platform code.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.IAuthCallbackHandler.HandleUrlCallback(System.Uri)">
+            <summary>
+              For internal use by platform code.
+            </summary>
+            <param name="uri"></param>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.IAuthenticator">
+            <summary>
+              Describes the contract for an authenticator implementation.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.IAuthenticator.GetAccessTokenAsync(System.Boolean)">
+            <summary>
+              Attempts to acquire an access token.
+            </summary>
+            <param name="allowCached">
+              (optional; default = <c>true</c>)<br/>
+              Can be used to override global cache setting
+              value for this particular operation.
+            </param>
+            <returns>
+              A <seealso cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> indicating success while also carrying
+              details for the authentication result, including access token.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.IAuthenticator.GetAccessTokenSilentlyAsync">
+            <summary>
+              Attempts to acquire an access token "silently", automatically
+              using any persisted refresh token in the process.
+            </summary>
+            <returns>
+              A <seealso cref="T:TetraPak.Auth.Xamarin.common.BoolValue`1"/> indicating success while also carrying
+              details for the authentication result, including access token.
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.IAuthorizingAppDelegate">
+            <summary>
+              For internal use by the Auth solution.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.IAuthorizingAppDelegate.ActivateApp">
+            <summary>
+              For internal use by the Auth solution.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.IAuthorizingAppDelegate.OpenInDefaultBrowserAsync(System.Uri)">
+            <summary>
+              For internal use by the Auth solution.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.IAuthorizingAppDelegate.OpenInDefaultBrowserAsync(System.Uri,System.Uri)">
+            <summary>
+              For internal use by the Auth solution.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.logging.BasicLog">
+            <summary>
+              Provides a very basic <see cref="T:TetraPak.Auth.Xamarin.logging.ILog"/> implementation.
+            </summary>
+            <remarks>
+              Invoking the different log methods of this implementation simply
+              triggers the <see cref="E:TetraPak.Auth.Xamarin.logging.BasicLog.Logged"/> event. This can be utilized to
+              dispatch the actual log entries to various logging solutions.
+            </remarks>
+        </member>
+        <member name="E:TetraPak.Auth.Xamarin.logging.BasicLog.Logged">
+            <inheritdoc />
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.logging.BasicLog.QueryAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.BasicLog.Debug(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.BasicLog.Warning(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.BasicLog.Error(System.Exception,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.BasicLog.Info(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.logging.ILog">
+            <summary>
+              Provides a basic logging mechanism to the package.
+            </summary>
+        </member>
+        <member name="E:TetraPak.Auth.Xamarin.logging.ILog.Logged">
+            <summary>
+              Triggered whenever a log entry gets added.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.logging.ILog.QueryAsync">
+            <summary>
+              Gets or sets a delegate used for querying the log.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.ILog.Debug(System.String)">
+            <summary>
+              Adds a message of rank <see cref="F:TetraPak.Auth.Xamarin.logging.LogRank.Debug"/>.
+            </summary>
+            <param name="message">
+              A textual message to be logged.
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.ILog.Info(System.String)">
+            <summary>
+              Adds a message of rank <see cref="F:TetraPak.Auth.Xamarin.logging.LogRank.Info"/>.
+            </summary>
+            <param name="message">
+              A textual message to be logged.
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.ILog.Warning(System.String)">
+            <summary>
+              Adds a message of rank <see cref="F:TetraPak.Auth.Xamarin.logging.LogRank.Warning"/>.
+            </summary>
+            <param name="message">
+              A textual message to be logged.
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.ILog.Error(System.Exception,System.String)">
+            <summary>
+              Adds an <see cref="T:System.Exception"/> and message of rank <see cref="F:TetraPak.Auth.Xamarin.logging.LogRank.Error"/>.
+            </summary>
+            <param name="exception">
+              An <see cref="T:System.Exception"/> to be logged.
+            </param>
+            <param name="message">
+              A textual message to be logged.
+            </param>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.logging.LogRank">
+            <summary>
+              Used by the (<see cref="T:TetraPak.Auth.Xamarin.logging.ILog"/> based) logging mechanism
+              to classify log entries.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.logging.LogRank.Debug">
+            <summary>
+              The lowest (most detailed) log rank.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.logging.LogRank.Info">
+            <summary>
+              Logs "normal" operations.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.logging.LogRank.Warning">
+            <summary>
+              Logs potentially erroneous/invalid operations.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.logging.LogRank.Error">
+            <summary>
+              Denotes a logged exception.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.logging.TextLogEventArgs">
+            <summary>
+              Describes a log entry.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.logging.TextLogEventArgs.Rank">
+            <summary>
+              Gets the log entry rank.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.logging.TextLogEventArgs.Message">
+            <summary>
+              Gets the log entry message (if any).
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.logging.TextLogEventArgs.Exception">
+            <summary>
+              Gets a log entry error (if any).
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.logging.TextLogEventArgs.#ctor(TetraPak.Auth.Xamarin.logging.LogRank,System.String,System.Exception)">
+            <summary>
+              Initializes the event arguments.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.oidc.AuthorityUrlValidationStrategy">
+            <summary>
+            <para>Implementation of <see cref="T:TetraPak.Auth.Xamarin.oidc.IAuthorityValidationStrategy"/> based on <see cref="T:System.Uri"/> equality.
+            Trailing slash is also ignored.</para>
+            </summary>
+            <seealso cref="T:TetraPak.Auth.Xamarin.oidc.StringComparisonAuthorityValidationStrategy"/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.AuthorityUrlValidationStrategy.IsIssuerNameValid(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.AuthorityUrlValidationStrategy.IsEndpointValid(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument">
+            <summary>
+              A discovery document obtained from a well-known OIDC endpoint.  
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.Current">
+            <summary>
+              Gets the cached <see cref="T:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument"/>, if available.
+            </summary>
+            <seealso cref="M:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.DownloadAsync(System.String,System.Boolean,System.Boolean)"/>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.LastUpdated">
+            <summary>
+              Gets a value indicating when the document was last updated from the discovery endpoint.
+              The time is given as UTC.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.Issuer">
+            <summary>
+              Get the token issuer host base URL. 
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.AuthorizationEndpoint">
+            <summary>
+              Endpoint that validates all authorization requests.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.TokenEndpoint">
+            <summary>
+              URL of the token endpoint. After a client has received an authorization code,
+              that code is presented to the token endpoint and exchanged for an identity token,
+              an access token, and a refresh token.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.UserInformationEndpoint">
+            <summary>
+              URL of the user information endpoint. 
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.JwksUri">
+            <summary>
+              URL of the JSON Web Key Set.
+              This set is a collection of JSON Web Keys, a standard method for representing cryptographic
+              keys in a JSON structure. For Hosted Login, that collection consists of the public keys used
+              to verify the signatures of the identity tokens issued by the authorization server.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.ResponseTypesSupported">
+            <summary>
+              Specifies the way the authorization server responds after a user successfully authenticates.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.SubjectTypesSupported">
+            <summary>
+              JSON array containing a list of the supported Subject Identifier types. 
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.ScopesSupported">
+            <summary>
+               JSON array containing a list of the scopes that the authorization server supports. 
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.GrantTypesSupported">
+            <summary>
+              Specifies the different ways that a client can be granted an access token and, as a result,
+              can be given access to specific resources. 
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.IdTokenSigningAlgValuesSupported">
+            <summary>
+              JSON array consisting of all the JSON Web Signature algorithms that can be used for signing
+              JSON Web Tokens, such as SHA1 or SHA256. 
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.DownloadAsync(System.String,System.Boolean,System.Boolean)">
+            <summary>
+              Downloads and returns the <seealso cref="T:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument"/> found at a Url
+              resolved from the specified <paramref name="input"/>.
+            </summary>
+            <param name="input">
+              Either a URL for the well-known discovery endpoint or a (serialized) JWT token to be used for
+              resolving the URL.
+            </param>
+            <param name="refreshCurrent">
+              (optional; default = <c>false</c>)
+              Specifies whether to use the (cached) <seealso cref="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.Current"/> value or download
+              a new document and set it as the <seealso cref="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.Current"/> one.
+            </param>
+            <param name="cacheOnSuccess">
+              (optional; default = <c>false</c>)
+              Specifies whether to cache the downloaded <see cref="T:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument"/> upon success.
+            </param>
+            <returns>
+              Please note that when there is a <seealso cref="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.Current"/> document already, passing a <c>false</c>
+              value will have the method simply return the <seealso cref="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.Current"/> one if assigned or, automatically,
+              download a new one and then set that as the <seealso cref="P:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.Current"/> document.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.DiscoveryDocument.TryLoadCached">
+            <summary>
+              Attempts loading a discovery document from the cache and returns a value to indicate the outcome.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint">
+            <summary>
+            Represents a URL to a discovery endpoint - parsed to separate the URL and authority
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint.Authority">
+            <summary>
+            Gets or sets the authority.
+            </summary>
+            <value>
+            The authority.
+            </value>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint.Url">
+            <summary>
+            Gets or sets the discovery endpoint.
+            </summary>
+            <value>
+            The discovery endpoint.
+            </value>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint.ParseUrl(System.String)">
+            <summary>
+              Parses a URL and turns it into authority and discovery endpoint URL.
+            </summary>
+            <param name="input">
+              The input.
+            </param>
+            <returns>
+              
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+              Url is malformed.
+            </exception>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint.IsValidScheme(System.Uri)">
+            <summary>
+            Determines whether the URL uses http or https.
+            </summary>
+            <param name="url">The URL.</param>
+            <returns>
+              <c>true</c> if [is valid scheme] [the specified URL]; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint.IsSecureScheme(System.Uri,TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy)">
+            <summary>
+              Determines whether a url uses a secure scheme according to the policy.
+            </summary>
+            <param name="url">The URL.</param>
+            <param name="policy">The policy.</param>
+            <returns>
+              <c>true</c> if [is secure scheme] [the specified URL]; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:TetraPak.Auth.Xamarin.oidc.DiscoveryEndpoint"/> class.
+            </summary>
+            <param name="authority">The authority.</param>
+            <param name="url">The discovery endpoint URL.</param>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy">
+            <summary>
+            Security policy for retrieving a discovery document
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.Authority">
+            <summary>
+            Gets or sets the Authority on which the policy checks will be based on
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.AuthorityValidationStrategy">
+            <summary>
+            Strategy used to validate issuer name and endpoints based on expected authority.
+            Defaults to <see cref="T:TetraPak.Auth.Xamarin.oidc.AuthorityUrlValidationStrategy"/>.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.RequireHttps">
+            <summary>
+            Specifies if HTTPS is enforced on all endpoints. Defaults to true.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.AllowHttpOnLoopback">
+            <summary>
+            Specifies if HTTP is allowed on loopback addresses. Defaults to true.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.ValidateIssuerName">
+            <summary>
+            Specifies if the issuer name is checked to be identical to the authority. Defaults to true.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.ValidateEndpoints">
+            <summary>
+            Specifies if all endpoints are checked to belong to the authority. Defaults to true.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.EndpointValidationExcludeList">
+            <summary>
+            Specifies a list of endpoints that should be excluded from validation
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.AdditionalEndpointBaseAddresses">
+            <summary>
+            Specifies a list of additional base addresses that should be allowed for endpoints
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy.RequireKeySet">
+            <summary>
+            Specifies if a key set is required. Defaults to true.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.oidc.IAuthorityValidationStrategy">
+            <summary>
+            Authority validation strategy.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.IAuthorityValidationStrategy.IsIssuerNameValid(System.String,System.String)">
+            <summary>
+            Validate issuer name found in Discovery Document.
+            </summary>
+            <param name="expectedAuthority">Authority expected.</param>
+            <param name="issuerName">Authority declared in Discovery Document.</param>
+            <returns></returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.IAuthorityValidationStrategy.IsEndpointValid(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Validate end point found in Discovery Document.
+            </summary>
+            <param name="expectedAuthority">Authority expected.</param>
+            <param name="endpoint">Endpoint declared in Discovery Document.</param>
+            <returns></returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.oidc.IdTokenValidator">
+            <summary>
+              Used to validate a JWT (id) token.
+            </summary>
+        </member>
+        <member name="P:TetraPak.Auth.Xamarin.oidc.IdTokenValidator.DiscoveryPolicy">
+            <summary>
+              Gets or sets the policy used for discovery.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.IdTokenValidator.#ctor">
+            <summary>
+              Initializes a new instance of the <seealso cref="T:TetraPak.Auth.Xamarin.oidc.IdTokenValidator"/>
+              using the default discovery policy.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.IdTokenValidator.#ctor(TetraPak.Auth.Xamarin.oidc.DiscoveryPolicy)">
+            <summary>
+              Initializes a new instance of the <seealso cref="T:TetraPak.Auth.Xamarin.oidc.IdTokenValidator"/>
+              while specifying the discovery policy.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.oidc.StringComparisonAuthorityValidationStrategy">
+            <summary>
+            Implementation of <see cref="T:TetraPak.Auth.Xamarin.oidc.IAuthorityValidationStrategy"/> based on <see cref="T:System.StringComparison"/>.
+            </summary>
+            <seealso cref="T:TetraPak.Auth.Xamarin.oidc.AuthorityUrlValidationStrategy"/>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.StringComparisonAuthorityValidationStrategy.#ctor(System.StringComparison)">
+            <summary>
+            Constructor with <see cref="T:System.StringComparison"/> argument.
+            </summary>
+            <param name="stringComparison"></param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.StringComparisonAuthorityValidationStrategy.IsIssuerNameValid(System.String,System.String)">
+            <summary>
+            String comparison between issuer and authority (trailing slash ignored).
+            </summary>
+            <param name="issuerName"></param>
+            <param name="expectedAuthority"></param>
+            <returns></returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.oidc.StringComparisonAuthorityValidationStrategy.IsEndpointValid(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            String "starts with" comparison between endpoint and allowed authorities.
+            </summary>
+            <param name="endpoint"></param>
+            <param name="allowedAuthorities"></param>
+            <returns></returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.OnUriCallbackHandler">
+            <summary>
+              For internal use by platform code.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.RuntimeEnvironment">
+            <summary>
+              Specifies the targeted runtime environment.
+            </summary>
+            <seealso cref="M:TetraPak.Auth.Xamarin.AuthConfig.Default(TetraPak.Auth.Xamarin.RuntimeEnvironment,System.String,System.Uri,TetraPak.Auth.Xamarin.RuntimePlatform)"/>
+            <seealso cref="M:TetraPak.Auth.Xamarin.AuthConfig.Default(TetraPak.Auth.Xamarin.AuthApplication)"/>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimeEnvironment.Production">
+            <summary>
+              Targets a production environment.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimeEnvironment.Migration">
+            <summary>
+              Targets a migration environment.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimeEnvironment.Test">
+            <summary>
+              Targets a test environment.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimeEnvironment.Development">
+            <summary>
+              Targets a development environment.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.RuntimeEnvironmentExtensions">
+            <summary>
+              Extends the <see cref="T:TetraPak.Auth.Xamarin.RuntimeEnvironment"/> enum.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.RuntimeEnvironmentExtensions.TryParseAsRuntimeEnvironment(System.String,TetraPak.Auth.Xamarin.RuntimeEnvironment@)">
+            <summary>
+              Attempts parsing a textual representation of a <see cref="T:TetraPak.Auth.Xamarin.RuntimeEnvironment"/> value.
+            </summary>
+            <param name="self">
+              The textual value to be parsed.
+            </param>
+            <param name="runtimeEnvironment">
+              Passes back the (successfully) parsed <see cref="T:TetraPak.Auth.Xamarin.RuntimeEnvironment"/> value.
+            </param>
+            <returns>
+              The parsed <see cref="T:TetraPak.Auth.Xamarin.RuntimeEnvironment"/> value
+            </returns>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.RuntimePlatform">
+            <summary>
+              Used to specify the targeted runtime platform.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimePlatform.Any">
+            <summary>
+              Runtime platform is not specified or not resolved/known.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimePlatform.iOS">
+            <summary>
+             Indicates the iOS runtime platform.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimePlatform.Android">
+            <summary>
+             Indicates the Android runtime platform.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimePlatform.Windows">
+            <summary>
+             Indicates the Windows runtime platform.
+            </summary>
+        </member>
+        <member name="F:TetraPak.Auth.Xamarin.RuntimePlatform.MacOS">
+            <summary>
+             Indicates Mac OS runtime platform.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.TetraPakAuthCallbackHandler">
+            <summary>
+              For internal use by platform code.
+            </summary>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.TetraPakAuthenticator">
+            <summary>
+              A custom (Tetra Pak) implementation of the <see cref="T:TetraPak.Auth.Xamarin.IAuthenticator"/> contract.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TetraPakAuthenticator.GetAccessTokenAsync(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TetraPakAuthenticator.GetAccessTokenSilentlyAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TetraPakAuthenticator.#ctor(TetraPak.Auth.Xamarin.AuthConfig,TetraPak.Auth.Xamarin.logging.ILog)">
+            <summary>
+              Initializes the authenticator.
+            </summary>
+            <param name="config"></param>
+            <param name="log">
+              (optional)<br/>
+              A log to be used for logging internal operations and events-
+            </param>
+        </member>
+        <member name="T:TetraPak.Auth.Xamarin.TokenCache">
+            <summary>
+              A basic token cache that stores instances of <see cref="T:TetraPak.Auth.Xamarin.AuthResult"/>.
+            </summary>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TokenCache.AddAsync(System.String,TetraPak.Auth.Xamarin.AuthResult,System.Boolean,System.Nullable{System.DateTime})">
+            <summary>
+              Adds tokens (in an <see cref="T:TetraPak.Auth.Xamarin.AuthResult"/> object) to the cache.
+            </summary>
+            <param name="key">
+              Identifies the tokens (typically a client/app id).
+            </param>
+            <param name="tokens">
+              An <see cref="T:TetraPak.Auth.Xamarin.AuthResult"/> object containing the tokens.
+            </param>
+            <param name="replace">
+              (optional; default = <c>false</c>)
+              When set, an existing item will be replaced. When unset, and an item is already 
+              associated with the <paramref name="key"/>, an <see cref="T:System.ArgumentException"/>
+              is thrown.
+            </param>
+            <param name="expires">
+              (optional)<br/>
+              A time when the tokens expire. Please note that <see cref="P:TetraPak.Auth.Xamarin.AuthResult.Expires"/>
+              governs expiration of the access token themselves. This value simply controls
+              how long the result is being cached. Leave unassigned unless all tokens should expire at the
+              same time.
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TokenCache.TryGetAsync(System.String)">
+            <summary>
+              Attempts fetching all tokens from the cache.
+            </summary>
+            <param name="key">
+              Identifies the tokens (typically a client/app id).
+            </param>
+            <returns>
+              An <see cref="T:TetraPak.Auth.Xamarin.AuthResult"/> item.
+            </returns>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TokenCache.RemoveAccessTokenAsync(System.String)">
+            <summary>
+              Removes any access token from cache.
+            </summary>
+            <param name="key">
+              Identifies the token (typically a client/app id).
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TokenCache.RemoveRefreshTokenAsync(System.String)">
+            <summary>
+              Removes any refresh token from cache.
+            </summary>
+            <param name="key">
+              Identifies the token (typically a client/app id).
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TokenCache.RemoveAsync(System.String)">
+            <summary>
+              Removes all tokens from cache.
+            </summary>
+            <param name="key">
+              Identifies the tokens (typically a client/app id).
+            </param>
+        </member>
+        <member name="M:TetraPak.Auth.Xamarin.TokenCache.#ctor(TetraPak.Auth.Xamarin.AuthConfig,System.Boolean,TetraPak.Auth.Xamarin.logging.ILog)">
+            <summary>
+              Initializes the token cache.
+            </summary>
+            <param name="config">
+              The <see cref="T:TetraPak.Auth.Xamarin.AuthConfig"/> used for retrieving the token.
+            </param>
+            <param name="isRefreshTokenPersisted">
+              Specifies whether refresh tokens should be persisted.
+            </param>
+            <param name="log">
+              (optional)
+              Used for logging internal events.
+            </param>
+        </member>
+    </members>
+</doc>

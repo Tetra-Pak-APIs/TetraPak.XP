@@ -5,7 +5,7 @@ using System.Xml;
 using TetraPak.XP;
 using TetraPak.XP.Logging;
 
-namespace prepNuget
+namespace prepNuget.strategies
 {
     abstract class NugetStrategy
     {
@@ -23,6 +23,14 @@ namespace prepNuget
         public abstract Outcome Run();
 
         public abstract string GetHelp();
+        
+        public static Outcome<NugetStrategy> Select(string strategyName, string[] args, ILog log)
+        {
+            if (strategyName.Equals(HarmonizeStrategy.Name, StringComparison.InvariantCultureIgnoreCase))
+                return Outcome<NugetStrategy>.Success(new HarmonizeStrategy(args, log));
+            
+            return Outcome<NugetStrategy>.Fail(new CodedException(Errors.InvalidArgument, $"Unknown strategy: {strategyName}"));
+        }
 
         protected ProjectFile[] GetProjectFiles(Func<ProjectFile,bool>? callback = null)
         {
@@ -74,13 +82,17 @@ namespace prepNuget
             return Outcome.Success();
         }
         
+        Outcome tryInit(string[] args) => TryInit(args);
+
+        public Outcome Outcome { get; }
+
+#pragma warning disable CS8618
         public NugetStrategy(string[] args, ILog log)
         {
-            IsValid = TryInit(args);
+            Outcome = tryInit(args);
             Log = log;
         }
-
-        public bool IsValid { get; }
+#pragma warning restore CS8618
     }
 
     class ProjectFile

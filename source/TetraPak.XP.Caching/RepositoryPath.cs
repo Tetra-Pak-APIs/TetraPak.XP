@@ -1,4 +1,6 @@
-﻿namespace TetraPak.XP.Caching
+﻿using TetraPak.XP.DynamicEntities;
+
+namespace TetraPak.XP.Caching
 {
     public class RepositoryPath : DynamicPath
     {

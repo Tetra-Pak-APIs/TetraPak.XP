@@ -1,13 +1,16 @@
+using System.Runtime.InteropServices;
 using System.Text;
 using TetraPak.XP;
 using TetraPak.XP.Logging;
 
-namespace prepNuget
+namespace prepNuget.strategies
 {
     class HarmonizeStrategy : NugetStrategy
     {
         const string ArgTarget1 = "-t";
         const string ArgTarget2 = "--target";
+
+        internal const string Name = "harmonize";
 
         string TargetProjectName { get; set; }
 

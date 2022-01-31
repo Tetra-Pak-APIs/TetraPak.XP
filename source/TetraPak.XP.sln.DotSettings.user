@@ -1,0 +1,11 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
+  &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\tetrapak.auth.xamarin\1.3.1\lib\netstandard20\TetraPak.Auth.Xamarin.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\microsoft.aspnetcore.http\2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\microsoft.aspnetcore.http\2.2.2\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll" /&gt;&#xD;
+&lt;/AssemblyExplorer&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1df9f9fe_002D345f_002D4132_002Daf97_002D5cd635d76646/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Ensure_can_only_register_concrete_types" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::4F1CBCE8-5CB7-4DAC-8AB2-2CECD15070FD::net5.0::TetraPak.XP.DependencyInjection.Tests.XpServicesTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

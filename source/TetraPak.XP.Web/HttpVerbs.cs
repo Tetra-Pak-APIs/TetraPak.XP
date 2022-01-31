@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 
-namespace TetraPak.AspNet
+namespace TetraPak.XP.Web
 {
     /// <summary>
     ///    Provides <see cref="string"/> constants for standard HTTP methods.

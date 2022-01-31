@@ -2,10 +2,12 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using TetraPak.XP.Caching;
+using TetraPak.XP.Caching.Abstractions;
 
 #nullable enable
 
-namespace TetraPak.XP.Serialization
+namespace TetraPak.XP.Streaming
 {
     public static class StreamHelper
     {

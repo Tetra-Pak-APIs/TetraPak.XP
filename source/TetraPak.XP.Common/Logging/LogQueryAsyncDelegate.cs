@@ -3,5 +3,5 @@ using System.Threading.Tasks;
 
 namespace TetraPak.XP.Logging
 {
-    public delegate Task<IEnumerable<ILogEntry>> QueryAsyncDelegate(params LogRank[] ranks);
+    public delegate Task<IEnumerable<ILogEntry>> LogQueryAsyncDelegate(params LogRank[] ranks);
 }

@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:v="clr-namespace:authClient.views"
+             xmlns:vm="clr-namespace:authClient.viewModels"
+             xmlns:sc="clr-namespace:SegmentedControl.FormsPlugin.Abstractions;assembly=SegmentedControl.FormsPlugin.Abstractions"
+             xmlns:animations="clr-namespace:authClient.animations;assembly=authClient.Xamarin"
+             x:Class="authClient.MainPage"
+             NavigationPage.HasNavigationBar="False"
+             >
+    
+    <ContentPage.BindingContext>
+        <vm:MainViewModel/>
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <Grid Margin="10,45,10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackLayout
+                Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
+                HorizontalOptions="Center" VerticalOptions="CenterAndExpand">
+
+                <Image
+                    Source="icon"
+                    Aspect="AspectFit"
+                    WidthRequest="60"
+                    />
+                <Label
+                    Text="Tetra Pak Auth Xamarin Demo" 
+                    FontSize="Large"/>
+
+            </StackLayout>
+
+            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="Environment" HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand" />
+            <sc:SegmentedControl 
+                x:Name="ScEnvironment" 
+                Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
+                ValueChanged="onEnvironmentChanged">
+                <sc:SegmentedControl.Children>
+                    <sc:SegmentedControlOption Text="DEV"/>
+                    <sc:SegmentedControlOption Text="MIG"/>
+                    <sc:SegmentedControlOption Text="PROD"/>
+                </sc:SegmentedControl.Children>
+            </sc:SegmentedControl>
+            
+            <Label Grid.Column="0" Grid.Row="3" Text="Client ID"/>
+            <v:ValidatingEntry 
+                Grid.Column="1" Grid.Row="3" 
+                Style="{StaticResource ValidatingEntry}"
+                BindingContext="{Binding AuthCodeGrant.ClientId}" 
+                Text="{Binding Value}" 
+                Placeholder="{Binding PlaceholderValue}"
+                IsInvalid="{Binding IsInvalid}"
+                IsRequired="{Binding IsRequired}" />
+
+            <Label Grid.Column="0" Grid.Row="6" Text="ID Token"/>
+            <Switch
+                Grid.Column="1" Grid.Row="6" 
+                IsToggled="{Binding AuthCodeGrant.IsRequestingUserId}" />
+            
+           
+            <StackLayout 
+                Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
+                IsVisible="{Binding AuthCodeGrant.IsRequestingUserId}"
+                Orientation="Horizontal">
+                
+                <Label Text="scope:" WidthRequest="60"/>
+                
+                <CollectionView
+                    HeightRequest="80"
+                    ItemsLayout="HorizontalList"
+                    HorizontalOptions="Center"
+                    ItemsSource="{Binding AuthCodeGrant.Scope}"
+                    >
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <StackLayout Orientation="Vertical" Margin="10,0">
+                                <Label Text="{Binding Name}" HorizontalTextAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding IsSelected}" HorizontalOptions="Center"/>
+                            </StackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+
+            <Label Grid.Column="0" Grid.Row="8" Text="Cache"/>
+            <Switch
+                Grid.Column="1" Grid.Row="8" 
+                IsToggled="{Binding AuthCodeGrant.IsCaching}" />
+            
+            <StackLayout
+                Grid.Column="0" Grid.Row="9" Grid.ColumnSpan="2"
+                Orientation="Horizontal" HorizontalOptions="Center"
+                Margin="0,20,0,0">
+                <Button
+                    Text="NEW"
+                    Style="{StaticResource AuthorizeButton}"
+                    Command="{Binding AuthCodeGrant.AuthorizeCommand}" />
+
+                <Button
+                    Text="SILENT"
+                    Style="{StaticResource AuthorizeButton}"
+                    Command="{Binding AuthCodeGrant.AuthorizeSilentlyCommand}" />
+            </StackLayout>
+
+            <Label
+                Grid.Column="0" Grid.Row="10" Grid.ColumnSpan="2"
+                Text="{Binding AuthCodeGrant.Message}"
+                Style="{StaticResource MessageLabel}"
+                />
+
+            <StackLayout Orientation="Horizontal" Grid.Column="0" Grid.Row="11" Grid.ColumnSpan="2">
+                <Button 
+                    Text="View user Info" 
+                    Command="{Binding   AuthCodeGrant.ViewUserInfoCommand}"
+                    IsVisible="{Binding AuthCodeGrant.IsUserInfoAvailable}"
+                    />
+                <Button
+                    Text="View Log" 
+                    Command="{Binding   AuthCodeGrant.ViewLogCommand}"
+                    IsVisible="{Binding AuthCodeGrant.IsLogAvailable}"
+                    />
+            </StackLayout>
+
+            <ListView
+                Grid.Column="0" Grid.Row="12" Grid.ColumnSpan="2"
+                ItemsSource="{Binding AuthCodeGrant.TokensResult.Tokens}"
+                IsVisible="{Binding AuthCodeGrant.IsAuthorized}"
+                BackgroundColor="Transparent"
+                HasUnevenRows="True"
+                >
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Grid Margin="20,0,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label 
+                                    Grid.Row="0" Grid.Column="0" 
+                                    Text="{Binding TokenCaption}"
+                                    />
+                                <Label 
+                                    Grid.Row="0" Grid.Column="1" 
+                                    Text="{Binding TokenValue}" 
+                                    Style="{StaticResource TokenLabel}" 
+                                    />
+                                <Image
+                                    Grid.Row="1" Grid.Column="0" 
+                                    Source="icon_valid"
+                                    HeightRequest="16" WidthRequest="16"
+                                    Aspect="AspectFit"
+                                    Opacity="0"
+                                    IsVisible="{Binding IsTokenValid}">
+                                    <Image.Triggers>
+                                        <DataTrigger TargetType="Image" Binding="{Binding IsTokenValid}" Value="true">
+                                            <DataTrigger.EnterActions>
+                                                <animations:FadeTo Length="500">1</animations:FadeTo>
+                                            </DataTrigger.EnterActions>
+                                        </DataTrigger>
+                                    </Image.Triggers>
+                                </Image>
+                                <Button
+                                    Grid.Row="1" Grid.Column="1" 
+                                    Text="{Binding CommandCaption}"
+                                    FontSize="14"
+                                    Command="{Binding Command}" 
+                                    CommandParameter="{Binding .}"
+                                    HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsTokenUnvalidated}" Value="false">
+                                            <DataTrigger.EnterActions>
+                                                <animations:TranslateTo Y="20"/>
+                                                <animations:FadeTo>0</animations:FadeTo>
+                                            </DataTrigger.EnterActions>
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Label
+                                    Grid.Row="1" Grid.Column="1" 
+                                    Text="TOKEN IS VALID"
+                                    FontSize="14"
+                                    TextColor="LightGreen"
+                                    IsVisible="{Binding IsTokenValid}"
+                                    HorizontalOptions="Center" VerticalOptions="Center"
+                                    Opacity="0"
+                                    TranslationY="-20"
+                                    >
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsTokenValid}" Value="true">
+                                            <DataTrigger.EnterActions>
+                                                <animations:TranslateTo Y="0" />
+                                                <animations:FadeTo>1</animations:FadeTo>
+                                            </DataTrigger.EnterActions>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Grid> 
+                        </ViewCell>
+                    </DataTemplate>                
+                </ListView.ItemTemplate>
+            </ListView>
+
+         </Grid>
+    </ScrollView>
+</ContentPage>

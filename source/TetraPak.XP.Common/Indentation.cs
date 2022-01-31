@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     /// <summary>
     ///   Can be used to manage indentation while building textual values.
@@ -34,7 +34,7 @@ namespace TetraPak
         /// <returns>
         ///   A new <see cref="Indentation"/> value.
         /// </returns>
-        public Indentation Push() => new(Increment, StringValue[0], StringValue.Length + Increment/*, this obsolete */);
+        public Indentation Push() => new(Increment, StringValue[0], StringValue.Length + Increment);
 
         /// <summary>
         ///   Returns the previous indentation level (if any).

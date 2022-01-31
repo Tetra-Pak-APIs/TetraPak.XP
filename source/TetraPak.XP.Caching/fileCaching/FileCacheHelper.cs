@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Caching

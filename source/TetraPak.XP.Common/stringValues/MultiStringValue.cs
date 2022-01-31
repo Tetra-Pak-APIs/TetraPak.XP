@@ -2,14 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json.Serialization;
-using TetraPak.Serialization;
-
+#if NET5_0_OR_GREATER        
+using System.Diagnostics.CodeAnalysis;
+#endif
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     /// <summary>
     ///   A specialized version of a <see cref="IStringValue"/> that supports multiple items.
@@ -17,10 +17,12 @@ namespace TetraPak
     /// </summary>
     /// <seealso cref="IStringValue"/>
     /// <seealso cref="StringValueBase"/>
-    [Serializable, JsonConverter(typeof(JsonStringValueSerializer<MultiStringValue>))]
+    // [Serializable, JsonConverter(typeof(JsonStringValueSerializer<MultiStringValue>))]
     [DebuggerDisplay("{" + nameof(StringValue) + "}")]
     public class MultiStringValue : StringValueBase, IEnumerable<string>
     {
+        string[]? _items;
+
         /// <summary>
         ///   The default separator used for parsing a <see cref="MultiStringValue"/>. 
         /// </summary>
@@ -30,12 +32,25 @@ namespace TetraPak
         ///   Gets a custom separator (initialized by ctor).
         /// </summary>
         public string Separator { get; protected set; }
-        
+
         /// <summary>
         ///   Gets the string elements of the value as an <see cref="Array"/> of <see cref="string"/>.
         /// </summary>
         [JsonIgnore]
-        public string[]? Items { get; protected set; }
+        public string[]? Items
+        {
+            get => _items; 
+            private set => _items = OnSetItems(value);
+        }
+
+        /// <summary>
+        ///   Called by the <see cref="Items"/> setter to allow derived classes to validate or coerce
+        ///   the assigned value (the base implementation simply returns the <paramref name="value"/>). 
+        /// </summary>
+        /// <param name="value">
+        ///   The items to be assigned.
+        /// </param>
+        protected virtual string[]? OnSetItems(string[]? value) => value;
 
         /// <summary>
         ///   Gets the number of <see cref="Items"/> in the value.
@@ -77,10 +92,17 @@ namespace TetraPak
         ///   <c>true</c> if <paramref name="stringValue"/> was converted successfully; otherwise, <c>false</c>.
         /// </returns>
         /// <seealso cref="TryParse{T}"/>
+#if NET5_0_OR_GREATER        
         public static bool TryParse(
             string stringValue,
             [NotNullWhen(true)] out MultiStringValue? multiStringValue,
             StringComparison comparison = StringComparison.Ordinal)
+#else
+        public static bool TryParse(
+            string stringValue,
+            out MultiStringValue? multiStringValue,
+            StringComparison comparison = StringComparison.Ordinal)
+ #endif
         {
             return TryParse<MultiStringValue>(stringValue, out multiStringValue, comparison);
         }
@@ -100,10 +122,17 @@ namespace TetraPak
         ///   <c>true</c> if <paramref name="stringValue"/> was converted successfully; otherwise, <c>false</c>.
         /// </returns>
         /// <seealso cref="TryParse"/>
+#if NET5_0_OR_GREATER        
         public static bool TryParse<T>(
             string stringValue, 
             [NotNullWhen(true)] out T? multiStringValue, 
             StringComparison comparison = StringComparison.Ordinal)
+#else
+        public static bool TryParse<T>(
+            string stringValue, 
+            out T? multiStringValue, 
+            StringComparison comparison = StringComparison.Ordinal)
+#endif
         where T : MultiStringValue
         {
             multiStringValue = (T?) Activator.CreateInstance(typeof(T));
@@ -133,13 +162,13 @@ namespace TetraPak
             StringValue = Items.ConcatCollection(Separator);
         }
 
-        Outcome<string[]> tryParse(string value, StringComparison comparison = StringComparison.Ordinal)
+        Outcome<string[]> tryParse(string? value, StringComparison comparison = StringComparison.Ordinal)
         {
-            if (string.IsNullOrEmpty(value))
+            if (value.IsAssigned())
                 return Outcome<string[]>.Fail(new FormatException($"Invalid {typeof(MultiStringValue)} format: \"{value}\""));
 
             var separator = OnGetSeparator();
-            var split = value.Split(new[] {separator}, StringSplitOptions.RemoveEmptyEntries);
+            var split = value!.Split(new[] {separator}, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length == 0)
                 return Outcome<string[]>.Fail(new FormatException($"Invalid {typeof(MultiStringValue)} format: \"{value}\""));
 
@@ -147,9 +176,9 @@ namespace TetraPak
             foreach (var s in split)
             {
                 var trimmed = s.Trim();
-                var isValidItem = OnValidateItem(trimmed, comparison);
-                if (!isValidItem)
-                    return Outcome<string[]>.Fail(isValidItem.Exception);
+                var validateOutcome = OnValidateItem(trimmed, comparison);
+                if (!validateOutcome)
+                    return Outcome<string[]>.Fail(validateOutcome.Exception!);
                 
                 roles.Add(trimmed);
             }
@@ -172,7 +201,8 @@ namespace TetraPak
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="string"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        protected virtual Outcome<string> OnValidateItem(string item, 
+        protected virtual Outcome<string> OnValidateItem(
+            string item, 
             StringComparison comparison = StringComparison.Ordinal) 
             => Outcome<string>.Success(item);
 
@@ -202,7 +232,7 @@ namespace TetraPak
                 : new MultiStringValue(stringValue);
 
         /// <inheritdoc />
-        public override string ToString() => StringValue!;
+        public override string ToString() => StringValue;
 
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -289,11 +319,8 @@ namespace TetraPak
         /// <returns>
         ///   A hash code for the current value.
         /// </returns>
-        public override int GetHashCode()
-        {
-            return StringValue is not null ? StringValue.GetHashCode() : 0;
-        }
-        
+        public override int GetHashCode() => StringValue.GetHashCode();
+
         // public bool Contains(string value) => Items?.Contains(value) ?? false; obsolete
 
         /// <summary>
@@ -356,9 +383,9 @@ namespace TetraPak
         {
             foreach (var item in items)
             {
-                var isValid = OnValidateItem(item);
-                if (!isValid)
-                    throw isValid.Exception;
+                var validateOutcome = OnValidateItem(item);
+                if (!validateOutcome)
+                    throw validateOutcome.Exception!;
             }
         }
 
@@ -436,16 +463,16 @@ namespace TetraPak
         public MultiStringValue(string? stringValue, string? separator = null) 
         : base(stringValue)
         {
-            Separator = string.IsNullOrEmpty(separator) ? DefaultSeparator : separator;
-            if (IsError || string.IsNullOrWhiteSpace(stringValue))
+            Separator = separator.IsAssigned(true) ? separator! : DefaultSeparator;
+            if (IsError || !stringValue.IsAssigned())
                 return;
             
             var parseOutcome = tryParse(stringValue);
             if (!parseOutcome)
-                throw parseOutcome.Exception;
+                throw parseOutcome.Exception!;
 
             Items = parseOutcome.Value;
-            SetStringValue(stringValue);
+            SetStringValue(stringValue!);
         }
 
         /// <summary>
@@ -461,7 +488,7 @@ namespace TetraPak
         public MultiStringValue(string[] items, string? separator = null) 
         : base("")
         {
-            Separator = string.IsNullOrEmpty(separator) ? DefaultSeparator : separator;
+            Separator = separator.IsAssigned(true) ? separator! : DefaultSeparator;
             if (items.Length == 0)
                 return;
 

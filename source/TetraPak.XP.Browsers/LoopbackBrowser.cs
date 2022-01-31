@@ -13,26 +13,17 @@ namespace TetraPak.XP.Browsers
     /// <summary>
     ///   Implements a a basic abstract interactive browser. 
     /// </summary>
-    public abstract class InteractiveBrowser : IInteractiveBrowser
+    public abstract class LoopbackBrowser : ILoopbackBrowser
     {
         LoopbackHost? _loopbackHost;
         readonly ILog? _log;
 
         public LoopbackFilter? LoopbackFilter { get; set; }
 
-        public InteractiveBrowser WithLoopBackFilter(LoopbackFilter filter)
+        public LoopbackBrowser WithLoopBackFilter(LoopbackFilter filter)
         {
             LoopbackFilter = filter;
             return this;
-        }
-
-        public static int GetRandomUnusedPort() // todo Consider moving to more suitable class (eg. "Network" or something similar)
-        {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            return port;
         }
 
         public static Uri BuildLoopbackUri(string path, int port = -1, HttpScheme scheme = HttpScheme.Http)
@@ -47,7 +38,7 @@ namespace TetraPak.XP.Browsers
         }
         
         /// <inheritdoc />
-        public Task<Outcome<HttpRequest>> ReadLoopbackAsync(
+        public Task<Outcome<HttpRequest>> GetLoopbackAsync(
             Uri target, 
             Uri loopbackHost, 
             LoopbackFilter? filter = null,
@@ -72,21 +63,27 @@ namespace TetraPak.XP.Browsers
             CancellationToken cancellationToken,
             TimeSpan? timeout = null)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            _loopbackHost = new LoopbackHost(loopbackHostUri, _log);
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                _loopbackHost = new LoopbackHost(loopbackHostUri, _log);
                 _loopbackHost.LoopbackFilter = LoopbackFilter;
                 timeout ??= LoopbackHost.DefaultTimeout;
                 OnOpenBrowser(targetUri);
                 var request = await _loopbackHost.WaitForCallbackUrlAsync(timeout.Value);
-                return request is {}
+                return request is { }
                     ? Outcome<HttpRequest>.Success(request)
-                    : Outcome<HttpRequest>.Fail(new Exception($"Did not obtain a callback from browser interaction with {targetUri}"));
+                    : Outcome<HttpRequest>.Fail(
+                        new Exception($"Did not obtain a callback from browser interaction with {targetUri}"));
             }
             catch (Exception ex)
             {
                 return Outcome<HttpRequest>.Fail(ex);
+            }
+            finally
+            {
+                _loopbackHost.Dispose();
+                _loopbackHost = null;
             }
         }
         
@@ -114,7 +111,7 @@ namespace TetraPak.XP.Browsers
 
         public void Dispose() => _loopbackHost?.Dispose();
 
-        public InteractiveBrowser(ILog? log)
+        public LoopbackBrowser(ILog? log)
         {
             _log = log;
         }

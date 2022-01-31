@@ -10,7 +10,7 @@ using TetraPak.XP.Logging;
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-#nullable enable
+[assembly:InternalsVisibleTo("TetraPak.XP.Caching")]
 
 namespace TetraPak.XP.Configuration
 {

@@ -1,30 +1,32 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using TetraPak.Serialization;
 
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     public static class TypeHelper
     {
-        public static event DeserializationHandler? Deserialize;
 
         public static bool Is(
-            this Type self, 
+            this Type? self, 
             Type? type, 
             bool laxEnumerationComparison = true, 
             bool includeImplicitOperatorOverloads = false)
         {
-            if (type is null)
+            if (self is null || type is null)
                 return false;
-                
-            if (type == self || type.IsAssignableFrom(self) || self.IsAssignableFrom(type))
+
+            if (type == self)
+                return true;
+
+            if (type.IsInterface)
+                return self.ImplementsInterface(type);
+            
+            if (type.IsAssignableFrom(self) || self.IsAssignableFrom(type))
                 return true;
 
             if (includeImplicitOperatorOverloads && type == typeof(string) && self.IsOverloadingImplicitOperator<string>())
@@ -40,6 +42,12 @@ namespace TetraPak
             var type2 = type.GetCollectionElementType();
             return type1?.Is(type2) ?? false;
         }
+        
+        public static bool ImplementsInterface<T>(this Type? self) 
+            => self.ImplementsInterface(typeof(T));
+
+        public static bool ImplementsInterface(this Type? self, Type @interface) 
+            => self?.GetInterface(@interface.FullName ?? string.Empty) != null;
 
         public static bool IsNullable(this Type self)
         {
@@ -135,7 +143,7 @@ namespace TetraPak
         public static bool TryGetGenericBase(
             this Type self,
             Type genericType, 
-            [NotNullWhen(true)] out Type? type, 
+            /*[NotNullWhen(true)]*/ out Type? type, 
             bool inherited = true)
         {
             if (!genericType.IsGenericType || genericType.GenericTypeArguments.Length != 0) 
@@ -171,9 +179,6 @@ namespace TetraPak
             return $"{type.Namespace}.{type.Name}";
         }
 
-        public static bool ImplementsInterface<TInterface>(this Type type) 
-            => type.GetInterface(typeof(TInterface).FullName ?? string.Empty) is {};
-        
         public static bool IsCollection(this Type type, out Type? collectionType, out Type? itemType, bool treatStringAsUnary = true)
         {
             collectionType = null!;
@@ -371,7 +376,7 @@ namespace TetraPak
         /// </returns>
         public static bool IsCollectionOf<T>(
             this object? obj,
-            [NotNullWhen(true)] out IEnumerable<T?>? items, 
+            /*[NotNullWhen(true)]*/ out IEnumerable<T?>? items, 
             bool treatStringAsUnary = true)
         {
             if (!obj.IsCollectionOf(typeof(T), out var enumerable, treatStringAsUnary))
@@ -406,7 +411,7 @@ namespace TetraPak
             return typeof(object);
         }
         
-        public static bool TryGetCollectionItemType(this Type? collectionType, [NotNullWhen(true)] out Type? iType)
+        public static bool TryGetCollectionItemType(this Type? collectionType, /*[NotNullWhen(true)]*/ out Type? iType)
         {
             while (true)
             {
@@ -427,150 +432,15 @@ namespace TetraPak
             }
         }
         
-        public static bool TryDeserializeStringValue(
-            this Type targetType,
-            string s, 
-            [NotNullWhen(true)] out object? result)
-        {
-            if (tryIocDeserialize(s, out result))
-                return true;
-
-            if (tryDeserializeNumeric(s, targetType, out result))
-                return true;
-
-            if (!targetType.ImplementsInterface<IStringValue>())
-                return false;
-
-            const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            var ctor = targetType.GetConstructor(Flags, null, new[] { typeof(string) }, null);
-            if (ctor == null)
-            {
-                // try casting (IStringValue implementations should support implicit type casting from string) ...
-                var implicitOp = targetType.GetMethod("op_Implicit", new[] { typeof(string) });
-                if (implicitOp == null)
-                    throw new Exception($"Cannot deserialize '{s}' of type {targetType}. Type does not support ctor with single string parameter.");
-                
-                result = implicitOp.Invoke(null, new object[] {s});
-                return result is {};
-            }
-
-            result = ctor.Invoke(new object[] { s });
-            return true;
-        }
         
-        static bool tryIocDeserialize(string serialized, [NotNullWhen(true)] out object? deserialized)
+
+        public static IEnumerable<T> WithInserted<T>(this IEnumerable<T> collection, int index, T item)
         {
-            deserialized = default;
-            if (Deserialize == null)
-                return false;
-
-            var handlers = Deserialize.GetInvocationList().Cast<DeserializationHandler>();
-            foreach (var handler in handlers)
-            {
-                try
-                {
-                    if (!handler(serialized, out var value, true))
-                        continue;
-
-                    deserialized = value;
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // todo log error
-                    Console.WriteLine(ex);
-                    throw;
-                }
-            }
-
-            return false;
+            var list = collection.ToList();
+            list.Insert(index, item);
+            return list;
         }
-        
-         static bool tryDeserializeNumeric(string s, Type targetType, [NotNullWhen(true)] out object? result)
-        {
-            switch (Type.GetTypeCode(targetType))
-            {
-                case TypeCode.Byte:
-                    if (!byte.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var byteResult))
-                        break;
 
-                    result = byteResult;
-                    return true;
-
-                case TypeCode.SByte:
-                    if (!sbyte.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var sbyteResult))
-                        break;
-
-                    result = sbyteResult;
-                    return true;
-
-                case TypeCode.Int16:
-                    if (!short.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var shortResult))
-                        break;
-
-                    result = shortResult;
-                    return true;
-
-                case TypeCode.Int32:
-                    if (!int.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var int32Result))
-                        break;
-
-                    result = int32Result;
-                    return true;
-
-                case TypeCode.Int64:
-                    if (!long.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var int64Result))
-                        break;
-
-                    result = int64Result;
-                    return true;
-
-                case TypeCode.UInt16:
-                    if (!ushort.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var uint16Result))
-                        break;
-
-                    result = uint16Result;
-                    return true;
-
-                case TypeCode.UInt32:
-                    if (!uint.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var uint32Result))
-                        break;
-
-                    result = uint32Result;
-                    return true;
-
-                case TypeCode.UInt64:
-                    if (!ulong.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var uint64Result))
-                        break;
-
-                    result = uint64Result;
-                    return true;
-
-                case TypeCode.Decimal:
-                    if (!decimal.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var decimalResult))
-                        break;
-
-                    result = decimalResult;
-                    return true;
-
-                case TypeCode.Single:
-                    if (!float.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var singleResult))
-                        break;
-
-                    result = singleResult;
-                    return true;
-
-                case TypeCode.Double:
-                    if (!double.TryParse(s, NumberStyles.Number, Parsing.FormatProvider, out var doubleResult))
-                        break;
-
-                    result = doubleResult;
-                    return true;
-            }
-            result = null;
-            return false;
-        }
-         
          /// <summary>
          ///   Gets a value specifying whether the <seealso cref="Type"/> declares an
          ///   overloaded implicit type method.
@@ -679,5 +549,21 @@ namespace TetraPak
                 ? self.Any(s => other.Any(i => string.Equals(s, i, comparison.Value)))
                 : self.Any(s => other.Any(i => string.Equals(s, i)));
          }
+
+         public static int IndexOf<T>(this IEnumerable<T> self, T item) => self.IndexOf(i => i?.Equals(item) ?? false);
+         
+         public static int IndexOf<T>(this IEnumerable<T> self, Func<T,bool> comparer)
+         {
+             var array = self.ToArray();
+             for (var index = 0; index < array.Length; index++)
+             {
+                 var testItem = array[index];
+                 if (comparer(testItem))
+                     return index;
+             }
+
+             return -1;
+         }
+
     }
 }

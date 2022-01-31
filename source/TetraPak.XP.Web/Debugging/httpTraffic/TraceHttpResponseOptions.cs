@@ -2,8 +2,9 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using TetraPak.XP.Logging;
 
-namespace TetraPak.AspNet.Debugging
+namespace TetraPak.XP.Web.Debugging
 {
     /// <summary>
     ///   Used to control how HTTP response gets represented (for tracing).
@@ -13,7 +14,7 @@ namespace TetraPak.AspNet.Debugging
         /// <summary>
         ///   Gets default <see cref="TraceHttpRequestOptions"/>
         /// </summary>
-        public static TraceHttpResponseOptions Default(string? messageId = null)
+        public static TraceHttpResponseOptions Default(LogMessageId? messageId = null)
         {
             return new TraceHttpResponseOptions(messageId)
             {
@@ -176,7 +177,7 @@ namespace TetraPak.AspNet.Debugging
         
         #endregion // Fluent API    
         
-        TraceHttpResponseOptions(string? messageId = null)
+        TraceHttpResponseOptions(LogMessageId? messageId = null)
         : base(messageId)
         {
         }

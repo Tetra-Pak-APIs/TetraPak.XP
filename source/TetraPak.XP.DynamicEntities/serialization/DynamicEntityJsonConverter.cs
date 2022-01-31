@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using TetraPak.XP.Serialization;
 
-namespace TetraPak.XP.DynamicEntities.Serialization
+namespace TetraPak.XP.DynamicEntities
 {
     public class DynamicEntityJsonConverter<T> : JsonConverter<T> 
     where T : DynamicEntity

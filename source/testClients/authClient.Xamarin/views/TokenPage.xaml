@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<ContentPage 
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:authClient.viewModels;assembly=authClient.Xamarin"
+    x:Class="authClient.views.TokenPage"
+    x:Name="Self"
+    Title=""
+    >
+
+    <ContentPage.BindingContext>
+        <viewModels:TokenVM/> 
+    </ContentPage.BindingContext>
+
+    <!--<Grid> obsolete
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Label
+            Grid.Column="0"
+            Text="{Binding Token}"
+            />
+        <Button
+            Grid.Column="1"
+            Text="{Binding ButtonText, Source={x:Reference Self}}"
+            Command="{Binding Command, Source={x:Reference Self}}"
+            />
+    </Grid>-->
+
+</ContentPage>

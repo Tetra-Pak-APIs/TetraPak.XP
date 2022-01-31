@@ -1,4 +1,4 @@
-﻿namespace TetraPak.AspNet.Debugging
+﻿namespace TetraPak.XP.Web.Debugging
 {
     /// <summary>
     ///   Provides <see cref="string"/> constants representing various standardised request initiators.

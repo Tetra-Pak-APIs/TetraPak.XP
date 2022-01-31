@@ -3,8 +3,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using TetraPak.XP.Logging;
 
-namespace TetraPak.AspNet.Debugging
+namespace TetraPak.XP.Web.Debugging
 {
     public abstract class AbstractTraceHttpMessageOptions
     {
@@ -70,7 +71,7 @@ namespace TetraPak.AspNet.Debugging
         /// <summary>
         ///   Gets or sets a unique string value for tracking a request/response (mainly for diagnostics purposes).
         /// </summary>
-        public string? MessageId { get; set; }
+        public LogMessageId? MessageId { get; set; }
         
         /// <summary>
         ///   A callback handler, invoked after the request message has been serialized to
@@ -188,7 +189,7 @@ namespace TetraPak.AspNet.Debugging
         
         #endregion // Fluent API        
 
-        internal AbstractTraceHttpMessageOptions(string? messageId)
+        internal AbstractTraceHttpMessageOptions(LogMessageId? messageId)
         {
             _bufferSize = DefaultBuffersSize;
             _maxSize = _bufferSize * DefaultMaxSizeFactor;

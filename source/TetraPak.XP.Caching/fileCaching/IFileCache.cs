@@ -1,4 +1,6 @@
-﻿namespace TetraPak.XP.Caching
+﻿using TetraPak.XP.Caching.Abstractions;
+
+namespace TetraPak.XP.Caching
 {
     /// <summary>
     ///   Classes implementing this interface can be registered as file based caching service.

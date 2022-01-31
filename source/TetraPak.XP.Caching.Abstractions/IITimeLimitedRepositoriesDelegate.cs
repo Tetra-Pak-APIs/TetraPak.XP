@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using TetraPak.XP.DynamicEntities;
 
-namespace TetraPak.XP
+namespace TetraPak.XP.Caching.Abstractions
 {
     public interface IITimeLimitedRepositoriesDelegate 
     {

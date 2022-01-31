@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using TetraPak.XP.Caching;
+using TetraPak.XP.Caching.Abstractions;
+using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
 using Xamarin.Essentials;
 
 namespace TetraPak.XP.Xamarin
 {
-    class SecureCacheDelegate : IITimeLimitedRepositoriesDelegate
+    class XamarinSecureCacheDelegate : ISecureCacheDelegate
     {
         readonly string _targetRepository;
         readonly ILog? _log;
@@ -14,7 +16,7 @@ namespace TetraPak.XP.Xamarin
         public TimeSpan AutoPurgeInterval { get; set; }
         public Task<Outcome<CachedItem<T>>> GetValidItemAsync<T>(ITimeLimitedRepositoryEntry entry)
         {
-            var path = (SimpleCachePath)entry.Path;
+            var path = (RepositoryPath)entry.Path;
             if (!isTargetedRepository(path.Repository))
             {
                 var exception = new InvalidOperationException($"Unexpected repository when validating entry: {path.Repository}");
@@ -64,7 +66,7 @@ namespace TetraPak.XP.Xamarin
 
         bool isTargetedRepository(string repository) => repository == _targetRepository;
 
-        public SecureCacheDelegate(string targetRepository, ILog? log)
+        public XamarinSecureCacheDelegate(string targetRepository, ILog? log)
         {
             _targetRepository = targetRepository;
             _log = log;

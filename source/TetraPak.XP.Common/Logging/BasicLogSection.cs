@@ -2,10 +2,11 @@
 
 namespace TetraPak.XP.Logging
 {
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     class BasicLogSection : ILogSection
     {
         readonly ILog _log;
-        readonly LogRank _logRank; // todo is rank really necessary for a log section? This implementation uses the original log anyway
+        readonly LogRank _logRank;
         readonly string _indent;
         readonly int _indentLength;
         readonly string? _sectionSuffix;
@@ -15,23 +16,20 @@ namespace TetraPak.XP.Logging
 
         public LogQueryAsyncDelegate? QueryAsync { get; set; }
 
-        public void Debug(string message) => _log.Debug(indentMessage(message));
-
-        public void Info(string message) => _log.Information(indentMessage(message));
-
-        public void Warning(string message) => _log.Warning(indentMessage(message));
-
-        public void Error(Exception exception, string? message = null) => _log.Error(exception, indentMessage(message));
-
-        public void Any(string message) => _log.Any(indentMessage(message));
-
-        public void Write(LogRank rank, string? message, Exception? exception = null) 
-            => _log.Write(rank, indentMessage(message), exception);
-
         string indentMessage(string? message)
         {
             if (_isDisposed) throw new InvalidOperationException("Invalid attempt to log using a disposed log section");
             return message is null ? null! : $"{_indent}{message}";
+        }
+
+        public void Write(LogRank rank, string? message = null, Exception? exception = null, LogMessageId? messageId = null)
+        {
+            _log.Write(rank, indentMessage(message), exception, messageId);
+        }
+
+        public bool IsEnabled(LogRank rank)
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />

@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TetraPak.Serialization;
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     public static class DictionaryExtensions
     {
@@ -31,38 +30,19 @@ namespace TetraPak
         public static IDictionary<string, TValue> Map<TValue>(
             this IDictionary<string, TValue> self, 
             IDictionary<string,string> keyMap,
-            bool isRestricted = false)
-        {
-            return new Dictionary<string, TValue>(self.ToArray().Map(keyMap, isRestricted));
-        }
+            bool isRestricted = false) 
+            =>
+            self.ToArray().Map(keyMap, isRestricted).ToDictionary();
 
-        /// <summary>
-        ///   Generates a new <see cref="IDictionary{TKey,TValue}"/> where all keys are
-        ///   renamed according to a specified key map.
-        /// </summary>
-        /// <param name="self">
-        ///   The source dictionary. 
-        /// </param>
-        /// <param name="keyMap">
-        ///   A dictionary containing the key mapping (keys=source keys, values=target keys).
-        /// </param>
-        /// <param name="isRestricted">
-        ///   (optional; default=<c>false</c>)<br/>
-        ///   Specifies whether to only include attributes whose keys can be found in the <paramref name="keyMap"/>.  
-        /// </param>
-        /// <typeparam name="TValue">
-        ///   The dictionary's value <see cref="Type"/>.
-        /// </typeparam>
-        /// <returns>
-        ///   A remapped dictionary.
-        /// </returns>
-        public static IDictionary<string, TValue> MapSafe<TValue>(
-            this IDictionary<string, TValue> self, 
-            KeyMapInfo keyMap,
-            bool isRestricted = false)
+        public static IDictionary<TKey, TValue> ToDictionary<TKey, TValue>(
+            this IEnumerable<KeyValuePair<TKey, TValue>> pairs) where TKey : notnull
         {
-            var mapped = self.ToArray().MapSafe(keyMap);
-            return new Dictionary<string, TValue>(mapped);
+#if NET5_0_OR_GREATER
+            return new Dictionary<TKey, TValue>(pairs);
+#else
+
+            return pairs.ToDictionary(pair => pair.Key, pair => pair.Value);
+#endif
         }
 
         public static IEnumerable<KeyValuePair<string, TValue>> Map<TValue>(
@@ -78,28 +58,6 @@ namespace TetraPak
             }
         }
         
-        public static IEnumerable<KeyValuePair<string, TValue>> MapSafe<TValue>(
-            this KeyValuePair<string, TValue>[] self,
-            KeyMapInfo keyMap)
-        {
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (var i = 0; i < self.Length; i++)
-            {
-                if (self[i].Value is null)
-                    continue;
-
-                var key = self[i].Key;
-                if (keyMap.Map.TryGetValue(key, out var mappedKey))
-                {
-                    yield return new KeyValuePair<string, TValue>(mappedKey, self[i].Value);
-                }
-                else if (!keyMap.IsStrict)
-                {
-                    yield return new KeyValuePair<string, TValue>(self[i].Key, self[i].Value);
-                }
-            }
-        }
-
         /// <summary>
         ///   Generates an inverted version of a dictionary, making all values become keys and vice versa.
         ///   Please note that the key and value <see cref="Type"/> must be compatible.
@@ -114,11 +72,8 @@ namespace TetraPak
         ///   A new <see cref="IDictionary{TKey,TValue}"/> object.
         /// </returns>
         /// <seealso cref="ToInverted{T}(System.Collections.Generic.IEnumerable{KeyValuePair{T,T}})"/>
-        public static IDictionary<T,T> ToInverted<T>(this IDictionary<T,T> self) where T : notnull
-        {
-            var keys = (IEnumerable<KeyValuePair<T, T>>) self;
-            return new Dictionary<T, T>(keys.ToInverted<T,T>());
-        }
+        public static IDictionary<T,T> ToInverted<T>(this IDictionary<T,T> self) where T : notnull 
+            => ((IEnumerable<KeyValuePair<T, T>>) self).ToInverted<T,T>().ToDictionary();
 
         /// <summary>
         ///   Generates a collection of <see cref="KeyValuePair{T,T}"/> items from an existing collection
@@ -136,9 +91,9 @@ namespace TetraPak
         /// <seealso cref="ToInverted{T}(System.Collections.Generic.IDictionary{T,T})"/>
         public static IEnumerable<KeyValuePair<T,T>> ToInverted<T>(this IEnumerable<KeyValuePair<T,T>> self)
         {
-            foreach (var (key, value) in self)
+            foreach (var pair in self)
             {
-                yield return new KeyValuePair<T,T>(value, key);
+                yield return new KeyValuePair<T,T>(pair.Value, pair.Key);
             }
         }
 
@@ -160,7 +115,7 @@ namespace TetraPak
         /// </returns>
         public static IDictionary<TValue, TKey> ToInverted<TKey, TValue>(this IDictionary<TKey, TValue> self) 
             where TValue : notnull where TKey : notnull 
-        => new Dictionary<TValue, TKey>(ToInverted((IEnumerable<KeyValuePair<TKey, TValue>>)self));
+        => new Dictionary<TValue, TKey>(ToInverted((IEnumerable<KeyValuePair<TKey, TValue>>)self).ToDictionary());
 
         /// <summary>
         ///   Generates a collection of <see cref="KeyValuePair{TKey,TValue}"/> items from a source
@@ -183,12 +138,12 @@ namespace TetraPak
         /// </remarks>
         public static IEnumerable<KeyValuePair<TValue,TKey>> ToInverted<TKey,TValue>(this IEnumerable<KeyValuePair<TKey,TValue>> self)
         {
-            foreach (var (key,value) in self)
+            foreach (var pair in self)
             {
-                if (value is null)
+                if (pair.Value is null)
                     continue;
                 
-                yield return new KeyValuePair<TValue, TKey>(value, key);
+                yield return new KeyValuePair<TValue, TKey>(pair.Value, pair.Key);
             }
         }
 

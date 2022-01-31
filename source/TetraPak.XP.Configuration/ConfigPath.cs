@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using TetraPak.XP.DynamicEntities;
 
 namespace TetraPak.XP.Configuration
 {

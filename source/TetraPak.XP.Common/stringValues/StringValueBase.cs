@@ -2,11 +2,10 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using TetraPak.Serialization;
 
 #nullable enable
 
-namespace TetraPak
+namespace TetraPak.XP
 {
     /// <summary>
     ///   A basic implementation of <see cref="IStringValue"/>.
@@ -16,10 +15,12 @@ namespace TetraPak
     /// </remarks>
     /// <seealso cref="IStringValue"/>
     /// <seealso cref="MultiStringValue"/>
-    [Serializable, JsonConverter(typeof(JsonStringValueSerializer<StringValueBase>))]
+    // [Serializable, JsonConverter(typeof(JsonStringValueSerializer<StringValueBase>))]
     [DebuggerDisplay("ToString()")]
-    public class StringValueBase : IStringValue
+    public class StringValueBase : IStringValue // todo consider making StringValueBase immutable
     {
+        string? _stringValue;
+
         /// <summary>
         ///   A string identifier to qualify an erroneous string value. 
         /// </summary>
@@ -30,11 +31,15 @@ namespace TetraPak
         /// </summary>
         [JsonIgnore]
         public bool IsError { get; set; }
-        
+
         /// <summary>
         ///   The textual representation of the <see cref="IStringValue"/>.
         /// </summary>
-        public virtual string? StringValue { get; protected set; } // todo consider making StringValueBase immutable
+        public virtual string StringValue 
+        {
+            get => _stringValue ?? string.Empty;
+            protected set => _stringValue = value;
+        } 
 
         string? parse(string? stringValue) => OnParse(stringValue);
 
@@ -53,21 +58,38 @@ namespace TetraPak
         /// <exception cref="TargetInvocationException">
         ///   The <typeparamref name="T"/> type does not implement <see cref="IStringValue"/>.
         /// </exception>
-        public static T MakeStringValue<T>(string? s)
+        public static T MakeStringValue<T>(string? s) => (T)MakeStringValue(typeof(T), s);
+
+        /// <summary>
+        ///   Instantiates a <see cref="IStringValue"/> of the specified type.
+        /// </summary>
+        /// <param name="targetType">
+        ///   The type of <see cref="IStringValue"/> to be constructed.
+        /// </param>
+        /// <param name="s">
+        ///   The textual representation of the requested <see cref="IStringValue"/>.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="IStringValue"/> object of type <typeparamref name="T"/>.
+        /// </returns>
+        /// <exception cref="TargetInvocationException">
+        ///   The <typeparamref name="T"/> type does not implement <see cref="IStringValue"/>.
+        /// </exception>
+        public static object MakeStringValue(Type targetType, string? s)
         {
             if (s is null)
                 return default!;
                 
-            if (!typeof(IStringValue).IsAssignableFrom(typeof(T)))
+            if (!typeof(IStringValue).IsAssignableFrom(targetType))
                 throw new TargetInvocationException(
-                    $"Cannot make string value of type {typeof(T)}. Not a {typeof(IStringValue)}", null);
+                    $"Cannot make string value of type {targetType}. Not a {typeof(IStringValue)}", null);
                 
-            var ctor = typeof(T).GetConstructor(new[] {typeof(string)});
+            var ctor = targetType.GetConstructor(new[] {typeof(string)});
             if (ctor is null)
                 throw new TargetInvocationException(
-                    $"Cannot make {typeof(T)}. Expected ctor with single string parameter", null);
+                    $"Cannot make {targetType}. Expected ctor with single string parameter", null);
 
-            return (T) ctor.Invoke(new object[] {s});
+            return ctor.Invoke(new object[] {s});
         }
 
         /// <summary>
@@ -88,7 +110,7 @@ namespace TetraPak
         /// </remarks>
         protected virtual string? OnParse(string? stringValue)
         {
-            if (string.IsNullOrEmpty(stringValue) || !stringValue.StartsWith(ErrorQualifier))
+            if (!stringValue.IsAssigned(true) || !stringValue!.StartsWith(ErrorQualifier))
                 return stringValue;
 
             IsError = true;
@@ -96,7 +118,7 @@ namespace TetraPak
         }
 
         /// <inheritdoc />
-        public override string ToString() => StringValue ?? string.Empty;
+        public override string ToString() => StringValue;
 
         #region .  Equality  .
 

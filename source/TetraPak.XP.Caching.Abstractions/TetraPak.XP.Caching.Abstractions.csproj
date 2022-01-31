@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <PackageVersion>1.0.0-alpha.2</PackageVersion>
+        <Title>Tetra Pak common library for native applications</Title>
+        <Description>A common set of code APIs and tools for Tetra Pak .NET native development</Description>
+        <Copyright>Tetra Pak</Copyright>
+        <PackageReleaseNotes>Early alpha for internal testing</PackageReleaseNotes>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.DynamicEntities\TetraPak.XP.DynamicEntities.csproj" />
+    </ItemGroup>
+
+</Project>

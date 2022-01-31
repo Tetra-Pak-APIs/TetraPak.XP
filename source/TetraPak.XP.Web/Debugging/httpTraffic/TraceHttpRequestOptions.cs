@@ -2,8 +2,9 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using TetraPak.XP.Logging;
 
-namespace TetraPak.AspNet.Debugging
+namespace TetraPak.XP.Web.Debugging
 {
     /// <summary>
     ///   Used to control how HTTP request gets represented (for tracing).
@@ -13,7 +14,7 @@ namespace TetraPak.AspNet.Debugging
         /// <summary>
         ///   Gets default <see cref="TraceHttpRequestOptions"/>
         /// </summary>
-        public static TraceHttpRequestOptions Default(string? messageId) => new(messageId);
+        public static TraceHttpRequestOptions Default(LogMessageId? messageId) => new(messageId);
         
         #region .  Fluent API  .
 
@@ -35,7 +36,7 @@ namespace TetraPak.AspNet.Debugging
             => WithInitiator<TraceHttpRequestOptions>(value, direction);
 
         /// <summary>
-        ///   (fluent API)<br/>
+        ///   (fluent api)<br/>
         ///   Assigns the <see cref="AbstractTraceHttpMessageOptions.Direction"/> property and returns <c>this</c>.
         /// </summary>
         /// <param name="initiator">
@@ -156,7 +157,7 @@ namespace TetraPak.AspNet.Debugging
         
         #endregion // Fluent API    
         
-        internal TraceHttpRequestOptions(string? messageId = null)
+        internal TraceHttpRequestOptions(LogMessageId? messageId = null)
         : base(messageId)
         {
         }

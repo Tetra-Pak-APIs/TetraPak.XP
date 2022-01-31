@@ -4,9 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.OIDC;
+using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;
-using TetraPak.XP.SimpleDI;
 
 namespace authClient.console
 {
@@ -44,20 +44,21 @@ namespace authClient.console
                 return;
             }
 
-            var sb = new StringBuilder("SUCCESS! ");
-            sb.Append("access_token=");
-            sb.Append(outcome.Value!.AccessToken);
+            var sb = new StringBuilder();
+            sb.AppendLine("SUCCESS!");
+            sb.Append("  access_token=");
+            sb.AppendLine(outcome.Value!.AccessToken);
             if (!string.IsNullOrWhiteSpace(outcome.Value.IdToken))
             {
-                sb.Append("id_token=");
-                sb.Append(outcome.Value.IdToken);
+                sb.Append("  id_token=");
+                sb.AppendLine(outcome.Value.IdToken);
             }
             if (!string.IsNullOrWhiteSpace(outcome.Value.RefreshToken))
             {
-                sb.Append("refresh_token=");
-                sb.Append(outcome.Value.RefreshToken);
+                sb.Append("  refresh_token=");
+                sb.AppendLine(outcome.Value.RefreshToken);
             }
-            _log.Info(sb.ToString());
+            _log.Information(sb.ToString());
         }
 
         public Auth(ILog log)
@@ -66,7 +67,7 @@ namespace authClient.console
             var authApp = (AuthApplication)"DEV; hiJSBHQzj0v5k58j2SYTT8h54iIO8OIr; http://localhost:42444/auth";
             c.AddSingleton(_ => log);
             c.AddSingleton(_ => authApp);
-            c.AddTetraPakOidcAuthentication<InteractiveDesktopBrowser>(authApp);
+            c.AddTetraPakOidcAuthentication<DesktopLoopbackBrowser>(authApp);
             var services = c.BuildXpServiceProvider();
             _log = services.GetService<ILog>();
             _authenticator = services.GetRequiredService<IAuthenticator>();
