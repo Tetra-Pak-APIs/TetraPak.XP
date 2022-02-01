@@ -42,7 +42,7 @@ namespace TetraPak.XP.Desktop
             }
         }
 
-        public DesktopLoopbackBrowser(ILog? log) 
+        public DesktopLoopbackBrowser(ILog? log = null) 
         : base(log)
         {
         }

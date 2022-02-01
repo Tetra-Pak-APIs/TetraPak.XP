@@ -17,6 +17,7 @@ using TetraPak.XP.Logging;
 using TetraPak.XP.Web;
 using HttpStatusCode = TetraPak.XP.Microsoft.HttpStatusCode;
 #if DEBUG
+using TetraPak.XP.Auth.Debugging;
 #endif
 
 [assembly: XpService(typeof(TetraPakAuthenticator))]
@@ -70,7 +71,7 @@ namespace TetraPak.XP.Auth
             if (!IsCaching)
                 return await GetAccessTokenAsync();
 
-            var cachedOutcome = await Config.GetCachedTokenAsync(CacheKey); //  tryGetCachedAuthResultAsync(); obsolete
+            var cachedOutcome = await Config.GetCachedTokenAsync(CacheKey); 
             if (!cachedOutcome)
                 return await GetAccessTokenAsync(false);
 
