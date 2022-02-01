@@ -13,6 +13,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\TetraPak.XP.Auth.Abstractions\TetraPak.XP.Auth.Abstractions.csproj" />
       <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
       <ProjectReference Include="..\TetraPak.XP.DynamicEntities\TetraPak.XP.DynamicEntities.csproj" />
       <ProjectReference Include="..\TetraPak.XP.Streaming\TetraPak.XP.Streaming.csproj" />

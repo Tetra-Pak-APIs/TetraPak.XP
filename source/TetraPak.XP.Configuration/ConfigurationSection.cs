@@ -18,7 +18,7 @@ namespace TetraPak.XP.Configuration
     ///   Provides access to the configuration framework through a POCO class. 
     /// </summary>
     [DebuggerDisplay("{" + nameof(ConfigPath) + "}")]
-    public abstract class ConfigurationSection 
+    public abstract class ConfigurationSection
     {
 #if DEBUG
         static int s_debugCount;

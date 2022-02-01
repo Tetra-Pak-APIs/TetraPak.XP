@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
-using TetraPak.XP.Web.credentialsAndTokens;
+using TetraPak.XP.Logging;
+using TetraPak.XP.Web.Diagnostics;
 
 namespace TetraPak.XP.Web
 {
@@ -295,37 +291,37 @@ namespace TetraPak.XP.Web
         //     return request.Headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
         // }
 
-        // /// <summary>
-        // ///   Gets a telemetry level from the request (if any).
-        // /// </summary>
-        // /// <param name="request">
-        // ///   The <see cref="HttpRequest"/>.
-        // /// </param>
-        // /// <param name="logger">
-        // ///   A logger provider.
-        // /// </param>
-        // /// <param name="useDefault">
-        // ///   A default telemetry level to be returned when no level was specified, or when
-        // ///   the specified telemetry level could not be successfully parsed.  
-        // /// </param>
-        // /// <returns>
-        // ///   A <see cref="ServiceDiagnosticsLevel"/> value.
-        // /// </returns>
-        // public static ServiceDiagnosticsLevel GetDiagnosticsLevel(
-        //     this HttpRequest request,
-        //     ILogger? logger,
-        //     ServiceDiagnosticsLevel useDefault = ServiceDiagnosticsLevel.None)
-        // {
-        //     if (!request.Headers.TryGetValue(Headers.ServiceDiagnostics, out var values))
-        //         return useDefault;
-        //
-        //     var value = values.First();
-        //     if (Enum.TryParse<ServiceDiagnosticsLevel>(values, true, out var level)) 
-        //         return level;
-        //     
-        //     logger.Warning($"Unknown telemetry level requested: '{value}'");
-        //     return useDefault;
-        // }
+        /// <summary>
+        ///   Gets a telemetry level from the request (if any).
+        /// </summary>
+        /// <param name="request">
+        ///   The <see cref="HttpRequest"/>.
+        /// </param>
+        /// <param name="logger">
+        ///   A logger provider.
+        /// </param>
+        /// <param name="useDefault">
+        ///   A default telemetry level to be returned when no level was specified, or when
+        ///   the specified telemetry level could not be successfully parsed.  
+        /// </param>
+        /// <returns>
+        ///   A <see cref="ServiceDiagnosticsLevel"/> value.
+        /// </returns>
+        public static ServiceDiagnosticsLevel GetDiagnosticsLevel(
+            this HttpRequest request,
+            ILog? logger,
+            ServiceDiagnosticsLevel useDefault = ServiceDiagnosticsLevel.None)
+        {
+            if (!request.Headers.TryGetValue(Headers.ServiceDiagnostics, out var values))
+                return useDefault;
+        
+            var value = values.First();
+            if (Enum.TryParse<ServiceDiagnosticsLevel>(values, true, out var level)) 
+                return level;
+            
+            logger.Warning($"Unknown telemetry level requested: '{value}'");
+            return useDefault;
+        }
 
         /// <summary>
         ///   Sets a value to the <see cref="HttpContext"/>.
