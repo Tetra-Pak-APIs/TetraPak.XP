@@ -2,8 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace TetraPak.XP
 {
     public static class TaskHelper

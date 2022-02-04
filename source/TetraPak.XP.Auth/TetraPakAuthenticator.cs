@@ -17,6 +17,7 @@ using TetraPak.XP.Logging;
 using TetraPak.XP.Web;
 using HttpStatusCode = TetraPak.XP.Microsoft.HttpStatusCode;
 #if DEBUG
+using TetraPak.XP.Auth.Debugging;
 #endif
 
 [assembly: XpService(typeof(TetraPakAuthenticator))]

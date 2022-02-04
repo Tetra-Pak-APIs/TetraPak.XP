@@ -13,7 +13,7 @@ using TetraPak.XP.Serialization;
 namespace TetraPak.XP.DynamicEntities
 {
     [Serializable]
-    //[JsonConverter(typeof(DynamicEntityJsonConverter<DynamicEntity>))]
+    [JsonConverter(typeof(DynamicEntityJsonConverter<DynamicEntity>))]
     public partial class DynamicEntity : IDictionary<string,object?> 
     {
         IDictionary<string, object?> _dictionary = new Dictionary<string, object?>();

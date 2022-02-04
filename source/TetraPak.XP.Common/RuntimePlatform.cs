@@ -1,4 +1,4 @@
-﻿namespace TetraPak.XP.Auth
+﻿namespace TetraPak.XP
 {
     /// <summary>
     ///   Used to specify the targeted runtime platform.
@@ -13,7 +13,7 @@
         /// <summary>
         ///  Indicates the iOS runtime platform.
         /// </summary>
-        iOS,
+        IOS,
 
         /// <summary>
         ///  Indicates the Android runtime platform.

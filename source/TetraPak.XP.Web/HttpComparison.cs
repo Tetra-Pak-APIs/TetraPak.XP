@@ -107,15 +107,15 @@ namespace TetraPak.XP.Web
         /// <returns>
         ///   The <paramref name="stringValue"/> if parsing is successful; otherwise <c>null</c>.
         /// </returns>
-        protected override string? OnParse(string? stringValue)
+        protected override string OnParse(string? stringValue)
         {
             var input = stringValue?.Trim();
-            if (string.IsNullOrEmpty(input))
-                return null;
+            if (input.IsUnassigned())
+                return string.Empty;
 
-            var match = s_regex.Match(input);
+            var match = s_regex.Match(input!);
             if (!match.Success)
-                return null;
+                return string.Empty;
 
             var element = match.Groups["element"].Value.ToLowerInvariant() switch
             {
@@ -125,7 +125,7 @@ namespace TetraPak.XP.Web
             };
 
             if (element == HttpRequestElement.None)
-                return null;
+                return string.Empty;
 
             var operation = match.Groups["operator"].Value switch
             {
@@ -134,13 +134,13 @@ namespace TetraPak.XP.Web
                 _ => ComparisonOperation.None
             };
             if (operation is ComparisonOperation.None)
-                return null;
+                return string.Empty;
                 
             Element = element;
             Operation = operation;
             Key = match.Groups["key"].Value!;
             Value = match.Groups["value"].Value!;
-            return stringValue;
+            return input!;
         }
 
         bool isMatch(string value, StringComparison comparison)

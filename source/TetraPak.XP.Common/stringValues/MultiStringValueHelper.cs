@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
-#nullable enable
+using System.Linq;
 
 namespace TetraPak.XP
 {
@@ -10,10 +9,10 @@ namespace TetraPak.XP
     /// </summary>
     public static class MultiStringValueHelper
     {
-        /// <summary>
-        ///   Gets a value indicating whether the <see cref="MultiStringValue"/> is empty.
-        /// </summary>
-        public static bool IsEmpty(this MultiStringValue? self) => self is null || self.Count == 0;
+        // /// <summary>
+        // ///   Gets a value indicating whether the <see cref="MultiStringValue"/> is empty.
+        // /// </summary>
+        // public static bool IsEmpty(this MultiStringValue? self) => self is null || self.Count == 0; obsolete
         
         /// <summary>
         ///   Constructs a new <see cref="MultiStringValue"/> by combining the <see cref="MultiStringValue.Items"/>
@@ -75,7 +74,7 @@ namespace TetraPak.XP
         public static MultiStringValue Join(this MultiStringValue self, string[]? items, bool trimDuplicates)
         {
             if (self == null) throw new ArgumentNullException(nameof(self));
-            var list = new List<string>(self.Items ?? Array.Empty<string>());
+            var list = new List<string>(self.Items);
             if (items?.Length == 0)
                 return new MultiStringValue(list.ToArray());
             
@@ -105,20 +104,14 @@ namespace TetraPak.XP
         /// </returns>
         public static MultiStringValue TrimFirst(this MultiStringValue self, int count = 1, bool safe = false)
         {
-            if (self.IsEmpty())
-                return MultiStringValue.Empty;
-            
             count = Math.Max(0, count);
-            if (count == 0)
-                return new MultiStringValue(self.Items ?? Array.Empty<string>());
+            if (self.IsEmpty || count == 0 || count == self.Count)
+                return new MultiStringValue(self.Items);
            
-            if (count == self.Items!.Length)
-                return MultiStringValue.Empty;
-                
             if (count > self.Items.Length)
                 return safe 
-                    ? MultiStringValue.Empty
-                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot pop {count} items from end of {self}");
+                    ? new MultiStringValue()
+                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot trim {count} items from start of {self}");
             
             var items = new string[self.Items!.Length - count];
             var j = count;
@@ -150,19 +143,14 @@ namespace TetraPak.XP
         /// </returns>
         public static MultiStringValue TrimLast(this MultiStringValue self, uint count = 1, bool safe = false)
         {
-            if (self.IsEmpty())
-                return MultiStringValue.Empty;
+            count = Math.Max(0, count);
+            if (self.IsEmpty || count == 0 || count == self.Count)
+                return new MultiStringValue(self.Items);
             
-            if (count == 0)
-                return new MultiStringValue(self.Items!);
-                
-            if (count == self.Items!.Length)
-                return MultiStringValue.Empty;
-                
             if (count > self.Items.Length)
                 return safe 
-                    ? MultiStringValue.Empty
-                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot pop {count} items from end of {self}");
+                    ? new MultiStringValue()
+                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot trim {count} items from end of {self}");
             
             var items = new string[self.Items.Length - count];
             for (var i = 0; i < items.Length; i++)
@@ -197,16 +185,13 @@ namespace TetraPak.XP
         /// </exception>
         public static MultiStringValue CopyFirst(this MultiStringValue self, int count = 1, bool safe = false)
         {
-            if (self.IsEmpty())
-                return MultiStringValue.Empty;
-            
             count = Math.Max(0, count);
-            if (count == self.Items!.Length)
+            if (self.IsEmpty || count == self.Count)
                 return new MultiStringValue(self.Items);
             
             if (count < 1)
                 return safe
-                    ? MultiStringValue.Empty
+                    ? new MultiStringValue()
                     : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot extract last {count} items from end of {self}");
             
             if (count > self.Items.Length)
@@ -250,21 +235,19 @@ namespace TetraPak.XP
         /// </exception>
         public static MultiStringValue CopyLast(this MultiStringValue self, uint count = 1, bool safe = false)
         {
-            if (self.IsEmpty())
-                return MultiStringValue.Empty;
-            
-            if (count == self.Items!.Length)
+            count = Math.Max(0, count);
+            if (count == self.Items.Length)
                 return new MultiStringValue(self.Items);
             
             if (count < 1)
                 return safe
-                    ? MultiStringValue.Empty 
-                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot extract last {count} items from end of {self}");
+                    ? new MultiStringValue() 
+                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot copy {count} items from end of {self}");
             
             if (count > self.Items.Length)
                 return safe 
                     ? new MultiStringValue(self.Items)
-                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot pop {count} items from end of {self}");
+                    : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot copy {count} items from end of {self}");
 
             if (count == 1)
                 return new MultiStringValue(self.Items[self.Items.Length-1]);
@@ -303,22 +286,16 @@ namespace TetraPak.XP
             MultiStringValue pattern, 
             StringComparison stringComparison = StringComparison.Ordinal)
         {
-            if (self.IsEmpty())
-                return pattern.IsEmpty();
+            if (self.IsEmpty)
+                return pattern.IsEmpty;
 
-            if (pattern.IsEmpty())
+            if (pattern.IsEmpty)
                 return false;
                 
             if (pattern.Count > self.Count)
                 return false;
 
-            for (var i = 0; i < pattern.Count; i++)
-            {
-                if (!self.Items![i].Equals(pattern.Items![i], stringComparison))
-                    return false;
-            }
-
-            return true;
+            return !pattern.Where((t, i) => !self.Items[i].Equals(pattern.Items[i], stringComparison)).Any();
         }
 
         /// <summary>
@@ -345,10 +322,10 @@ namespace TetraPak.XP
             MultiStringValue pattern, 
             StringComparison stringComparison = StringComparison.Ordinal)
         {
-            if (self.IsEmpty())
-                return pattern.IsEmpty();
+            if (self.IsEmpty)
+                return pattern.IsEmpty;
 
-            if (pattern.IsEmpty())
+            if (pattern.IsEmpty)
                 return false;
             
             if (pattern.Count > self.Count)
@@ -357,7 +334,7 @@ namespace TetraPak.XP
             var j = self.Count - pattern.Count;
             for (var i = 0; i < pattern.Count; i++, j++)
             {
-                if (!self.Items![j].Equals(pattern.Items![i], stringComparison))
+                if (!self.Items[j].Equals(pattern.Items[i], stringComparison))
                     return false;
             }
 

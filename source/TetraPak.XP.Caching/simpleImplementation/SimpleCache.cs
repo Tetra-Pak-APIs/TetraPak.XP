@@ -6,8 +6,6 @@ using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
 
-#nullable enable
-
 namespace TetraPak.XP.Caching
 {
     /// <summary>
@@ -21,7 +19,7 @@ namespace TetraPak.XP.Caching
         public int DebugObjectId { get; } = ++s_debugObjectId;
         #endif
         
-        SimpleCacheConfig? _config;
+        SimpleCacheConfig? _config; 
         readonly Dictionary<string, DateTime> _lastPurge = new();
         TimeSpan? _defaultPurgeInterval;
         readonly List<IITimeLimitedRepositoriesDelegate> _delegates = new();

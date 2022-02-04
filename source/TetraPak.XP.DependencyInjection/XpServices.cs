@@ -344,28 +344,24 @@ namespace TetraPak.XP.DependencyInjection
             }
         }
 
-        public static IServiceCollection GetServiceCollection()
+        public static IServiceCollection GetServiceCollection(bool useExisting = true)
         {
             lock (s_syncRoot)
             {
-                if (s_serviceCollection is { })
-                    return s_serviceCollection;
+                if (s_serviceCollection is null)
+                    return s_serviceCollection = new ServiceCollection();
 
-                return s_serviceCollection = new ServiceCollection();
+                return useExisting 
+                    ? s_serviceCollection 
+                    : new ServiceCollection();
             }
         }
         
-        public static IServiceCollection NewServiceCollection(bool useExisting)
+        public static IServiceCollection NewServiceCollection()
         {
             lock (s_syncRoot)
             {
-                if (!useExisting)
-                    return new XpServiceCollection();
-                    
-                if (s_serviceCollection is { })
-                    return s_serviceCollection;
-
-                return s_serviceCollection = new XpServiceCollection();
+                return s_serviceCollection = new ServiceCollection();
             }
         }
 

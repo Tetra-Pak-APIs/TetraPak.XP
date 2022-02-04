@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
 using TetraPak.XP.Serialization;
 
@@ -14,32 +13,15 @@ namespace TetraPak.XP.DynamicEntities
     {
         public const string DefaultPathSeparator = "/";
 
-        string? _stringValue;
+        /// <summary>
+        ///   Gets the first path element (or an empty <see cref="string"/> if <see cref="MultiStringValue.IsEmpty"/>).
+        /// </summary>
+        public string Root => Count > 0 ? Items[0] : string.Empty;
 
-        internal List<string> GetStack() => Items!.ToList();
-
-        /// <inheritdoc />
-        public override string? StringValue
-        {
-            get
-            {
-                if (_stringValue != null)
-                    return _stringValue;
-
-                if (this.IsEmpty())
-                    return string.Empty;
-                
-                var sb = new StringBuilder();
-                sb.Append(Items![0]);
-                for (var i = 1; i < Count; i++)
-                {
-                    sb.Append(Separator);
-                    sb.Append(Items[i]);
-                }
-
-                return _stringValue = sb.ToString();
-            }
-        }
+        /// <summary>
+        ///   Gets the last path element (or an empty <see cref="string"/> if <see cref="MultiStringValue.IsEmpty"/>).
+        /// </summary>
+        public string Leaf => Count > 0 ? Items[Count - 1] : string.Empty;
 
         /// <summary>
         ///   (fluent api)<br/>
@@ -52,7 +34,7 @@ namespace TetraPak.XP.DynamicEntities
         /// <returns>
         ///   The resulting value.
         /// </returns>
-        public DynamicPath Push(params string[] items) => Append(items);
+        public DynamicPath Push(params string[] items) => OnCreate(AddRange(items));
 
         /// <summary>
         ///   (fluent api)<br/>
@@ -64,15 +46,10 @@ namespace TetraPak.XP.DynamicEntities
         /// <returns>
         ///   The resulting value.
         /// </returns>
-        public DynamicPath Append(params string[] items)
-        {
-            AddRange(items);
-            invalidateStringValue();
-            return this;
-        }
-        
+        public DynamicPath Append(params string[] items) => OnCreate(AddRange(items));
+
         /// <summary>
-        ///   (fluent API)<br/>
+        ///   (fluent api)<br/>
         ///   Creates and returns a modified path by inserting one or more item(s) at the start of the path.
         /// </summary>
         /// <param name="items">
@@ -81,16 +58,13 @@ namespace TetraPak.XP.DynamicEntities
         /// <returns>
         ///   The resulting value.
         /// </returns>
-        public DynamicPath Insert(params string[] items)
-        {
-            InsertRange(0, items);
-            invalidateStringValue();
-            return this;
-        }
+        public DynamicPath Insert(params string[] items) => OnCreate(InsertRange(0, items));
+
+        protected virtual DynamicPath OnCreate(string[] items) => new(items, Separator, Comparison);
 
         /// <summary>
         ///   Pops item(s) from the end of the path and returns the result.<br/>
-        ///   (fluent API)
+        ///   (fluent api)
         /// </summary>
         /// <param name="count">
         ///   (optional; default=1)<br/>
@@ -108,35 +82,19 @@ namespace TetraPak.XP.DynamicEntities
         /// </exception>
         public DynamicPath Pop(int count = 1, SequentialPosition sequentialPosition = SequentialPosition.End)
         {
-            if (Items is null)
+            if (IsEmpty)
                 throw new ArgumentOutOfRangeException();
             
             count = Math.Max(0, count);
             if (count == 0)
-                return new DynamicPath(Items.ToArray(), Separator);
-                
-            switch (sequentialPosition)
+                return new DynamicPath(Items, Separator);
+
+            return sequentialPosition switch
             {
-                case SequentialPosition.Start:
-                    while (Count != 0 && count-- != 0)
-                    {
-                        RemoveAt(0);
-                    }
-                    break;
-
-                case SequentialPosition.End:
-                    while (Count != 0 && count-- != 0)
-                    {
-                        RemoveAt(Count-1);
-                    }
-                    break;
-                    
-                default:
-                    throw new NotSupportedException($"Position '{sequentialPosition}' is not supported");
-            }
-
-            invalidateStringValue();
-            return this;
+                SequentialPosition.Start => new DynamicPath(RemoveAt(0, count), Separator, Comparison),
+                SequentialPosition.End => new DynamicPath(RemoveAt(Count - count, count), Separator, Comparison),
+                _ => throw new NotSupportedException($"Position '{sequentialPosition}' is not supported")
+            };
         }
         
         /// <summary>
@@ -164,13 +122,11 @@ namespace TetraPak.XP.DynamicEntities
         /// <returns>
         ///   The <see cref="string"/> representation of <paramref name="value"/>.
         /// </returns>
-        public static implicit operator string?(DynamicPath value) => value.StringValue;
+        public static implicit operator string(DynamicPath value) => value.StringValue;
 
         /// <inheritdoc />
-        public override string ToString() => StringValue ?? string.Empty;
+        public override string ToString() => Items.ConcatCollection(Separator);
         
-        void invalidateStringValue() => _stringValue = null;
-
         #region .  Equality  .
 
         /// <summary>
@@ -227,10 +183,7 @@ namespace TetraPak.XP.DynamicEntities
         /// <returns>
         ///   A hash code for the current value.
         /// </returns>
-        public override int GetHashCode()
-        {
-            return StringValue is {} ? StringValue.GetHashCode() : 0;
-        }
+        public override int GetHashCode() => base.GetHashCode();
 
         /// <summary>
         ///   Comparison operator overload.
@@ -251,27 +204,18 @@ namespace TetraPak.XP.DynamicEntities
         #endregion
 
         /// <summary>
-        ///   (fluent API)<br/>
-        ///   Sets the separator, invalidates the <see cref="StringValue"/> and returns <c>this</c>.
+        ///   (fluent api)<br/>
+        ///   Sets the separator and returns <c>this</c>.
         /// </summary>
         public DynamicPath WithSeparator(string separator)
         {
-            Separator = separator ?? throw new ArgumentNullException(nameof(separator));
+            if (separator.IsUnassigned())
+                throw new ArgumentNullException(nameof(separator));
+
+            Separator = separator;
             return this;
         }
 
-        protected virtual void OnConstructStack(string stringValue, string separator)
-        {
-            SetInternal(stringValue.Split(new[] {separator}, StringSplitOptions.RemoveEmptyEntries));
-        }
-
-        void constructStack(string stringValue, string separator)
-        {
-            OnConstructStack(stringValue, separator);
-        }
-
-        // protected void SetStack(string[] items) => AddRange(items);
-        
         /// <summary>
         ///   Initializes the value.
         /// </summary>
@@ -282,49 +226,51 @@ namespace TetraPak.XP.DynamicEntities
         ///   (optional)<br/>
         ///   Specifies a (custom) separator. 
         /// </param>
+        /// <param name="comparison">
+        ///   Specifies how to perform string comparison.
+        /// </param>
         /// <exception cref="FormatException">
         ///   The <paramref name="stringValue"/> string representation was incorrectly formed.
         /// </exception>
         [DebuggerStepThrough]
-        public DynamicPath(string? stringValue, string? separator = null)
+        public DynamicPath(string? stringValue, string? separator = null, StringComparison comparison = StringComparison.Ordinal)
+        : base(WithArgs(stringValue, separator ?? DefaultPathSeparator, comparison))
         {
-            Separator = separator ?? DefaultPathSeparator;
-            if (stringValue is null)
-                return;
-                
-            constructStack(stringValue, Separator);
         }
         
         /// <summary>
-        ///   Initializes the value from one or more items.
+        ///   Initializes the value from one or more items,
+        /// with default <see cref="MultiStringValue.Separator"/> and <see cref="MultiStringValue.Comparison"/>.
         /// </summary>
+        /// <seealso cref="DynamicPath(IEnumerable{string}, string?, StringComparison)"/>
+        /// <param name="items">
+        ///   The elements to make up the path.
+        /// </param>
         public DynamicPath(params string[] items)
         : this(items, null!)
         {
         }
         
-        public DynamicPath(IEnumerable<string> items, string? separator)
+        /// <summary>
+        ///   Initializes the value from one or more items.
+        /// </summary>
+        /// <param name="items">
+        ///   The elements to make up the path.
+        /// </param>
+        /// <param name="separator">
+        ///   (optional)<br/>
+        ///   The separator token to be used in sting representations for the path. 
+        /// </param>
+        /// <param name="comparison">
+        ///   (optional; default=<see cref="StringComparison.Ordinal"/>)<br/>
+        ///   Specifies how to perform comparison for this path. 
+        /// </param>
+        public DynamicPath(
+            IEnumerable<string> items, 
+            string? separator = null, 
+            StringComparison comparison = StringComparison.Ordinal)
+        : base(WithArgs(items.ConcatCollection(separator ?? DefaultPathSeparator), separator, comparison))
         {
-            Separator = separator ?? DefaultPathSeparator;
-            AddRange(items);
         }
-    }
-
-    public enum FileSystemSeparatorResolutionPolicy
-    {
-        /// <summary>
-        ///   The UNIX file system separator: '/' is preferred.
-        /// </summary>
-        Unix,
-        
-        /// <summary>
-        ///   The Windows file system separator: '\' is preferred.
-        /// </summary>
-        Windows,
-        
-        /// <summary>
-        ///   The file system separator that is mostly used is also preferred.
-        /// </summary>
-        Majority
     }
 }

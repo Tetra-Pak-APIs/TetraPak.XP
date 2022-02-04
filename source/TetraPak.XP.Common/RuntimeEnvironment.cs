@@ -1,10 +1,8 @@
-﻿namespace TetraPak.XP.Auth
+﻿namespace TetraPak.XP
 {
     /// <summary>
     ///   Specifies the targeted runtime environment.
     /// </summary>
-    /// <seealso cref="AuthConfig.Default(RuntimeEnvironment,string,System.Uri,RuntimePlatform)"/>
-    /// <seealso cref="AuthConfig.Default(TetraPak.XP.Auth.AuthApplication,TetraPak.XP.Logging.ILog?)"/>
     public enum RuntimeEnvironment
     {
         /// <summary>

@@ -30,7 +30,7 @@ namespace TetraPak.XP.Serialization
             if (tryDeserializeNumeric(s, targetType, out result))
                 return true;
 
-            if (!targetType.ImplementsInterface<IStringValue>())
+            if (!targetType.IsImplementingInterface<IStringValue>())
                 return false;
 
             const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;

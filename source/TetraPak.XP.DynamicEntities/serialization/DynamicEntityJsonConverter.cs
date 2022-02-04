@@ -14,6 +14,7 @@ namespace TetraPak.XP.DynamicEntities
     where T : DynamicEntity
     {
         HashSet<string>? _writeIgnoredProperties;
+        JsonConvertArbitraryObjectsAttribute? _convertArbitraryObjects;
 
 #if DEBUG
         public bool IsDebugging { get; private set; }
@@ -25,7 +26,8 @@ namespace TetraPak.XP.DynamicEntities
         {
 #if DEBUG
             IsDebugging = typeToConvert.GetCustomAttribute<DebugJsonConversionAttribute>() is { };
-#endif            
+#endif
+            _convertArbitraryObjects = typeToConvert.GetCustomAttribute<JsonConvertArbitraryObjectsAttribute>();
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException($"Cannot de-serialize {typeof(T)}. Expected start of object.");
             
@@ -48,8 +50,8 @@ namespace TetraPak.XP.DynamicEntities
                         continue;
 #if DEBUG
                     var value = IsDebugging 
-                        ? OnDebugReadPropertyValue(ref reader, key, entity, options) 
-                        : OnReadPropertyValue(ref reader, key, entity, options);
+                        ? OnDebugReadPropertyValue(key, ref reader, entity, options) 
+                        : OnReadPropertyValue(key, ref reader, entity, options);
 #else
                     var value = OnReadPropertyValue(ref reader, key, entity, options);
 #endif
@@ -75,11 +77,11 @@ namespace TetraPak.XP.DynamicEntities
             return entity;
         }
 
-        protected virtual object? OnReadPropertyValue(ref Utf8JsonReader reader, string key, T entity, JsonSerializerOptions options)
+        protected virtual object? OnReadPropertyValue(string key, ref Utf8JsonReader reader, T entity, JsonSerializerOptions options)
         {
 #if DEBUG
             if (IsDebugging)
-                return OnDebugReadPropertyValue(ref reader, key, entity, options);
+                return OnDebugReadPropertyValue(key, ref reader, entity, options);
 #endif            
             if (reader.TokenType == JsonTokenType.Null)
                 return null;
@@ -89,15 +91,15 @@ namespace TetraPak.XP.DynamicEntities
             var propertyType = implementedAs?.Type ?? property?.PropertyType;
 
             return propertyType != null
-                ? OnReadValueFromPropertyType(ref reader, propertyType, key, options)
-                : OnReadValueFromInferredTokenType(ref reader, key, options);
+                ? OnReadValueFromPropertyType(key, ref reader, propertyType, options)
+                : OnReadValueFromInferredTokenType(key, ref reader, options);
         }
 
-        protected virtual object? OnDebugReadPropertyValue(ref Utf8JsonReader reader, string key, T entity, JsonSerializerOptions options)
+        protected virtual object? OnDebugReadPropertyValue(string key, ref Utf8JsonReader reader, T entity, JsonSerializerOptions options)
         {
             if (reader.TokenType == JsonTokenType.Null)
                 return null;
-            
+
             var property = entity.GetPropertyWithJsonPropertyName(key);
             var implementedAs = property?.GetCustomAttribute<ImplementedAsAttribute>();
             var propertyType = implementedAs?.Type ?? property?.PropertyType;
@@ -109,8 +111,8 @@ namespace TetraPak.XP.DynamicEntities
             try
             {
                 var value= propertyType != null
-                    ? OnReadValueFromPropertyType(ref reader, propertyType, key, options)
-                    : OnReadValueFromInferredTokenType(ref reader, key, options);
+                    ? OnReadValueFromPropertyType(key, ref reader, propertyType, options)
+                    : OnReadValueFromInferredTokenType(key, ref reader, options);
 
                 if (key == "id")
                 {
@@ -134,9 +136,9 @@ namespace TetraPak.XP.DynamicEntities
         }
 
         protected virtual object? OnReadValueFromPropertyType(
+            string key,
             ref Utf8JsonReader reader, 
             Type propertyType, 
-            string key,
             JsonSerializerOptions options)
         {
             return JsonSerializer.Deserialize(ref reader, propertyType, options);
@@ -144,31 +146,38 @@ namespace TetraPak.XP.DynamicEntities
         
         [SuppressMessage("ReSharper", "HeapView.BoxingAllocation")]
         protected virtual object? OnReadValueFromInferredTokenType(
+            string key,
             ref Utf8JsonReader reader, 
-            string key, 
             JsonSerializerOptions options)
         {
             if (!reader.Read())
                 throw new SerializationException();
-                
+
+            JsonTokenType? inferredType = null; 
             switch (reader.TokenType)
             {
                 case JsonTokenType.StartObject:
-                    return JsonSerializer.Deserialize<object>(ref reader, options);
+                    validateTokenType(reader, JsonTokenType.StartObject);
+                    return OnDeserializeArbitraryObject(key, ref reader, options);
                 
-                case JsonTokenType.StartArray:
-                    return JsonSerializer.Deserialize<object>(ref reader, options);
+                case JsonTokenType.StartArray: 
+                    validateTokenType(reader, JsonTokenType.StartArray);
+                    return deserializeArbitraryArray(key, ref reader, options);
 
                 case JsonTokenType.String:
+                    validateTokenType(reader, JsonTokenType.String);
                     return reader.GetString();
                     
                 case JsonTokenType.Number:
+                    validateTokenType(reader, JsonTokenType.Number);
                     return reader.GetDouble();
 
                 case JsonTokenType.True:
+                    validateTokenType(reader, JsonTokenType.True);
                     return true;
                 
                 case JsonTokenType.False:
+                    validateTokenType(reader, JsonTokenType.True);
                     return false;
                 
                 case JsonTokenType.Null:
@@ -176,6 +185,99 @@ namespace TetraPak.XP.DynamicEntities
                 
                 default:
                     return readValueFromInferredValue(ref reader);
+            }
+
+            void validateTokenType(Utf8JsonReader rdr, JsonTokenType expectedType)
+            {
+                expectedType = expectedType == JsonTokenType.False ? JsonTokenType.True : expectedType;
+                if (inferredType.HasValue && inferredType != expectedType)
+                    throw new JsonException(
+                        $"Unexpected token type in array at {rdr.Position}: {rdr.TokenType} (expected {expectedType})");
+
+                inferredType = expectedType;
+            }
+        }
+
+        protected virtual DynamicEntity OnDeserializeArbitraryObject(string key, ref Utf8JsonReader reader, JsonSerializerOptions options)
+        {
+            if (_convertArbitraryObjects is null) 
+                return JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
+
+            if (_convertArbitraryObjects.Factory is { })
+                return _convertArbitraryObjects.Factory(key);
+
+            return _convertArbitraryObjects.All is { }
+                ? (DynamicEntity) JsonSerializer.Deserialize(ref reader, _convertArbitraryObjects.All)
+                : JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
+        }
+        
+        object deserializeArbitraryArray(string key, ref Utf8JsonReader reader,
+            JsonSerializerOptions options)
+        {
+            var initialNullValues = 0;
+            while (true)
+            {
+                if (!reader.Read()) 
+                    throw new SerializationException($"Cannot read end of array at {reader.Position}");
+
+                if (reader.TokenType == JsonTokenType.EndArray)
+                    return initialNullValues == 0
+                        ? Array.Empty<object>()
+                        : Collection.ArrayOf<object>(initialNullValues, _ => null!);
+                
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.StartObject:
+                        var list = Collection.ListOf<DynamicEntity>(null!, initialNullValues);
+                        do
+                        {
+                            var item = OnDeserializeArbitraryObject(key, ref reader, options);
+                            list.Add(item);
+
+                        } while (reader.Read() && reader.TokenType != JsonTokenType.EndArray);
+                        return list.ToArray();
+
+                    case JsonTokenType.String:
+                        var strings = Collection.ListOf<string>(initialNullValues, _ => null!);
+                        do
+                        {
+                            strings.Add(reader.GetString()!);
+                            
+                        } while (reader.Read() && reader.TokenType != JsonTokenType.EndArray);
+                        return strings.ToArray();
+
+                    case JsonTokenType.Number:
+                        if (initialNullValues != 0)
+                            throw new JsonException($"Unexpected number in array of objects at {reader.Position}");
+                            
+                        var numbers = new List<double>();
+                        do
+                        {
+                            numbers.Add(reader.GetDouble());
+                            
+                        } while (reader.Read() && reader.TokenType != JsonTokenType.EndArray);
+                        return numbers.ToArray();
+
+                    case JsonTokenType.True:
+                    case JsonTokenType.False:
+                        if (initialNullValues != 0)
+                            throw new JsonException($"Unexpected number in array of objects at {reader.Position}");
+
+                        var booleans = new List<bool>();
+                        do
+                        {
+                            booleans.Add(reader.GetBoolean());
+                            
+                        } while (reader.Read() && reader.TokenType != JsonTokenType.EndArray);
+                        return booleans.ToArray();
+
+                    case JsonTokenType.Null:
+                        initialNullValues++;
+                        continue;
+                    
+                    default:
+                        throw new FormatException($"Unexpected token at {reader.Position}");
+                }
             }
         }
 

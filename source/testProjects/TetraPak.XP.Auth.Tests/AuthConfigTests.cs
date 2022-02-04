@@ -1,4 +1,5 @@
 ﻿using System;
+using TetraPak.XP;
 using TetraPak.XP.Auth;
 using Xunit;
 

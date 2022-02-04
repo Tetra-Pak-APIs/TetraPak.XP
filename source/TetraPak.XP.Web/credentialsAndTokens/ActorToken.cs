@@ -5,8 +5,6 @@ using System.Text.Json.Serialization;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 
-#nullable enable
-
 namespace TetraPak.XP.Web.credentialsAndTokens
 {
     /// <summary>

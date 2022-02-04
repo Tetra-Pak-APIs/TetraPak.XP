@@ -3,8 +3,6 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-#nullable enable
-
 namespace TetraPak.XP.Web.credentialsAndTokens
 {
     /// <summary>

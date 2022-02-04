@@ -9,6 +9,8 @@ namespace TetraPak.XP
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
     public class Outcome
     {
+        readonly string? _message;
+        
         /// <summary>
         ///   Gets the value used when objects of this class is cast to a <see cref="bool"/> value.
         /// </summary>
@@ -18,7 +20,7 @@ namespace TetraPak.XP
         ///   A message to be carried by the <see cref="Outcome"/> object
         ///   (useful for error handling).
         /// </summary>
-        public string Message { get; }
+        public string Message => _message ?? Exception!.Message; 
 
         /// <summary>
         ///   An <see cref="Exception"/> to be carried by the <see cref="Outcome"/> object
@@ -100,7 +102,7 @@ namespace TetraPak.XP
         protected Outcome(bool evaluated, string? message, Exception exception)
         {
             Evaluated = evaluated;
-            Message = message ?? string.Empty;
+            _message = message;
             Exception = exception;
         }
     }

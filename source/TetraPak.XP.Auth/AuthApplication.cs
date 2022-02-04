@@ -45,7 +45,7 @@ namespace TetraPak.XP.Auth
         /// </summary>
         public string StringValue { get; }
 
-        static bool tryParse(string s, out RuntimePlatform platform, out string clientId, out Uri redirectUri, out RuntimeEnvironment environment, out string message)
+        static bool tryParse(string s, out RuntimePlatform platform, out string clientId, out Uri redirectUri, out RuntimeEnvironment environment, out string? message)
         {
             var split = s.Split(s_separators, StringSplitOptions.RemoveEmptyEntries);
             switch (split.Length)
@@ -95,7 +95,7 @@ namespace TetraPak.XP.Auth
                         out platform, out clientId, out redirectUri, out environment, out message);
             }
 
-            bool tryParseEnvironmentOrPlatform(string element, out string errorMsg, out RuntimeEnvironment env, out RuntimePlatform plat)
+            bool tryParseEnvironmentOrPlatform(string element, out string? errorMsg, out RuntimeEnvironment env, out RuntimePlatform plat)
             {
                 element = element.Trim();
                 errorMsg = null;

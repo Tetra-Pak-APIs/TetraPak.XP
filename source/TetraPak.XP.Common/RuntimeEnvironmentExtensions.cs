@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP
 {
     /// <summary>
     ///   Extends the <see cref="RuntimeEnvironment"/> enum.
@@ -19,11 +19,11 @@ namespace TetraPak.XP.Auth
         /// <returns>
         ///   The parsed <see cref="RuntimeEnvironment"/> value
         /// </returns>
-        public static bool TryParseAsRuntimeEnvironment(this string self, out RuntimeEnvironment runtimeEnvironment)
+        public static bool TryParseAsRuntimeEnvironment(this string? self, out RuntimeEnvironment runtimeEnvironment)
         {
             self = self?.Trim();
             if (string.IsNullOrWhiteSpace(self)) throw new ArgumentNullException(nameof(self));
-            if (self.Length != 3 && self.Length != 4)
+            if (self!.Length != 3 && self.Length != 4)
                 return Enum.TryParse(self, out runtimeEnvironment);
 
             if (self.Equals("DEV", StringComparison.OrdinalIgnoreCase)||

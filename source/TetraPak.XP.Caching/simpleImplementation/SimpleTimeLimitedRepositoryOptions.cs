@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
-using ConfigurationSection=TetraPak.XP.Configuration.ConfigurationSection;
-
-#nullable enable
 
 namespace TetraPak.XP.Caching
 {
@@ -13,7 +13,7 @@ namespace TetraPak.XP.Caching
     /// </summary>
     /// <seealso cref="SimpleCache"/>
     /// <seealso cref="SimpleCacheConfig"/>
-    public class SimpleTimeLimitedRepositoryOptions : ConfigurationSection, ITimeLimitedRepositoryOptions
+    public class SimpleTimeLimitedRepositoryOptions : IConfigurationSection, ITimeLimitedRepositoryOptions
     {
         SimpleCache? _cache;
         // ReSharper disable NotAccessedField.Local
@@ -22,6 +22,11 @@ namespace TetraPak.XP.Caching
         TimeSpan? _extendedLifeSpan;
         TimeSpan? _maxLifeSpan;
         TimeSpan? _adjustedLifeSpan;
+
+        readonly IConfiguration _configuration;
+        readonly IConfigurationSection _configurationSection;
+
+        readonly ILog? _log;
         // ReSharper restore NotAccessedField.Local
         
         
@@ -71,7 +76,7 @@ namespace TetraPak.XP.Caching
                     if (value!.TryParseConfiguredTimeSpan(out span))
                         return true;
                 
-                    Log.Warning($"Invalid value for {nameof(PurgeInterval)}: \"{value}\"");
+                    _log.Warning($"Invalid value for {nameof(PurgeInterval)}: \"{value}\"");
                     return false;
                 }).Result;
             set => _purgeInterval = value;
@@ -94,7 +99,7 @@ namespace TetraPak.XP.Caching
                 if (value!.TryParseConfiguredTimeSpan(out span))
                     return true;
                 
-                Log.Warning($"Invalid value for {nameof(LifeSpan)}: \"{value}\"");
+                _log.Warning($"Invalid value for {nameof(LifeSpan)}: \"{value}\"");
                 return false;
             }).Result;
             set => _lifeSpan = value;
@@ -128,7 +133,7 @@ namespace TetraPak.XP.Caching
                 if (value!.TryParseConfiguredTimeSpan(out span))
                     return true;
                     
-                Log.Warning($"Invalid value for {nameof(ExtendedLifeSpan)}: \"{value}\"");
+                _log.Warning($"Invalid value for {nameof(ExtendedLifeSpan)}: \"{value}\"");
                 return false;
 
             }).Result;
@@ -157,7 +162,7 @@ namespace TetraPak.XP.Caching
                     return true;
                 }
                 
-                Log.Warning($"Invalid value for {nameof(MaxLifeSpan)}: \"{value}\"");
+                _log.Warning($"Invalid value for {nameof(MaxLifeSpan)}: \"{value}\"");
                 return false;
             }).Result;
             set => _maxLifeSpan = value;
@@ -201,10 +206,22 @@ namespace TetraPak.XP.Caching
                     return true;
                 }
 
-                Log.Warning($"Invalid value for {nameof(AdjustedLifeSpan)}: \"{value}\"");
+                _log.Warning($"Invalid value for {nameof(AdjustedLifeSpan)}: \"{value}\"");
                 return false;
             }).Result;
             set => _adjustedLifeSpan = value;
+        }
+        
+        protected Task<T?> GetFromFieldThenSectionAsync<T>(
+            T useDefault = default!, 
+            TypedValueParser<T>? parser = null, 
+            bool inherited = true,
+            [CallerMemberName] string propertyName = null!)
+        {
+            throw new NotImplementedException();
+            // return Task.FromResult(TryGetFieldValue<T>(propertyName, out var fieldValue, inherited)  todo
+            //     ? fieldValue 
+            //     : GetValue<T>(propertyName));
         }
         
         internal static SimpleTimeLimitedRepositoryOptions AsDefault(SimpleCache simpleCache) 
@@ -251,26 +268,27 @@ namespace TetraPak.XP.Caching
         /// </remarks>
         public void MergeFrom(ITimeLimitedRepositoryOptions options)
         {
-            var type = options.GetType();
-            var properties = type.GetProperties();
-            foreach (var property in properties)
-            {
-                if (property.IsIndexer() || !property.CanWrite)
-                    continue;
-
-                object? value;
-                if (options is ConfigurationSection section)
-                {
-                    if (!section.TryGetFieldValue(property.Name, out value))
-                        continue;
-
-                    SetFieldValue(property.Name, value!);
-                    continue;
-                }
-
-                value = property.GetValue(options);
-                SetFieldValue(property.Name, value!);
-            }
+            throw new NotImplementedException();
+            // var type = options.GetType(); // todo
+            // var properties = type.GetProperties();
+            // foreach (var property in properties)
+            // {
+            //     if (property.IsIndexer() || !property.CanWrite)
+            //         continue;
+            //
+            //     object? value;
+            //     if (options is ConfigurationSection section)
+            //     {
+            //         if (!section.TryGetFieldValue(property.Name, out value))
+            //             continue;
+            //
+            //         SetFieldValue(property.Name, value!);
+            //         continue;
+            //     }
+            //
+            //     value = property.GetValue(options);
+            //     SetFieldValue(property.Name, value!);
+            // }
         }
 
         /// <summary>
@@ -281,8 +299,10 @@ namespace TetraPak.XP.Caching
             IConfiguration configuration, 
             ILog? log, 
             string sectionIdentifier) 
-        : base(configuration, log, SimpleCacheConfig.ValidateIsAssigned(sectionIdentifier))
+        // : base(configuration, log, SimpleCacheConfig.ValidateIsAssigned(sectionIdentifier))
         {
+            _log = log;
+            _configuration = configuration;
             _cache = cache;
         }
 
@@ -294,5 +314,40 @@ namespace TetraPak.XP.Caching
         {
         }
 #pragma warning restore 8618
+
+        public string Key => _configurationSection.Key;
+
+        public ConfigPath Path => _configurationSection.Path;
+
+        public string? Value
+        {
+            get => _configurationSection.Value;
+            set => _configurationSection.Value = value;
+        }
+
+        public void AttachToParent(IConfigurationSection parent, string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<TValue?> GetAsync<TValue>(string key, TValue? useDefault = default)
+        {
+            return _configurationSection.GetAsync(key, useDefault);
+        }
+
+        public Task SetAsync(string key, string value)
+        {
+            return _configurationSection.SetAsync(key, value);
+        }
+
+        public Task<IConfigurationSection> GetSectionAsync(string key)
+        {
+            return _configurationSection.GetSectionAsync(key);
+        }
+
+        public Task<IEnumerable<IConfigurationSection>> GetChildrenAsync()
+        {
+            return _configurationSection.GetChildrenAsync();
+        }
     }
 }

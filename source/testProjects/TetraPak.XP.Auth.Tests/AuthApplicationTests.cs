@@ -1,8 +1,8 @@
 ﻿using System;
-using TetraPak.XP.Auth;
+using System.Runtime.InteropServices;
 using Xunit;
 
-namespace TetraPak.Auth.Xamarin.Tests
+namespace TetraPak.XP.Auth.Tests
 {
     public class AuthApplicationTests
     {
@@ -36,7 +36,7 @@ namespace TetraPak.Auth.Xamarin.Tests
             Assert.Equal("12345", app.ClientId);
             Assert.Equal(redirectUri, app.RedirectUri);
             Assert.Equal(RuntimeEnvironment.Production, app.Environment);
-            Assert.Equal(RuntimePlatform.iOS, app.RuntimePlatform);
+            Assert.Equal(RuntimePlatform.IOS, app.RuntimePlatform);
         }
         
         [Fact]
@@ -47,7 +47,7 @@ namespace TetraPak.Auth.Xamarin.Tests
             Assert.Equal("12345", app.ClientId);
             Assert.Equal(redirectUri, app.RedirectUri);
             Assert.Equal(RuntimeEnvironment.Test, app.Environment);
-            Assert.Equal(RuntimePlatform.iOS, app.RuntimePlatform);
+            Assert.Equal(RuntimePlatform.IOS, app.RuntimePlatform);
         }
     }
 }

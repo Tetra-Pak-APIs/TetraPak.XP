@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-#nullable enable
-
 namespace TetraPak.XP.DynamicEntities
 {
     /// <summary>
@@ -46,8 +44,8 @@ namespace TetraPak.XP.DynamicEntities
             DynamicPath path, 
             StringComparison? comparison = null)
         {
-            var selfStack = self.GetStack().ToArray();
-            var pathStack = path.GetStack().ToArray();
+            var selfStack = self.Items.ToArray();
+            var pathStack = path.Items.ToArray();
             if (pathStack.Length > selfStack.Length)
                 throw new ArgumentOutOfRangeException(nameof(path), "Leading path is too long");
             

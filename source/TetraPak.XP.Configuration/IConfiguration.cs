@@ -18,7 +18,7 @@ namespace TetraPak.XP.Configuration
         /// <returns>
         ///   The configuration value.
         /// </returns>
-        Task<string> GetAsync(string key, string? useDefault = null);
+        Task<TValue?> GetAsync<TValue>(string key, TValue? useDefault = default);
 
         /// <summary>
         ///   Sets a configuration value.
@@ -43,27 +43,72 @@ namespace TetraPak.XP.Configuration
         Task<IConfigurationSection> GetSectionAsync(string key);
 
         /// <summary>
-        /// Gets the immediate descendant configuration sub-sections.
+        /// Gets the immediate descendant configuration sub-sections (serialized as JSON objects).
         /// </summary>
-        /// <returns>The configuration sub-sections.</returns>
+        /// <returns>
+        ///   The configuration sub-sections.
+        /// </returns>
+        /// <remarks>
+        ///   Please note that this method will not return any scalar values found in the textual
+        ///   (JSON) representation of your configuration. Consider this example:
+        /// <code>
+        ///   {
+        ///     "StringValue": "Hello World!",
+        ///     "StringArray": [
+        ///       "String 1"
+        ///       "String 2"
+        ///     ],
+        ///     "ObjectArray": [
+        ///       {
+        ///         "Name": "Object 1",
+        ///         "Id": 1234 
+        ///       },
+        ///       {
+        ///         "Name": "Object 2",
+        ///         "Id": 1235 
+        ///       }
+        ///     ],
+        ///     "Logging": {
+        ///       "LogLevel": {
+        ///         "Default": "Debug",
+        ///         "System": "Information",
+        ///         "Microsoft": "Information"
+        ///       }
+        ///     }
+        ///   }
+        /// </code>
+        ///   This example is perfectly valid JSON and the resulting configuration item
+        ///   will support all those values but only one - "Logging" - is considered a
+        ///   "child configuration section". So, invoking the <see cref="GetChildrenAsync"/>
+        ///   method should only return one item (which, in turn, contains one child configuration:
+        ///   "LogLevel").
+        /// </remarks>
         Task<IEnumerable<IConfigurationSection>> GetChildrenAsync();
     }
 
     public interface IConfigurationSection : IConfiguration
     {
         /// <summary>
-        /// Gets the key this section occupies in its parent.
+        /// Gets the key used to identify this this section within its parent section.
         /// </summary>
         string Key { get; }
 
         /// <summary>
-        /// Gets the full path to this section within the <see cref="IConfiguration"/>.
+        /// Gets the full path to this section within the <see cref="IConfiguration"/> structure.
         /// </summary>
-        string Path { get; }
+        ConfigPath Path { get; }
 
         /// <summary>
         /// Gets or sets the section value.
         /// </summary>
         string? Value { get; set; }
+    }
+
+    public interface IExtendedConfigurationSection
+    {
+        /// <summary>
+        ///   Gets the number of child elements in the configuration section.
+        /// </summary>
+        int Count { get; }
     }
 }

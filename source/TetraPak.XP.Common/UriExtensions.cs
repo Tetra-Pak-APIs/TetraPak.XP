@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace TetraPak.XP
 {
-    // todo Consider moving UriExtensions to a common NuGet package to be referenced instead
     /// <summary>
     ///   Extension operations for <seealso cref="Uri"/> instances.
     /// </summary>

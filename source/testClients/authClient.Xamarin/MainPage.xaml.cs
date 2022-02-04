@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Xamarin.Forms;
 using authClient.viewModels;
+using TetraPak.XP;
 using TetraPak.XP.Auth;
 using ValueChangedEventArgs = SegmentedControl.FormsPlugin.Abstractions.ValueChangedEventArgs;
 

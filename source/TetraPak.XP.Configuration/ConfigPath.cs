@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using TetraPak.XP.DynamicEntities;
 
 namespace TetraPak.XP.Configuration
@@ -18,6 +19,10 @@ namespace TetraPak.XP.Configuration
         ///   Implicit type cast <see cref="string"/> => <see cref="ConfigPath"/>.
         /// </summary>
         public static implicit operator ConfigPath(string s) => new(s);
+
+        protected override DynamicPath OnCreate(string[] items) => new ConfigPath(items, Separator, Comparison);
+
+        public static ConfigPath Empty => new(Array.Empty<string>());
         
         /// <summary>
         ///   Initializes the <see cref="ConfigPath"/> from a <see cref="string"/> value.
@@ -37,8 +42,16 @@ namespace TetraPak.XP.Configuration
         /// <param name="items">
         ///   The configuration path elements.
         /// </param>
-        public ConfigPath(string[] items)
-        : base(items, ConfigDefaultSeparator)
+        /// <param name="separator">
+        ///   (optional)<br/>
+        ///   The separator token to be used in sting representations for the path. 
+        /// </param>
+        /// <param name="comparison">
+        ///   (optional; default=<see cref="StringComparison.Ordinal"/>)<br/>
+        ///   Specifies how to perform comparison for this path. 
+        /// </param>
+        public ConfigPath(string[] items, string? separator = null, StringComparison comparison = StringComparison.Ordinal)
+        : base(items, separator ?? ConfigDefaultSeparator, comparison)
         {
         }
     }
