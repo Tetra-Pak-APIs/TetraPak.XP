@@ -71,7 +71,7 @@ namespace TetraPak.XP.Auth
             if (!IsCaching)
                 return await GetAccessTokenAsync();
 
-            var cachedOutcome = await Config.GetCachedTokenAsync(CacheKey); //  tryGetCachedAuthResultAsync(); obsolete
+            var cachedOutcome = await Config.GetCachedTokenAsync(CacheKey); 
             if (!cachedOutcome)
                 return await GetAccessTokenAsync(false);
 
