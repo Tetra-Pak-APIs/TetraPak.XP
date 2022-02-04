@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
       <ProjectReference Include="..\TetraPak.XP.DynamicEntities\TetraPak.XP.DynamicEntities.csproj" />
     </ItemGroup>
 

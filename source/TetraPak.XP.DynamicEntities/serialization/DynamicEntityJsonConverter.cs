@@ -6,15 +6,25 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Serialization;
 
 namespace TetraPak.XP.DynamicEntities
 {
+    static class JsonConversion
+    {
+        [ThreadStatic]
+        static JsonConvertDynamicEntitiesAttribute? s_convertArbitraryObjects;
+        
+        internal static JsonConvertDynamicEntitiesAttribute? GetConvertArbitraryObjects(Type typeToConvert) => s_convertArbitraryObjects ??= typeToConvert.GetCustomAttribute<JsonConvertDynamicEntitiesAttribute>();
+    }
+    
     public class DynamicEntityJsonConverter<T> : JsonConverter<T> 
     where T : DynamicEntity
     {
+        static Dictionary<Type,JsonConvertDynamicEntitiesAttribute> s_convertArbitraryObjects = new();
+        JsonConvertDynamicEntitiesAttribute? _convertArbitraryObjects;
         HashSet<string>? _writeIgnoredProperties;
-        JsonConvertArbitraryObjectsAttribute? _convertArbitraryObjects;
 
 #if DEBUG
         public bool IsDebugging { get; private set; }
@@ -22,16 +32,16 @@ namespace TetraPak.XP.DynamicEntities
         
         protected string? LastId { get; set; }
 
-        public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) 
         {
 #if DEBUG
             IsDebugging = typeToConvert.GetCustomAttribute<DebugJsonConversionAttribute>() is { };
 #endif
-            _convertArbitraryObjects = typeToConvert.GetCustomAttribute<JsonConvertArbitraryObjectsAttribute>();
+            _convertArbitraryObjects = JsonConversion.GetConvertArbitraryObjects(typeToConvert);
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException($"Cannot de-serialize {typeof(T)}. Expected start of object.");
             
-            var entity = Activator.CreateInstance<T>();
+            var entity = OnConstructRootEntity(ref reader, options);
             var keyMap = entity is ISerializationKeyMapProvider keyMapProvider ? keyMapProvider.GetKeyMap() : null;
             var key = string.Empty;
             while (reader.Read())
@@ -75,6 +85,28 @@ namespace TetraPak.XP.DynamicEntities
             }
 
             return entity;
+        }
+
+        protected virtual T OnConstructRootEntity(ref Utf8JsonReader reader, JsonSerializerOptions options)
+        {
+            return XpServices.Get<T>() ?? Activator.CreateInstance<T>();
+        }
+
+        protected virtual DynamicEntity OnConstructEntity(string? key, ref Utf8JsonReader reader, JsonSerializerOptions options)
+        {
+            if (_convertArbitraryObjects is null)
+            {
+                 var nisse = JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
+                 return nisse;
+                return JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
+            }
+
+            if (_convertArbitraryObjects.Factory is { })
+                return _convertArbitraryObjects.Factory.DeserializeEntity(key, ref reader);
+
+            return _convertArbitraryObjects.All is { }
+                ? (DynamicEntity) JsonSerializer.Deserialize(ref reader, _convertArbitraryObjects.All)
+                : JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
         }
 
         protected virtual object? OnReadPropertyValue(string key, ref Utf8JsonReader reader, T entity, JsonSerializerOptions options)
@@ -158,11 +190,11 @@ namespace TetraPak.XP.DynamicEntities
             {
                 case JsonTokenType.StartObject:
                     validateTokenType(reader, JsonTokenType.StartObject);
-                    return OnDeserializeArbitraryObject(key, ref reader, options);
+                    return OnConstructEntity(key, ref reader, options);
                 
                 case JsonTokenType.StartArray: 
                     validateTokenType(reader, JsonTokenType.StartArray);
-                    return deserializeArbitraryArray(key, ref reader, options);
+                    return deserializeEntityArray(key, ref reader, options);
 
                 case JsonTokenType.String:
                     validateTokenType(reader, JsonTokenType.String);
@@ -198,20 +230,7 @@ namespace TetraPak.XP.DynamicEntities
             }
         }
 
-        protected virtual DynamicEntity OnDeserializeArbitraryObject(string key, ref Utf8JsonReader reader, JsonSerializerOptions options)
-        {
-            if (_convertArbitraryObjects is null) 
-                return JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
-
-            if (_convertArbitraryObjects.Factory is { })
-                return _convertArbitraryObjects.Factory(key);
-
-            return _convertArbitraryObjects.All is { }
-                ? (DynamicEntity) JsonSerializer.Deserialize(ref reader, _convertArbitraryObjects.All)
-                : JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
-        }
-        
-        object deserializeArbitraryArray(string key, ref Utf8JsonReader reader,
+        object deserializeEntityArray(string key, ref Utf8JsonReader reader,
             JsonSerializerOptions options)
         {
             var initialNullValues = 0;
@@ -231,7 +250,7 @@ namespace TetraPak.XP.DynamicEntities
                         var list = Collection.ListOf<DynamicEntity>(null!, initialNullValues);
                         do
                         {
-                            var item = OnDeserializeArbitraryObject(key, ref reader, options);
+                            var item = OnConstructEntity(key, ref reader, options);
                             list.Add(item);
 
                         } while (reader.Read() && reader.TokenType != JsonTokenType.EndArray);

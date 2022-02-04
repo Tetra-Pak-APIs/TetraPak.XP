@@ -190,25 +190,13 @@ namespace TetraPak.XP.DependencyInjection
                 var registeredType = pair.Key;
                 var registrationInfo = pair.Value;
                 
-                if (!type.Is(registeredType))
+                if (!type.Is(registeredType, false))
                     continue;
 
                 if (registrationInfo.IsTypeLiteral && type != registeredType)
                     continue;
 
                 return activate(registeredType, registrationInfo);
-                // activateOutcome = tryActivate(registeredType, cannotResolve); obsolete
-                // if (!activateOutcome)
-                //     continue;
-                //
-                // var service = activateOutcome.Value!;
-                // var resolution = new ResolutionInfo(type, registrationInfo.IsSingleton, false);
-                // if (registrationInfo.IsSingleton)
-                // {
-                //     resolution.Service = service;
-                // }
-                // s_resolved.Add(type, resolution);
-                // return Outcome<object>.Success(service);
             }
             
             return activateOutcome ?? Outcome<object>.Fail(failCannotResolveServiceFor(type));
@@ -254,7 +242,7 @@ namespace TetraPak.XP.DependencyInjection
                 foreach (var parameter in parameterInfos)
                 {
                     var outcome = tryGet(parameter.ParameterType, false, cannotResolve);
-                    if (!outcome)
+                    if (!outcome && !parameter.IsOptional)
                     {
                         isMatchingArgs = false;
                         break;
@@ -286,19 +274,23 @@ namespace TetraPak.XP.DependencyInjection
         //     // todo if needed
         // }
 
-        public static IServiceCollection RegisterXpServices(this IServiceCollection services, ILog? log = null)
+        public static IServiceCollection RegisterXpServices(ILog? log = null)
+            => RegisterXpServices(null, log);
+
+        public static IServiceCollection RegisterXpServices(this IServiceCollection? collection, ILog? log = null)
         {
             try
             {
+                collection ??= GetServiceCollection();
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 for (var i = 0; i < assemblies.Length; i++)
                 {
-                    // fetch all [XpDependency] attributes (invokes their ctor which registers their specified Type) ...
+                    // fetch all [assembly:XpService(...)] attributes (invokes their ctor which registers their specified Type) ...
                     var asm = assemblies[i];
                     asm.GetCustomAttributes<XpServiceAttribute>();
                 }
 
-                return services;
+                return collection;
             }
             catch (Exception ex)
             {
@@ -306,6 +298,33 @@ namespace TetraPak.XP.DependencyInjection
                 throw;
             }
         }
+
+        public static IServiceProvider BuildXpServices() => BuildXpServices(null!);
+
+        public static IServiceProvider BuildXpServices(this IServiceCollection? self)
+        {
+            var collection = RegisterXpServices(self);
+            return BuildXpServiceProvider(collection);
+        }
+
+        /// <summary>
+        ///   Forces loading assemblies for automatic service registration (see remarks).   
+        /// </summary>
+        /// <param name="types">
+        ///   One or more types from assemblies that needs to be loaded before declarative
+        ///   service registration (see remarks). 
+        /// </param>
+        /// <returns>
+        ///   A <see cref="XpServicesBuilder"/> object to support the fluent code api. 
+        /// </returns>
+        /// <remarks>
+        ///   As the <see cref="XpServices"/> api supports both "classic" procedure service
+        ///   configuration as well as the declarative approach (using assembly-level
+        ///   <see cref="XpServiceAttribute"/>s) you need a mechanism to ensure the required assemblies
+        ///   are loaded prior to calling any of the configuration methods
+        ///   (such as <see cref="BuildXpServices()"/> or (<see cref="RegisterXpServices(TetraPak.XP.Logging.ILog?)"/>
+        /// </remarks>
+        public static XpServicesBuilder Include(params Type[] types) => new(types);
 
         public static IServiceProvider BuildXpServiceProvider(this IServiceCollection serviceCollection)
         {
@@ -374,6 +393,35 @@ namespace TetraPak.XP.DependencyInjection
                 s_registered.Clear();
                 s_resolved.Clear();
             }
+        }
+    }
+    
+    /// <summary>
+    ///   This class is only used to provided a convenient fluid code api for supplying
+    ///   needed services by pre-loading the declaring assemblies before the declarative
+    ///   services declaration process is invoked.  
+    /// </summary>
+    public class XpServicesBuilder
+    {
+        // note This list is just to force the linker to load the required assemblies
+        // ReSharper disable once NotAccessedField.Local
+        Type[] _triggerAssemblyLoading;
+
+        /// <summary>
+        ///   Simply invokes the <see cref="XpServices.RegisterXpServices(TetraPak.XP.Logging.ILog?)"/> method.
+        /// </summary>
+        public IServiceCollection RegisterXpServices(IServiceCollection? collection) 
+            => collection.RegisterXpServices();
+                
+        /// <summary>
+        ///   Simply invokes the <see cref="XpServices.BuildXpServices()"/> method.
+        /// </summary>
+        public IServiceProvider BuildXpServices(IServiceCollection? collection = null) 
+            => collection.BuildXpServices();
+            
+        internal XpServicesBuilder(params Type[] types)
+        {
+            _triggerAssemblyLoading = types;
         }
     }
 }

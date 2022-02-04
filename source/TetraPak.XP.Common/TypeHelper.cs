@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+#if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace TetraPak.XP
 {
@@ -540,7 +543,11 @@ namespace TetraPak.XP
         /// </returns>
         public static bool IsCollectionOf<T>(
             this object? obj,
-            /*[NotNullWhen(true)]*/ out IEnumerable<T?>? items, 
+#if NET5_0_OR_GREATER            
+            [NotNullWhen(true)] out IEnumerable<T?>? items,
+ #else
+            out IEnumerable<T?>? items,
+#endif
             bool treatStringAsUnary = true)
         {
             if (!obj.IsCollectionOf(typeof(T), out var enumerable, treatStringAsUnary))
@@ -605,21 +612,25 @@ namespace TetraPak.XP
             return list;
         }
 
-         /// <summary>
-         ///   Gets a value specifying whether the <seealso cref="Type"/> declares an
-         ///   overloaded implicit type method.
-         /// </summary>
-         /// <typeparam name="T">
-         ///   The overloaded <seealso cref="Type"/>.
-         /// </typeparam>
-         /// <param name="type">
-         ///   The <see cref="Type"/> declaring the requested implicit overloaded type method.
-         /// </param>
-         /// <returns>
-         ///   <c>true</c> if the type declares an implicit overloaded type method; otherwise <c>false</c>.
-         /// </returns>
-         /// <seealso cref="getOverloadingOperator"/>
-         public static bool IsConvertingTo<T>(this Type type, ConversionOverload overload = ConversionOverload.Any) 
+        /// <summary>
+        ///   Gets a value specifying whether the <seealso cref="Type"/> declares an
+        ///   overloaded implicit type method.
+        /// </summary>
+        /// <typeparam name="T">
+        ///   The overloaded <seealso cref="Type"/>.
+        /// </typeparam>
+        /// <param name="type">
+        ///   The <see cref="Type"/> declaring the requested implicit overloaded type method.
+        /// </param>
+        /// <param name="overload">
+        ///   (optional; default=<see cref="ConversionOverload.Any"/>)<br/>
+        ///   Specifies the type of conversion overload to look for. 
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if the type declares an implicit overloaded type method; otherwise <c>false</c>.
+        /// </returns>
+        /// <seealso cref="getOverloadingOperator"/>
+        public static bool IsConvertingTo<T>(this Type type, ConversionOverload overload = ConversionOverload.Any) 
              => type.getOverloadingOperator(typeof(T), overload) != null;
 
          /// <summary>

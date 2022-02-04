@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
       <ProjectReference Include="..\TetraPak.XP.Serialization\TetraPak.XP.Serialization.csproj" />
     </ItemGroup>
 

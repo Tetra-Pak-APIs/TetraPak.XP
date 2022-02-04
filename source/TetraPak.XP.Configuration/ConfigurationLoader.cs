@@ -1,54 +1,12 @@
-using System;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
-using Xunit;
-using IConfigurationSection = TetraPak.XP.Configuration.IConfigurationSection;
 
-namespace TetraPak.XP.Desktop.Tests
+namespace TetraPak.XP.Configuration
 {
-    public class DesktopConfigurationSectionTests
-    {
-        [Fact]
-        public async Task Load_config_from_specified_file_and_assert_paths()
-        {
-            const string SettingsFile = "../../../_files/appsettings.basic.json";
-            var config = await DesktopConfigurationLoader.LoadFromAsync(SettingsFile); 
-            Assert.NotNull(config);
-            // var collection = XpServices.NewServiceCollection();
-            // collection.AddSingleton<IConfiguration>(_ => configRoot!);
-
-            var children = (await config!.GetChildrenAsync()).ToArray();
-            Assert.Single(children);
-            var child = children[0];
-            Assert.Equal("Logging", child.Path);
-            children = (await child.GetChildrenAsync()).ToArray();
-            Assert.Single(children);
-            child = children[0];
-            Assert.Equal("Logging:LogLevel", child.Path);
-
-            var stringValue = await config.GetAsync<string>("TestString");
-            Assert.NotNull(stringValue);
-            Assert.Equal("Hello World!", stringValue);
-
-            var stringArray = await config.GetAsync<string[]>("TestStringArray");
-            Assert.NotNull(stringArray);
-            Assert.Equal(3, stringArray!.Length);
-            
-            var numArray = await config.GetAsync<double[]>("TestIntArray");
-            Assert.NotNull(numArray);
-            Assert.Equal(2, numArray!.Length);
-
-            var logLevel = await config.GetAsync<IExtendedConfigurationSection>("Logging:LogLevel");
-            Assert.NotNull(logLevel);
-            Assert.Equal(3, logLevel!.Count);
-        }
-    }
-
-    static class DesktopConfigurationLoader
+    public static class ConfigurationLoader
     {
         const string TetraPakAppEnvironmentVariable = "TETRAPAK_ENVIRONMENT";
         
@@ -83,16 +41,46 @@ namespace TetraPak.XP.Desktop.Tests
             if (!file.Exists)
                 throw new FileNotFoundException($"Could not find configuration file: {file.FullName}");
 
-            await using var stream = file.OpenRead();
+            using var stream = file.OpenRead();
             try
             {
-                return await JsonSerializer.DeserializeAsync<DesktopConfigurationSection>(stream);
+                return buildGraph(await JsonSerializer.DeserializeAsync<ConfigurationSection>(stream));
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
+        }
+
+        static IConfigurationSection buildGraph(ConfigurationSection rootSection)
+        {
+            foreach (var pair in rootSection)
+            {
+                if (pair.Value is IConfigurationSection childSection)
+                {
+                    attachToParent(childSection, rootSection/*, pair.Key*/);
+                }
+            }
+            
+            void attachToParent(IConfigurationSection section, IConfigurationSection parent/*, string key*/)
+            {
+                if (section is not ConfigurationSection subSection)
+                    return;
+
+                subSection.ParentConfiguration = parent;
+                // subSection.Key = key;
+                foreach (var pair in subSection)
+                {
+                    if (pair.Value is not ConfigurationSection childSection)
+                        continue;
+                    
+                    attachToParent(childSection, section/*, pair.Key*/);
+                    var nisse = childSection.Path;
+                }
+            }
+
+            return rootSection;
         }
 
         static RuntimeEnvironment resolveRuntimeEnvironment(RuntimeEnvironment useDefault)

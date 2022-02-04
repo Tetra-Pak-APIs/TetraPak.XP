@@ -25,7 +25,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\TetraPak.XP.Configuration\TetraPak.XP.Configuration.csproj" />
-      <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
     </ItemGroup>
 
 </Project>

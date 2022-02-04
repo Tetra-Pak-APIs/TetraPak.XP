@@ -75,7 +75,7 @@ namespace TetraPak.XP.Auth
                     
                 case 4:
                     // all elements specified ...
-                    if (!Enum.TryParse<RuntimePlatform>(split[0].Trim(), out platform))
+                    if (!Enum.TryParse(split[0].Trim(), out platform))
                         return error($"First element was expected to be {typeof(RuntimePlatform)} but was: {split[0].Trim()}", 
                             out platform, out clientId, out redirectUri, out environment, out message);
                         
@@ -150,7 +150,7 @@ namespace TetraPak.XP.Auth
         /// <exception cref="FormatException">
         ///   The <paramref name="stringValue"/> string representation was incorrectly formed.
         /// </exception>
-        public static implicit operator AuthApplication(string stringValue) => new AuthApplication(stringValue);
+        public static implicit operator AuthApplication(string stringValue) => new(stringValue);
 
         /// <summary>
         ///   Implicitly converts a <see cref="AuthApplication"/> value into its <see cref="string"/> representation.

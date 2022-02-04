@@ -16,6 +16,13 @@ namespace TetraPak.XP.DynamicEntities
     [JsonConverter(typeof(DynamicEntityJsonConverter<DynamicEntity>))]
     public partial class DynamicEntity : IDictionary<string,object?> 
     {
+#if DEBUG
+        static int s_counter;
+
+        [JsonIgnore]
+        public int DebugInstanceId { get; } = ++s_counter;
+#endif
+        
         IDictionary<string, object?> _dictionary = new Dictionary<string, object?>();
         KeyTransformationFormat? _jsonKeyFormat;
 
@@ -30,16 +37,48 @@ namespace TetraPak.XP.DynamicEntities
             set => _jsonKeyFormat = value;
         }
 
-#if DEBUG
-        static int s_counter;
-
-        [JsonIgnore]
-        public int DebugInstanceId { get; } = ++s_counter;
-#endif
-
         protected Dictionary<string, object> GetDictionary() => (Dictionary<string, object>) _dictionary;
         
         protected void SetDictionary(IDictionary<string, object?> dictionary) => _dictionary = dictionary;
+
+        /// <summary>
+        ///   (fluid api)<br/>
+        ///   <b>CAUTION!</b> Intended for inheritance / internal use)<br/>
+        ///   Applies the values from another entity to this one. 
+        /// </summary>
+        /// <param name="source">
+        ///   The other (source) entity to copy values from.
+        /// </param>
+        /// <param name="reset">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Specifies whether to simply replace all internal values with the <paramref name="source"/> values. 
+        /// </param>
+        /// <param name="overwrite">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Specifies whether to overwrite an existing value with the <paramref name="source"/> value
+        ///   to resolve key conflicts.
+        /// </param>
+        public DynamicEntity WithValuesFrom(DynamicEntity source, bool reset = false, bool overwrite = false)
+        {
+            if (ReferenceEquals(this, source))
+                return this;
+                
+            if (reset)
+            {
+                _dictionary = source._dictionary;
+                return this;
+            }
+
+            foreach (var pair in source._dictionary)
+            {
+                if (_dictionary.ContainsKey(pair.Key) && !overwrite)
+                    continue;
+
+                _dictionary[pair.Key] = source._dictionary[pair.Key];
+            }
+
+            return this;
+        }
         
         [DebuggerStepThrough]
         public virtual TValue? Get<TValue>(TValue? useDefault = default, [CallerMemberName] string? caller = null) 
@@ -198,6 +237,7 @@ namespace TetraPak.XP.DynamicEntities
             return entity;
         }
 
+        // todo Make into extension method
         public static object? FromJson(string json, Type returnType)
         {
             if (!typeof(DynamicEntity).IsAssignableFrom(returnType))
@@ -206,6 +246,7 @@ namespace TetraPak.XP.DynamicEntities
             return JsonSerializer.Deserialize(json, returnType);
         }
 
+        // todo Make into extension method
         public string ToJson(bool indented = false, IEnumerable<string>? ignoreKeys = null) 
             => ToJson(new JsonSerializerOptions 
                 { 
@@ -214,6 +255,7 @@ namespace TetraPak.XP.DynamicEntities
                 }, 
                 ignoreKeys);
 
+        // todo Make into extension method
         public string ToJson(JsonSerializerOptions options, IEnumerable<string>? ignoreKeys = null)
         {
             if (ignoreKeys is {})
@@ -238,7 +280,6 @@ namespace TetraPak.XP.DynamicEntities
         {
             var hash = new HashSet<string>(protectedKeys);
             var keys = _dictionary.Keys.ToArray();
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < keys.Length; i++)
             {
                 var key = keys[i];
@@ -278,7 +319,7 @@ namespace TetraPak.XP.DynamicEntities
             foreach (var pair in this)
             {
                 var property = GetPropertyWithJsonPropertyName(pair.Key);
-                if (!(pair.Value is JsonElement jsonElement) || property is null)
+                if (pair.Value is not JsonElement jsonElement || property is null)
                 {
                     target[pair.Key] = pair.Value;
                     continue;
@@ -292,7 +333,7 @@ namespace TetraPak.XP.DynamicEntities
                 }
                 else if (value.IsCollectionOf<DynamicEntity>(out var items))
                 {
-                    foreach (DynamicEntity? entityItem in items)
+                    foreach (var entityItem in items!)
                     {
                         entityItem?.ObjectifyJsonElements();
                     }
