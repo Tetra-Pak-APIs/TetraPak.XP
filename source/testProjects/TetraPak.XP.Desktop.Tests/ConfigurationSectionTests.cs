@@ -12,7 +12,7 @@ namespace TetraPak.XP.Desktop.Tests
         public async Task Load_config_from_specified_file_and_assert_paths()
         {
             const string SettingsFile = "../../../_files/appsettings.basic.json";
-            var config = await ConfigurationLoader.LoadFromAsync(SettingsFile); 
+            var config = await ConfigurationLoader.LoadFromAsync(SettingsFile);
             Assert.NotNull(config);
             // var collection = XpServices.NewServiceCollection();
             // collection.AddSingleton<IConfiguration>(_ => configRoot!);
@@ -39,8 +39,9 @@ namespace TetraPak.XP.Desktop.Tests
             Assert.Equal(2, numArray!.Length);
 
             var logLevel = await config.GetAsync<IConfigurationSectionExtended>("Logging:LogLevel");
+            Assert.Equal("Logging:LogLevel", logLevel!.Path);
             Assert.NotNull(logLevel);
-            Assert.Equal(3, logLevel!.Count);
+            Assert.Equal(3, logLevel.Count);
         }
 
         public ConfigurationSectionTests()

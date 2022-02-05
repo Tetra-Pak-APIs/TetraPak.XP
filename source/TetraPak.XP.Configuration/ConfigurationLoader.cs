@@ -19,7 +19,7 @@ namespace TetraPak.XP.Configuration
             var filename = environment == RuntimeEnvironment.Production
                 ? "appsettings.json"
                 : $"appsettings.{environment.ToString()}.json";
-            return LoadFromAsync(new FileInfo(Path.Combine(folder.FullName, filename)), log);
+            return LoadFromAsync(new FileInfo(Path.Combine(folder.FullName, filename)));
         }
 
         public static Task<IConfigurationSection?> LoadFromAsync(
@@ -28,7 +28,7 @@ namespace TetraPak.XP.Configuration
             RuntimeEnvironment? environment = null)
         {
             if (File.Exists(path))
-                return LoadFromAsync(new FileInfo(path), log);
+                return LoadFromAsync(new FileInfo(path));
 
             if (Directory.Exists(path))
                 return LoadFromAsync(new DirectoryInfo(path), log, environment);
@@ -36,7 +36,7 @@ namespace TetraPak.XP.Configuration
             throw new DirectoryNotFoundException($"Path not found: {path}");
         }
 
-        public static async Task<IConfigurationSection?> LoadFromAsync(FileInfo file, ILog? log)
+        public static async Task<IConfigurationSection?> LoadFromAsync(FileInfo file)
         {
             if (!file.Exists)
                 throw new FileNotFoundException($"Could not find configuration file: {file.FullName}");
@@ -44,7 +44,8 @@ namespace TetraPak.XP.Configuration
             using var stream = file.OpenRead();
             try
             {
-                return buildGraph(await JsonSerializer.DeserializeAsync<ConfigurationSection>(stream));
+                var configSection = await JsonSerializer.DeserializeAsync<ConfigurationSection>(stream); 
+                return buildGraph(configSection!);
             }
             catch (Exception e)
             {
@@ -59,24 +60,23 @@ namespace TetraPak.XP.Configuration
             {
                 if (pair.Value is IConfigurationSection childSection)
                 {
-                    attachToParent(childSection, rootSection/*, pair.Key*/);
+                    attachToParent(childSection, rootSection);
                 }
             }
             
-            void attachToParent(IConfigurationSection section, IConfigurationSection parent/*, string key*/)
+            void attachToParent(IConfigurationSection section, IConfigurationSection parent)
             {
                 if (section is not ConfigurationSection subSection)
                     return;
 
                 subSection.ParentConfiguration = parent;
-                // subSection.Key = key;
+                subSection.BuildPath();
                 foreach (var pair in subSection)
                 {
                     if (pair.Value is not ConfigurationSection childSection)
                         continue;
                     
-                    attachToParent(childSection, section/*, pair.Key*/);
-                    var nisse = childSection.Path;
+                    attachToParent(childSection, section);
                 }
             }
 

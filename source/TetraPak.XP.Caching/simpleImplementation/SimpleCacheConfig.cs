@@ -147,7 +147,7 @@ namespace TetraPak.XP.Caching
         }
 
         public string Key { get; }
-        public ConfigPath Path { get; }
+        public string Path { get; }
         public string? Value { get; set; }
         public void AttachToParent(IConfigurationSection parent, string key)
         {

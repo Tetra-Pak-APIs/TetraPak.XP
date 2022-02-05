@@ -10,7 +10,7 @@
         /// <summary>
         /// Gets the full path to this section within the <see cref="IConfiguration"/> structure.
         /// </summary>
-        ConfigPath Path { get; }
+        string Path { get; }
 
         /// <summary>
         /// Gets or sets the section value.

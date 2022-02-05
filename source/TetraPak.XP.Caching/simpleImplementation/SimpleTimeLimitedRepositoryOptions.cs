@@ -317,7 +317,7 @@ namespace TetraPak.XP.Caching
 
         public string Key => _configurationSection.Key;
 
-        public ConfigPath Path => _configurationSection.Path;
+        public string Path => _configurationSection.Path;
 
         public string? Value
         {

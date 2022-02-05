@@ -30,7 +30,7 @@ namespace TetraPak.XP.Configuration
         /// <param name="stringValue">
         ///   The configuration path in its textual form. 
         /// </param>
-        public ConfigPath(string stringValue) 
+        public ConfigPath(string? stringValue) 
         : base(stringValue, ConfigDefaultSeparator)
         {
         }

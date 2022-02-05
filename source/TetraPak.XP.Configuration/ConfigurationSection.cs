@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -21,14 +22,14 @@ namespace TetraPak.XP.Configuration
     ///   Provides access to the configuration framework through a POCO class. 
     /// </summary>
     [Serializable]
-    [JsonConverter(typeof(ConfigurationSectionJsonConverter))]
+    [JsonConverter(typeof(DynamicEntityJsonConverter<ConfigurationSection>))]
     [JsonConvertDynamicEntities(FactoryType = typeof(ConfigurationSectionFactory))]
-    //[DebuggerDisplay("{" + nameof(Path) + "}")] nisse - restore
-    public class ConfigurationSection : DynamicEntity, IConfigurationSection, IConfigurationSectionExtended
+    [DebuggerDisplay("{ToString()}")] 
+    public class ConfigurationSection : DynamicEntity, IConfigurationSectionExtended
     {
         const string RootKey = ".";
         static readonly List<ArbitraryValueParser> s_valueParsers = getDefaultValueParsers();
-        string? _path;
+        ConfigPath? _configPath;
         ILog? _log;
         string _key = RootKey;
 
@@ -48,15 +49,22 @@ namespace TetraPak.XP.Configuration
         /// <summary>
         /// Gets the full path to this section within the <see cref="Configuration.IConfiguration"/>.
         /// </summary>
-        public ConfigPath Path => _path ??= buildPath();
+        public string Path
+        {
+            get => _configPath?.StringValue ?? string.Empty;
+            private set => _configPath = new ConfigPath(value);
+        }
 
-        ConfigPath buildPath() =>
-            ParentConfiguration is null 
-                ? Key != RootKey ? new ConfigPath(Key) : ConfigPath.Empty 
-                : (ConfigPath) new ConfigPath(ParentConfiguration.Path).Push(Key);
-        // ParentConfiguration is not IConfigurationSection parentSection obsolete
-        //     ? Key is {} ? new ConfigPath(Key) : ConfigPath.Empty 
-        // : (ConfigPath) new ConfigPath(parentSection.Path).Push(Key!);
+        public override string ToString() => _configPath is null ? "(root)" : _configPath.StringValue;
+
+        internal ConfigPath BuildPath()
+        {
+            if (ParentConfiguration is null)
+                return Key != RootKey ? new ConfigPath(Key) : ConfigPath.Empty;
+
+            _configPath = (ConfigPath)new ConfigPath(ParentConfiguration.Path).Push(Key);
+            return _configPath;
+        }
 
         /// <summary>
         /// Gets or sets the section value.
@@ -99,23 +107,23 @@ namespace TetraPak.XP.Configuration
                 ? parentSection.Log
                 : null;
         
-        string getSectionKey(ConfigPath? sectionIdentifier, IConfiguration? configuration)
-        {
-            if (sectionIdentifier?.IsEmpty ?? true)
-            {
-                sectionIdentifier = SectionIdentifier!;
-            }
-            if (sectionIdentifier.Count == 1)
-                return sectionIdentifier;
-
-            if (configuration is not IConfigurationSection section) 
-                return sectionIdentifier;
-            
-            var sectionPath = section.Path;
-            return sectionIdentifier.StringValue.StartsWith(sectionPath) 
-                ? sectionIdentifier.Pop(sectionPath.Count, SequentialPosition.Start) 
-                : sectionIdentifier;
-        }
+        // string getSectionKey(ConfigPath? sectionIdentifier, IConfiguration? configuration) obsolete
+        // {
+        //     if (sectionIdentifier?.IsEmpty ?? true)
+        //     {
+        //         sectionIdentifier = SectionIdentifier!;
+        //     }
+        //     if (sectionIdentifier.Count == 1)
+        //         return sectionIdentifier;
+        //
+        //     if (configuration is not ConfigurationSection section) 
+        //         return sectionIdentifier;
+        //     
+        //     var sectionPath = section._path;
+        //     return sectionIdentifier.StringValue.StartsWith(sectionPath) 
+        //         ? sectionIdentifier.Pop(sectionPath.Count, SequentialPosition.Start) 
+        //         : sectionIdentifier;
+        // }
 
         /// <summary>
         ///   Obtains a <see cref="FieldInfo"/> object for a specified field.
@@ -389,10 +397,10 @@ namespace TetraPak.XP.Configuration
         void detachFromParent()
         {
             ParentConfiguration = null;
-            _path = null;
+            _configPath = null;
         }
 
-        void invalidatePath() => _path = null;
+        void invalidatePath() => _configPath = null;
         
 #if DEBUG
         public void InvalidatePath() // nisse remove when buildPath() works as intended

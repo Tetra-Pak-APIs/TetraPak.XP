@@ -22,7 +22,6 @@ namespace TetraPak.XP.DynamicEntities
     public class DynamicEntityJsonConverter<T> : JsonConverter<T> 
     where T : DynamicEntity
     {
-        static Dictionary<Type,JsonConvertDynamicEntitiesAttribute> s_convertArbitraryObjects = new();
         JsonConvertDynamicEntitiesAttribute? _convertArbitraryObjects;
         HashSet<string>? _writeIgnoredProperties;
 
@@ -95,11 +94,7 @@ namespace TetraPak.XP.DynamicEntities
         protected virtual DynamicEntity OnConstructEntity(string? key, ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             if (_convertArbitraryObjects is null)
-            {
-                 var nisse = JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
-                 return nisse;
                 return JsonSerializer.Deserialize<DynamicEntity>(ref reader, options);
-            }
 
             if (_convertArbitraryObjects.Factory is { })
                 return _convertArbitraryObjects.Factory.DeserializeEntity(key, ref reader);
