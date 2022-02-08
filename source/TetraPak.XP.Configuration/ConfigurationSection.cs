@@ -106,24 +106,6 @@ namespace TetraPak.XP.Configuration
             ParentConfiguration is ConfigurationSection parentSection
                 ? parentSection.Log
                 : null;
-        
-        // string getSectionKey(ConfigPath? sectionIdentifier, IConfiguration? configuration) obsolete
-        // {
-        //     if (sectionIdentifier?.IsEmpty ?? true)
-        //     {
-        //         sectionIdentifier = SectionIdentifier!;
-        //     }
-        //     if (sectionIdentifier.Count == 1)
-        //         return sectionIdentifier;
-        //
-        //     if (configuration is not ConfigurationSection section) 
-        //         return sectionIdentifier;
-        //     
-        //     var sectionPath = section._path;
-        //     return sectionIdentifier.StringValue.StartsWith(sectionPath) 
-        //         ? sectionIdentifier.Pop(sectionPath.Count, SequentialPosition.Start) 
-        //         : sectionIdentifier;
-        // }
 
         /// <summary>
         ///   Obtains a <see cref="FieldInfo"/> object for a specified field.
@@ -154,6 +136,8 @@ namespace TetraPak.XP.Configuration
 
             return fieldInfo;
         }
+
+        internal FieldInfo? GetField(string fieldName, bool inherited = false) => OnGetField(fieldName, inherited);
         
 #if NET5_0_OR_GREATER
         internal bool TryGetFieldValue<T>(string propertyName, [NotNullWhen(true)] out T value, bool inherited = false)
@@ -212,7 +196,7 @@ namespace TetraPak.XP.Configuration
         ///   found in the configuration section. 
         ///   </para> 
         /// </remarks>
-        protected Task<T?> GetFromFieldThenSectionAsync<T>(
+        internal Task<T?> GetFromFieldThenSectionAsync<T>(
             T useDefault = default!, 
             TypedValueParser<T>? parser = null, 
             bool inherited = true,
@@ -327,14 +311,17 @@ namespace TetraPak.XP.Configuration
                 // obtain from child entity ...
                 key = path.Root;
                 obj = base.GetValue<object>(key);
-                if (obj is null)                    
-                    return useDefault;
-
-                if (obj is ConfigurationSection section)
-                    return section.GetValue(path.Pop(1, SequentialPosition.Start), useDefault);
-
-                if (obj is DynamicEntity entity)
-                    return getEntityValue(entity, path.Pop(1, SequentialPosition.Start), useDefault);
+                switch (obj)
+                {
+                    case null:
+                        return useDefault;
+                    
+                    case ConfigurationSection section:
+                        return section.GetValue(path.Pop(1, SequentialPosition.Start), useDefault);
+                    
+                    case DynamicEntity entity:
+                        return getEntityValue(entity, path.Pop(1, SequentialPosition.Start), useDefault);
+                }
             }
             
             if (typeof(T) == typeof(string))
@@ -345,6 +332,7 @@ namespace TetraPak.XP.Configuration
             {
                 case T t:
                     return t;
+                
                 case null:
                     return useDefault;
             }
@@ -369,31 +357,7 @@ namespace TetraPak.XP.Configuration
 
             return useDefault;
         }
-
-        // public override void SetValue<TValue>(string key, TValue? value) where TValue : default
-        // {
-        //     base.SetValue(key, value);
-        //
-        //     // // attach or detach a child section ... obsolete
-        //     // if (value is ConfigurationSection child)
-        //     // {
-        //     //     child.AttachToParent(this, key);
-        //     //     return;
-        //     // }
-        //     //
-        //     // if (value is null && TryGetValue(key, out var obj) && obj is ConfigurationSection section)
-        //     // {
-        //     //     section.detachFromParent();
-        //     //     return;
-        //     // }
-        //
-        //     // if value is 'Key' we need to invalidate the path ...
-        //     if (key == nameof(key))
-        //     {
-        //         invalidatePath();
-        //     }
-        // }
-
+        
         void detachFromParent()
         {
             ParentConfiguration = null;
@@ -401,13 +365,6 @@ namespace TetraPak.XP.Configuration
         }
 
         void invalidatePath() => _configPath = null;
-        
-#if DEBUG
-        public void InvalidatePath() // nisse remove when buildPath() works as intended
-        {
-            invalidatePath();
-        }
-#endif
         
         public Task<string> GetAsync(string key, string? useDefault = null) => Task.FromResult(GetValue(key, useDefault)!);
 
@@ -417,7 +374,7 @@ namespace TetraPak.XP.Configuration
             return Task.CompletedTask;
         }
 
-        public Task<IConfigurationSection> GetSectionAsync(string key) => Task.FromResult(GetValue<IConfigurationSection>(key))!;
+        public Task<IConfigurationSection?> GetSectionAsync(string key) => Task.FromResult(GetValue<IConfigurationSection>(key));
 
         public Task<IEnumerable<IConfigurationSection>> GetChildrenAsync()
         {
@@ -490,7 +447,7 @@ namespace TetraPak.XP.Configuration
                         return true;
                     }
 
-                    if (s!.TryParseConfiguredBool(out var boolValue))
+                    if (s.TryParseConfiguredBool(out var boolValue))
                     {
                         o = boolValue;
                         return true;
@@ -514,7 +471,7 @@ namespace TetraPak.XP.Configuration
                         return true;
                     }
 
-                    if (s!.TryParseConfiguredTimeSpan(out var timeSpanValue))
+                    if (s.TryParseConfiguredTimeSpan(out var timeSpanValue))
                     {
                         o = timeSpanValue;
                         return true;

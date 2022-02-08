@@ -8,8 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="TetraPak.XP.Auth" Version="1.0.0-alpha.2" />
-      <PackageReference Include="TetraPak.XP.Desktop" Version="1.0.0-alpha.2" />
+      <ProjectReference Include="..\..\TetraPak.XP.Auth.Abstractions\TetraPak.XP.Auth.Abstractions.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
     </ItemGroup>
 
 </Project>

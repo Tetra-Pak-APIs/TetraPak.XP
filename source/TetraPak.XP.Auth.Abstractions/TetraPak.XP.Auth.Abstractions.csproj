@@ -9,6 +9,11 @@
     <ItemGroup>
       <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
       <ProjectReference Include="..\TetraPak.XP.Configuration\TetraPak.XP.Configuration.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.Web.Abstractions\TetraPak.XP.Web.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
     </ItemGroup>
 
 </Project>

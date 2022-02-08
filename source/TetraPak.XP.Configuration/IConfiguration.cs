@@ -40,7 +40,7 @@ namespace TetraPak.XP.Configuration
         ///     This method will never return <c>null</c>. If no matching sub-section is found with the specified key,
         ///     an empty <see cref="IConfigurationSection"/> will be returned.
         /// </remarks>
-        Task<IConfigurationSection> GetSectionAsync(string key);
+        Task<IConfigurationSection?> GetSectionAsync(string key);
 
         /// <summary>
         /// Gets the immediate descendant configuration sub-sections (serialized as JSON objects).

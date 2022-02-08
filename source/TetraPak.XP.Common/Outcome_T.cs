@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace TetraPak.XP
 {
-  /// <summary>
+    /// <summary>
     ///   A boolean value that can also carry another value. This is
     ///   very useful as a typical return value where you need an indication
     ///   for "success" and, when successful, a value.
@@ -83,19 +83,19 @@ namespace TetraPak.XP
         /// </returns>
         public new static Outcome<T> Fail(Exception exception) => new(false, null!, exception, default!);
         
-        public override string ToString()
+        public new Outcome<T> WithValue(string key, object? value, bool overwrite = false)
+        {
+            SetValue(key, value, overwrite);
+            return this;
+        }
+        
+        public override string ToString()   
         {
             return Evaluated ? $"success : {value()}" : $"fail{errorMessage()}";
 
-            string value() => ReferenceEquals(default, Value) ? "(null)" : Value.ToString();
+            string value() => (ReferenceEquals(default, Value) ? "(null)" : Value.ToString())!;
 
-            string errorMessage()
-            {
-                if (Exception is null)
-                    return "";
-
-                return $" ({Exception.Message})";
-            }
+            string errorMessage() => Exception is null ? "" : $" ({Exception.Message})";
         }
 
         /// <summary>

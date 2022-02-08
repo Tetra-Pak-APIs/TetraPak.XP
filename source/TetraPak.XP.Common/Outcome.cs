@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace TetraPak.XP
@@ -10,6 +11,11 @@ namespace TetraPak.XP
     public class Outcome
     {
         readonly string? _message;
+        
+        /// <summary>
+        ///   The internal dictionary of arbitrary data. 
+        /// </summary>
+        protected Dictionary<string, object?>? Data { get; private set; }
         
         /// <summary>
         ///   Gets the value used when objects of this class is cast to a <see cref="bool"/> value.
@@ -28,6 +34,50 @@ namespace TetraPak.XP
         /// </summary>
         public Exception? Exception { get; }
 
+        public T? GetValue<T>(string key, T useDefault = default!)
+        {
+            if (Data is null || !Data.TryGetValue(key, out var obj) || obj is not T tv)
+                return useDefault;
+
+            return tv;
+        }
+        
+        public bool TryGetValue<T>(string key, out T? value)
+        {
+            value = default;
+            if (Data is null || !Data.TryGetValue(key, out var obj) || obj is not T tv)
+                return false;
+
+            value = tv;
+            return true;
+        }
+        
+        public Outcome WithValue(string key, object? value, bool overwrite = false)
+        {
+            SetValue(key, value, overwrite);
+            return this;
+        }
+
+        protected void SetValue(string key, object? value, bool overwrite = false)
+        {
+            if (Data is null)
+            {
+                Data = new Dictionary<string, object?> { { key, value } };
+                return;
+            }
+
+            if (!Data.TryGetValue(key, out _))
+            {
+                Data.Add(key, value);
+                return;
+            }
+
+            if (!overwrite)
+                throw new IdentityConflictException(key, $"Cannot add tag '{key}' to outcome (was already added)");
+
+            Data[key] = value;
+        }
+        
         /// <summary>
         ///   Implicitly casts the <see cref="bool"/> to a <see cref="Outcome"/> value.
         /// </summary>

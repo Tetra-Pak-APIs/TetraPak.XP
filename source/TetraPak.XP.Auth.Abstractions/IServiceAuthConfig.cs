@@ -93,20 +93,20 @@ namespace TetraPak.XP.Auth.Abstractions
         /// </summary>
         ConfigPath? ConfigPath { get; }
         
-        /// <summary>
-        ///   Gets the <see cref="IConfiguration"/> instance used to populate the properties.
-        /// </summary>
-        IConfiguration Configuration { get; }
+        // /// <summary>
+        // ///   Gets the <see cref="IConfiguration"/> instance used to populate the properties. obsolete
+        // /// </summary>
+        // IConfiguration Configuration { get; }
         
         // /// <summary>
         // ///   Gets an <see cref="AmbientData"/> object.
         // /// </summary>
         // AmbientData AmbientData { get; }
-
-        /// <summary>
-        ///   Gets a declaring configuration (when this configuration is a sub configuration).
-        /// </summary>
-        IServiceAuthConfig? ParentConfig { get; }
+        //
+        // /// <summary>
+        // ///   Gets a declaring configuration (when this configuration is a sub configuration).
+        // /// </summary>
+        // IServiceAuthConfig? ParentConfig { get; }
                 
         /// <summary>
         ///   Examines a string and returns a value to indicate whether the value identifies

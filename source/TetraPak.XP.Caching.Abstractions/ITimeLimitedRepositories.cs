@@ -113,7 +113,7 @@ namespace TetraPak.XP.Caching.Abstractions
         /// <param name="key">
         ///     Identifies the requested value.
         /// </param>
-        /// <param name="repository">
+        /// <param name="repositoryName">
         ///   (optional; default=<see cref="DefaultRepository"/>)<br/>
         ///   Identifies the repository where the value should exist.
         /// </param>
@@ -124,7 +124,7 @@ namespace TetraPak.XP.Caching.Abstractions
         ///   An <see cref="Exception"/> to indicate success/failure and also carry the requested value
         ///   (or an <see cref="Outcome{T}"/> on failure).
         /// </returns>
-        Task<Outcome<T>> ReadAsync<T>(string key, string repository);
+        Task<Outcome<T>> ReadAsync<T>(string key, string repositoryName);
 
         /// <summary>
         ///   Adds a new time limited value.

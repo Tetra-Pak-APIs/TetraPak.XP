@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
@@ -13,7 +10,7 @@ namespace TetraPak.XP.Caching
     /// </summary>
     /// <seealso cref="SimpleCache"/>
     /// <seealso cref="SimpleCacheConfig"/>
-    public class SimpleTimeLimitedRepositoryOptions : IConfigurationSection, ITimeLimitedRepositoryOptions
+    public class SimpleTimeLimitedRepositoryOptions : ConfigurationSectionWrapper, ITimeLimitedRepositoryOptions
     {
         SimpleCache? _cache;
         // ReSharper disable NotAccessedField.Local
@@ -22,12 +19,7 @@ namespace TetraPak.XP.Caching
         TimeSpan? _extendedLifeSpan;
         TimeSpan? _maxLifeSpan;
         TimeSpan? _adjustedLifeSpan;
-
-        readonly IConfiguration _configuration;
-        readonly IConfigurationSection _configurationSection;
-
-        readonly ILog? _log;
-        // ReSharper restore NotAccessedField.Local
+       // ReSharper restore NotAccessedField.Local
         
         
         /// <summary>
@@ -76,7 +68,7 @@ namespace TetraPak.XP.Caching
                     if (value!.TryParseConfiguredTimeSpan(out span))
                         return true;
                 
-                    _log.Warning($"Invalid value for {nameof(PurgeInterval)}: \"{value}\"");
+                    Log.Warning($"Invalid value for {nameof(PurgeInterval)}: \"{value}\"");
                     return false;
                 }).Result;
             set => _purgeInterval = value;
@@ -99,7 +91,7 @@ namespace TetraPak.XP.Caching
                 if (value!.TryParseConfiguredTimeSpan(out span))
                     return true;
                 
-                _log.Warning($"Invalid value for {nameof(LifeSpan)}: \"{value}\"");
+                Log.Warning($"Invalid value for {nameof(LifeSpan)}: \"{value}\"");
                 return false;
             }).Result;
             set => _lifeSpan = value;
@@ -133,7 +125,7 @@ namespace TetraPak.XP.Caching
                 if (value!.TryParseConfiguredTimeSpan(out span))
                     return true;
                     
-                _log.Warning($"Invalid value for {nameof(ExtendedLifeSpan)}: \"{value}\"");
+                Log.Warning($"Invalid value for {nameof(ExtendedLifeSpan)}: \"{value}\"");
                 return false;
 
             }).Result;
@@ -162,7 +154,7 @@ namespace TetraPak.XP.Caching
                     return true;
                 }
                 
-                _log.Warning($"Invalid value for {nameof(MaxLifeSpan)}: \"{value}\"");
+                Log.Warning($"Invalid value for {nameof(MaxLifeSpan)}: \"{value}\"");
                 return false;
             }).Result;
             set => _maxLifeSpan = value;
@@ -206,27 +198,15 @@ namespace TetraPak.XP.Caching
                     return true;
                 }
 
-                _log.Warning($"Invalid value for {nameof(AdjustedLifeSpan)}: \"{value}\"");
+                Log.Warning($"Invalid value for {nameof(AdjustedLifeSpan)}: \"{value}\"");
                 return false;
             }).Result;
             set => _adjustedLifeSpan = value;
         }
         
-        protected Task<T?> GetFromFieldThenSectionAsync<T>(
-            T useDefault = default!, 
-            TypedValueParser<T>? parser = null, 
-            bool inherited = true,
-            [CallerMemberName] string propertyName = null!)
-        {
-            throw new NotImplementedException();
-            // return Task.FromResult(TryGetFieldValue<T>(propertyName, out var fieldValue, inherited)  todo
-            //     ? fieldValue 
-            //     : GetValue<T>(propertyName));
-        }
-        
         internal static SimpleTimeLimitedRepositoryOptions AsDefault(SimpleCache simpleCache) 
         {
-            return new SimpleTimeLimitedRepositoryOptions
+            return new SimpleTimeLimitedRepositoryOptions(simpleCache, null, null)
             {
                 _cache = simpleCache,
                 _lifeSpan = simpleCache.DefaultLifeSpan,
@@ -250,7 +230,7 @@ namespace TetraPak.XP.Caching
         /// <summary>
         ///   Returns a configuration with all values initialized to <see cref="TimeSpan.Zero"/>.
         /// </summary>
-        public static SimpleTimeLimitedRepositoryOptions Zero => new()
+        public static SimpleTimeLimitedRepositoryOptions Zero => new(null, null, null)
         {
             _lifeSpan = TimeSpan.Zero,
             _extendedLifeSpan = TimeSpan.Zero,
@@ -296,58 +276,21 @@ namespace TetraPak.XP.Caching
         /// </summary>
         public SimpleTimeLimitedRepositoryOptions(
             SimpleCache? cache,
-            IConfiguration configuration, 
-            ILog? log, 
-            string sectionIdentifier) 
-        // : base(configuration, log, SimpleCacheConfig.ValidateIsAssigned(sectionIdentifier))
+            IConfiguration? configuration,
+            string? key,
+            ILog? log = null) 
+        : base(configuration, key, log)
         {
-            _log = log;
-            _configuration = configuration;
             _cache = cache;
         }
 
-        /// <summary>
-        ///   Initializes the <see cref="SimpleTimeLimitedRepositoryOptions"/>.
-        /// </summary>
-#pragma warning disable 8618
-        SimpleTimeLimitedRepositoryOptions()
-        {
-        }
-#pragma warning restore 8618
-
-        public string Key => _configurationSection.Key;
-
-        public string Path => _configurationSection.Path;
-
-        public string? Value
-        {
-            get => _configurationSection.Value;
-            set => _configurationSection.Value = value;
-        }
-
-        public void AttachToParent(IConfigurationSection parent, string key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TValue?> GetAsync<TValue>(string key, TValue? useDefault = default)
-        {
-            return _configurationSection.GetAsync(key, useDefault);
-        }
-
-        public Task SetAsync(string key, string value)
-        {
-            return _configurationSection.SetAsync(key, value);
-        }
-
-        public Task<IConfigurationSection> GetSectionAsync(string key)
-        {
-            return _configurationSection.GetSectionAsync(key);
-        }
-
-        public Task<IEnumerable<IConfigurationSection>> GetChildrenAsync()
-        {
-            return _configurationSection.GetChildrenAsync();
-        }
+//         /// <summary>
+//         ///   Initializes the <see cref="SimpleTimeLimitedRepositoryOptions"/>.
+//         /// </summary>
+// #pragma warning disable 8618
+//         SimpleTimeLimitedRepositoryOptions() : base()
+//         {
+//         }
+// #pragma warning restore 8618
     }
 }

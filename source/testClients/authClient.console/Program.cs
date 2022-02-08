@@ -10,14 +10,16 @@ namespace authClient.console
         static readonly ILog s_log = new BasicLog().WithConsoleLogging();
 
         const char QuitCommand = 'q';
-        const char NewTokenCommand = 'n';
+        const char NewCcTokenCommand = 'c';
+        const char NewOidcTokenCommand = 'o';
         const char SilentTokenCommand = 's';
 
         public static async Task Main(string[] args)
         {
             Console.WriteLine("+---------------------------------------------------+");
-            Console.WriteLine("|  n = get new token                                |");
-            Console.WriteLine("|  s = get token silently                           |");
+            Console.WriteLine("|  o = get new token using OIDC                     |");
+            Console.WriteLine("|  c = get new token using client credentials       |");
+            Console.WriteLine("|  s = get token silently (OIDC)                    |");
             Console.WriteLine("|  q = quit                                         |");
             Console.WriteLine("+---------------------------------------------------+");
 
@@ -43,7 +45,7 @@ namespace authClient.console
         {
             switch (command)
             {
-                case NewTokenCommand:
+                case NewOidcTokenCommand:
                     await auth.NewTokenAsync();
                     break;
                 

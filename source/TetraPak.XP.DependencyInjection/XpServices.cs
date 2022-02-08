@@ -58,7 +58,7 @@ namespace TetraPak.XP.DependencyInjection
         /// <param name="type">
         ///   The service type to be registered.  
         /// </param>
-        /// <param name="throwOnConflict">
+        /// <param name="skipOnConflict">
         ///   (optional; default=<c>true</c>)<br/>
         ///   Specifies whether to throw an exception if the type was already registered;
         ///   Otherwise the request is simply ignored.
@@ -72,9 +72,9 @@ namespace TetraPak.XP.DependencyInjection
         ///   The type was an interface or abstract class (must be a concrete class or value type).
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///   The <paramref name="type"/> was already registered -and- the <paramref name="throwOnConflict"/> was set. 
+        ///   The <paramref name="type"/> was already registered -and- the <paramref name="skipOnConflict"/> was set. 
         /// </exception>
-        public static void Register(Type type, bool throwOnConflict = true, bool isTypeLiteral = false)
+        public static void Register(Type type, bool skipOnConflict = true, bool isTypeLiteral = false)
         {
             if (type.IsAbstract)
                 throw new ArgumentException(
@@ -82,7 +82,7 @@ namespace TetraPak.XP.DependencyInjection
 
             if (s_registered.ContainsKey(type))
             {
-                if (!throwOnConflict)
+                if (skipOnConflict)
                     return;
                 
                 throw new InvalidOperationException($"Type was already registered: {type}");
@@ -112,7 +112,7 @@ namespace TetraPak.XP.DependencyInjection
         ///   A literal service is only resolved when requested "literally". Requesting a base class
         ///   or an interface implemented by the service will return an unsuccessful outcome. 
         /// </remarks>
-        public static void RegisterLiteral<T>() => Register(typeof(T), isTypeLiteral:true);
+        public static void RegisterLiteral<T>(bool skipOnConflict = true) => Register(typeof(T), skipOnConflict, true);
         
         public static T? Get<T>()
         {
@@ -268,11 +268,6 @@ namespace TetraPak.XP.DependencyInjection
             cannotResolve.Add(type);
             return Outcome<object>.Fail($"Failed when activating service {type}", new Exception("Could not resolve a suitable constructor"));
         }
-
-        // public static void Init(IServiceCollection serviceCollection)
-        // {
-        //     // todo if needed
-        // }
 
         public static IServiceCollection RegisterXpServices(ILog? log = null)
             => RegisterXpServices(null, log);

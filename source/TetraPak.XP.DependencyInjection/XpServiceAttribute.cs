@@ -10,7 +10,7 @@ namespace TetraPak.XP.DependencyInjection
         public XpServiceAttribute(Type type)
         {
             Type = type;
-            XpServices.Register(type, false);
+            XpServices.Register(type, true);
         }
     }
 }

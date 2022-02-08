@@ -35,17 +35,14 @@
     <Compile Remove="Class1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
     <PackageReference Include="System.Text.Json" Version="4.7.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="OIDC\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.Browsers\TetraPak.XP.Browsers.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Caching\TetraPak.XP.Caching.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
     <ProjectReference Include="..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
+    <ProjectReference Include="..\TetraPk.XP.Web.Http\TetraPk.XP.Web.Http.csproj" />
   </ItemGroup>
 </Project>

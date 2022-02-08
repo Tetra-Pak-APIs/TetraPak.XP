@@ -6,23 +6,26 @@ using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Configuration
 {
-    public static class ConfigurationLoader
+    // todo Support overloading configuration from specialized 'Environment' files (eg. appsettings.Development.json)
+    // todo Support overloading configuration from environment variables (eg. "TetraPak:GrantType") 
+    public class ConfigurationLoader  
     {
-        const string TetraPakAppEnvironmentVariable = "TETRAPAK_ENVIRONMENT";
+        readonly IRuntimeEnvironmentResolver _runtimeEnvironmentResolver;
         
-        public static Task<IConfigurationSection?> LoadFromAsync(DirectoryInfo? folder = null,
+        public Task<IConfigurationSection?> LoadFromAsync(
+            DirectoryInfo? folder = null,
             ILog? log = null,
             RuntimeEnvironment? environment = null)
         {
             folder ??= new DirectoryInfo(Environment.CurrentDirectory);
-            environment ??= resolveRuntimeEnvironment(RuntimeEnvironment.Production);
+            environment ??= _runtimeEnvironmentResolver.ResolveRuntimeEnvironment();
             var filename = environment == RuntimeEnvironment.Production
                 ? "appsettings.json"
                 : $"appsettings.{environment.ToString()}.json";
             return LoadFromAsync(new FileInfo(Path.Combine(folder.FullName, filename)));
         }
 
-        public static Task<IConfigurationSection?> LoadFromAsync(
+        public Task<IConfigurationSection?> LoadFromAsync(
             string path,
             ILog? log = null,
             RuntimeEnvironment? environment = null)
@@ -83,15 +86,9 @@ namespace TetraPak.XP.Configuration
             return rootSection;
         }
 
-        static RuntimeEnvironment resolveRuntimeEnvironment(RuntimeEnvironment useDefault)
+        public ConfigurationLoader(IRuntimeEnvironmentResolver runtimeEnvironmentResolver, ILog? log = null)
         {
-            var s = Environment.GetEnvironmentVariable(TetraPakAppEnvironmentVariable);
-            if (!s.IsAssigned())
-                return useDefault;
-
-            return Enum.TryParse<RuntimeEnvironment>(s, true, out var value)
-                ? value
-                : useDefault;
+            _runtimeEnvironmentResolver = runtimeEnvironmentResolver;
         }
     }
 }

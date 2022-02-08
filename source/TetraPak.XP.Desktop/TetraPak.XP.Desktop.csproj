@@ -16,8 +16,4 @@
       <ProjectReference Include="..\TetraPak.XP.Browsers\TetraPak.XP.Browsers.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="configuration" />
-    </ItemGroup>
-
 </Project>

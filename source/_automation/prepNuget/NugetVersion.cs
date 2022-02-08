@@ -64,11 +64,6 @@ namespace prepNuget
             return -1;
         }
 
-        protected override string OnParse(string? stringValue)
-        {
-            return base.OnParse(stringValue);
-        }
-
         protected override Outcome<string[]> OnValidate(string[] items)
         {
             return items.Length switch

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using TetraPak.XP.Serialization;
 #if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
 #endif
 
 namespace TetraPak.XP
@@ -46,6 +47,8 @@ namespace TetraPak.XP
         
         [JsonIgnore]
         public bool IsEmpty { get; private set; }
+
+        public static MultiStringValue Empty => new();
 
         /// <summary>
         ///   Gets the number of <see cref="Items"/> in the value.
@@ -446,6 +449,99 @@ namespace TetraPak.XP
             return Outcome<string[]>.Success(items.ToArray());
         }
 
+        /// <summary>
+        ///   Converts a string to its <see cref="MultiStringValue"/>-compatible equivalent.
+        ///   A return value indicates whether the conversion succeeded.
+        /// </summary>
+        /// <param name="stringValue"></param>
+        /// <param name="multiStringValue"></param>
+        /// <param name="comparison"></param>
+        /// <typeparam name="T">
+        ///   A <see cref="Type"/>, deriving from <see cref="MultiStringValue"/>,
+        ///   for <paramref name="stringValue"/> to be converted to. 
+        /// </typeparam>
+        /// <returns>
+        ///   <c>true</c> if <paramref name="stringValue"/> was converted successfully; otherwise, <c>false</c>.
+        /// </returns>
+        /// <seealso cref="TryParse"/>
+        public static bool TryParse<T>(
+            string? stringValue,
+#if NET5_0_OR_GREATER            
+            [NotNullWhen(true)] out T? multiStringValue,
+ #else
+            out T? multiStringValue,
+#endif
+            string? separator = null,
+            StringComparison? comparison = null)
+        where T : MultiStringValue
+        {
+            // 1st try just calling the 3-arg ctor ...
+            var ctor = typeof(T).GetConstructor(new[] { typeof(string), typeof(string), typeof(StringComparison) });
+            if (ctor is { })
+            {
+                try
+                {
+                    multiStringValue = (T) ctor.Invoke(new object[] { stringValue!, separator!, comparison! });
+                    return true;
+                }
+                catch 
+                {
+                    // ignored
+                }
+            }
+
+            // next, try calling the 1-arg ctor ...
+            ctor = typeof(T).GetConstructor(new[] { typeof(string) });
+            if (ctor is { })
+            {
+                try
+                {
+                    multiStringValue = (T) ctor.Invoke(new object[] { stringValue! });
+                    return true;
+                }
+                catch 
+                {
+                    // ignored
+                }
+            }
+
+            multiStringValue = null;
+            return false;
+            // 
+            //
+            // multiStringValue = (T?) Activator.CreateInstance(typeof(T)); obsolete
+            // if (multiStringValue is null)
+            //     return false;
+            //
+            // try
+            // {
+            //     multiStringValue.Parse(stringValue);
+            // }
+            // catch (Exception ex)
+            // {
+            //     Console.WriteLine(ex);
+            //     throw;
+            // }
+            //     
+            // var parseOutcome = multiStringValue.tryParse(stringValue);
+            // if (parseOutcome)
+            // {
+            //     
+            //     multiStringValue.setInternal(stringValue, parseOutcome.Value!);
+            //     return true;
+            // }
+            //
+            // multiStringValue = null;
+            // return false;
+        }
+
+        internal T WithComparison<T>(StringComparison comparison) where T : MultiStringValue
+        {
+            Comparison = comparison;
+            return (T)this;
+        }
+        
+
         public MultiStringValue() : this(string.Empty)
         {
         }
@@ -470,7 +566,10 @@ namespace TetraPak.XP
         ///   Specifies how to perform comparison for <see cref="MultiStringValue"/>s.
         /// </param>
         //[DebuggerStepThrough] 
-        public MultiStringValue(string? stringValue, string? separator = null, StringComparison comparison = StringComparison.Ordinal) 
+        public MultiStringValue(
+            string? stringValue, 
+            string? separator = null, 
+            StringComparison comparison = StringComparison.Ordinal) 
         : base(WithArgs(stringValue, separator ?? s_separator ?? DefaultSeparator, comparison))
         {
         }
@@ -488,8 +587,11 @@ namespace TetraPak.XP
         /// <param name="comparison">
         ///   Specifies how to perform comparison for <see cref="MultiStringValue"/>s.
         /// </param>
-        public MultiStringValue(string[] items, string? separator = null, StringComparison comparison = StringComparison.Ordinal) 
-            : base(WithArgs(items.ConcatCollection(), separator, comparison))
+        public MultiStringValue(
+            string[] items, 
+            string? separator = null, 
+            StringComparison comparison = StringComparison.Ordinal) 
+        : base(WithArgs(items.ConcatCollection(), separator, comparison))
         {
         }
 #pragma warning restore CS8618

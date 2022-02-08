@@ -11,13 +11,11 @@ namespace TetraPak.XP.Caching
     /// <summary>
     ///   A configuration section specifying caching strategies. 
     /// </summary>
-    public class SimpleCacheConfig : IConfigurationSection, IEnumerable<KeyValuePair<string,ITimeLimitedRepositoryOptions>>
+    public class SimpleCacheConfig : ConfigurationSectionWrapper, IEnumerable<KeyValuePair<string,ITimeLimitedRepositoryOptions>>
     {
         readonly Task _loadTask;
         SimpleCache? _cache;
         readonly Dictionary<string, ITimeLimitedRepositoryOptions> _repositoryConfigs;
-        readonly ILog? _log;
-        readonly IConfiguration _configuration;
 
         /// <inheritdoc />
         public IEnumerator<KeyValuePair<string, ITimeLimitedRepositoryOptions>> GetEnumerator()
@@ -27,13 +25,6 @@ namespace TetraPak.XP.Caching
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        internal static string ValidateIsAssigned(string? sectionIdentifier)
-        {
-            return string.IsNullOrWhiteSpace(sectionIdentifier)
-                ? throw new ArgumentNullException(nameof(sectionIdentifier))
-                : sectionIdentifier!;
-        }
 
         /// <summary>
         ///   Gets the configuration for a cache repository.
@@ -92,15 +83,15 @@ namespace TetraPak.XP.Caching
         
         Task loadRepositoryConfigsAsync()
         {
-            // return Task.Run(async () => // todo
-            // {
-            //     var childSections = await Section!.GetChildrenAsync();
-            //     foreach (var childSection in childSections)
-            //     {
-            //         var config = new SimpleTimeLimitedRepositoryOptions(_cache, Section, Log, childSection.Key);
-            //         _repositoryConfigs.Add(childSection.Key, config);
-            //     }
-            // });
+            return Task.Run(async () => 
+            {
+                var childSections = await GetChildrenAsync();
+                foreach (var childSection in childSections)
+                {
+                    var config = new SimpleTimeLimitedRepositoryOptions(_cache, Section, childSection.Key, Log);
+                    _repositoryConfigs.Add(childSection.Key, config);
+                }
+            });
             return Task.CompletedTask;
         }
 
@@ -110,48 +101,18 @@ namespace TetraPak.XP.Caching
         /// <param name="cache"></param>
         /// <param name="configuration"></param>
         /// <param name="log"></param>
-        /// <param name="sectionIdentifier"></param>
+        /// <param name="key"></param>
         public SimpleCacheConfig(
             SimpleCache? cache,
             IConfiguration configuration, 
-            ILog? log, 
-            string? sectionIdentifier = null) 
-        // : base(configuration, log, ValidateIsAssigned(sectionIdentifier))
+            string key,
+            ILog? log = null) 
+        : base(configuration, ValidateAssigned(key), log)
         {
             // todo This class needs to rely on the root configuration (implemented per platform) rather than inheritance
-            _configuration = configuration;
-            _log = log; 
             _cache = cache;
             _repositoryConfigs = new Dictionary<string, ITimeLimitedRepositoryOptions>();
             _loadTask = loadRepositoryConfigsAsync(); // loads configuration in background
-        }
-
-        public Task<TValue?> GetAsync<TValue>(string key, TValue? useDefault = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SetAsync(string key, string value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IConfigurationSection> GetSectionAsync(string key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<IConfigurationSection>> GetChildrenAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public string Key { get; }
-        public string Path { get; }
-        public string? Value { get; set; }
-        public void AttachToParent(IConfigurationSection parent, string key)
-        {
-            throw new NotImplementedException();
         }
     }
 

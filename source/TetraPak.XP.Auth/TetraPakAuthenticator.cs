@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.Caching;
 using TetraPak.XP.DependencyInjection;
@@ -73,7 +74,7 @@ namespace TetraPak.XP.Auth
 
             var cachedOutcome = await Config.GetCachedTokenAsync(CacheKey); 
             if (!cachedOutcome)
-                return await GetAccessTokenAsync(false);
+                return await GetAccessTokenAsync();
 
             if (cachedOutcome.Value!.AccessToken is {})
             {

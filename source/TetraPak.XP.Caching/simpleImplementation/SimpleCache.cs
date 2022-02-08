@@ -105,12 +105,13 @@ namespace TetraPak.XP.Caching
         }
 
         /// <inheritdoc />
-        public virtual async Task<Outcome<T>> ReadAsync<T>(string key, string? repository)
+        public virtual async Task<Outcome<T>> ReadAsync<T>(string key, string? repositoryName)
         {
-            var path = makeItemPath(key, repository);
+            var path = makeItemPath(key, repositoryName);
             ITimeLimitedRepositoryEntry? entry = null;
             foreach (var @delegate in _delegates)
             {
+                TimeSpan? remainingTime = null;
                 if (entry is null)
                 {
                     var outcome = await @delegate.ReadRawEntryAsync(path);
@@ -118,19 +119,20 @@ namespace TetraPak.XP.Caching
                         continue;
 
                     entry = outcome.Value!;
+                    remainingTime = entry.GetRemainingTime();
                     if (entry is SimpleCacheEntry simpleCacheEntry)
                     {
                         simpleCacheEntry.SourceDelegate = @delegate;
                     }
-                    purgeIfNeeded(repository, @delegate);
+                    purgeIfNeeded(repositoryName, @delegate);
                 }
 
                 var validatedOutcome = await @delegate.GetValidItemAsync<T>(entry);
                 if (!validatedOutcome)
                     continue;
                 
-                purgeIfNeeded(repository, @delegate);
-                return Outcome<T>.Success(validatedOutcome.Value.Value);
+                purgeIfNeeded(repositoryName, @delegate);
+                return Outcome<T>.Success(validatedOutcome.Value.Value).WithValue(CacheHelper.TagRemainingLifespan, remainingTime);
             }
             
             return Outcome<T>.Fail(new Exception($"Failed to read {path}"));
@@ -333,10 +335,15 @@ namespace TetraPak.XP.Caching
             return this;
         }
         
-        void purgeIfNeeded(string repository, IITimeLimitedRepositoriesDelegate @delegate)
+        void purgeIfNeeded(string? repositoryName, IITimeLimitedRepositoriesDelegate @delegate)
         {
             var now = DateTime.Now;
 
+            repositoryName ??= DefaultRepository;
+            if (string.IsNullOrWhiteSpace(repositoryName))
+                return;
+
+            var repository = repositoryName!;
             var defaultInterval = SimpleTimeLimitedRepositoryOptions.DefaultPurgeInterval;
             var interval = _config?.GetRepositoryPurgeInterval(repository, defaultInterval) ?? defaultInterval;
             var nextPurgeAt = getLastPurge().Add(interval); 

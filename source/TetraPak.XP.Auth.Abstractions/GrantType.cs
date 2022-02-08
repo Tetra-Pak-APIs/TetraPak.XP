@@ -35,6 +35,31 @@
         ClientCredentials = CC,
         
         /// <summary>
+        ///   Abbreviation for <see cref="AuthorizationCode"/>.
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        AC,
+
+        /// <summary>
+        ///   The service is authenticating itself towards the backend service using the
+        ///   OAuth Authorization Code grant (three legged flow).
+        /// </summary>
+        AuthorizationCode = AC,
+
+        /// <summary>
+        ///   Abbreviation for <see cref="OpenIdConnect"/>.
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        OIDC,
+
+        /// <summary>
+        ///   The service is authenticating itself towards the backend service using the
+        ///   Open ID Connect grant (three legged flow using a well-known discovery document when needed and
+        ///   returning an identity token with the access token).
+        /// </summary>
+        OpenIdConnect = CC,
+
+        /// <summary>
         ///   Abbreviation for <see cref="Automatic"/>.
         /// </summary>
         // ReSharper disable once InconsistentNaming
