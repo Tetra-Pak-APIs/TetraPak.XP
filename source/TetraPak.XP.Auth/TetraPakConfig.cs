@@ -11,24 +11,33 @@ namespace TetraPak.XP.Auth
     {
         string? _authDomain;
         string? _tokenIssuerUrl;
+        readonly IRuntimeEnvironmentResolver _environmentResolver;
         const string SectionKey = "TetraPak";
         
         public GrantType GrantType => Section?.Get<GrantType>() ?? GrantType.None;
         public string? ClientId => Section?.Get<string?>();
         public string? ClientSecret => Section?.Get<string?>();
-        
+
         /// <summary>
         ///   Gets the current runtime environment (DEV, TEST, PROD ...).
-        ///   The value is a <see cref="resolveRuntimeEnvironment"/> enum value. 
+        ///   The value is a <see cref="RuntimeEnvironment"/> enum value. 
         /// </summary>
         [StateDump]
-        public RuntimeEnvironment Environment { get; }
+        public RuntimeEnvironment Environment 
+            =>
+            Get<RuntimeEnvironment?>() ?? _environmentResolver.ResolveRuntimeEnvironment();
         
         /// <summary>
         ///   Gets the resource locator for the token issuer endpoint.  
         /// </summary>
         [StateDump]
         public string TokenIssuerUrl => _tokenIssuerUrl ?? defaultUrl("/oauth2/token");
+
+        public Task<Uri> GetTokenIssuerUrlAsync()
+        {
+            // todo consider supporting getting from well-known discovery document
+            return Task.FromResult(new Uri(_tokenIssuerUrl ?? defaultUrl("/oauth2/token")));
+        }
         
         string defaultUrl(string path) => $"{AuthDomain}{path}";
         
@@ -93,9 +102,10 @@ namespace TetraPak.XP.Auth
         {
         }
 
-        public TetraPakConfig(IConfiguration? configuration, ILog? log = null) 
-            : base(configuration, SectionKey, log)
+        public TetraPakConfig(IConfiguration? configuration, IRuntimeEnvironmentResolver environmentResolver, ILog? log = null) 
+        : base(configuration, SectionKey, log)
         {
+            _environmentResolver = environmentResolver;
         }
     }
 }

@@ -39,7 +39,7 @@ namespace TetraPak.XP.Auth
                 return Outcome<ClientCredentialsResponse>.Success(
                     new ClientCredentialsResponse(accessToken!, expiresIn, null));
 
-            if (!MultiStringValue.TryParse<>(body.Scope, out var scope))
+            if (!MultiStringValue.TryParse<MultiStringValue>(body.Scope, out var scope))
                 return Outcome<ClientCredentialsResponse>.Fail(
                     new FormatException($"Failed while parsing expires_in: {body.ExpiresIn}"));
 

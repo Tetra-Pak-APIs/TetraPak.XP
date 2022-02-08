@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TetraPak.XP.Logging;
+using TetraPk.XP.Web.Http;
 
 namespace TetraPak.XP.Auth
 {
@@ -9,10 +9,7 @@ namespace TetraPak.XP.Auth
         static readonly object s_syncRoot = new();
 
         
-        public static IServiceCollection AddTetraClientCredentialsAuthentication(
-            this IServiceCollection collection,
-            AuthApplication? authApplication = null,
-            ILog? log = null)
+        public static IServiceCollection AddTetraPakClientCredentialsAuthentication(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -23,6 +20,7 @@ namespace TetraPak.XP.Auth
             }
             
             collection.AddTetraPakConfiguration();
+            collection.AddTetraPakHttpClientProvider();
             collection.AddSingleton<IClientCredentialsGrantService,TetraPakClientCredentialsGrantService>();
             return collection;
         }

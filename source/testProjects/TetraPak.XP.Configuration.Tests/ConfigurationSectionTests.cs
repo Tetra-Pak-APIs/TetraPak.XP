@@ -48,9 +48,7 @@ namespace TetraPak.XP.Desktop.Tests
 
         public ConfigurationSectionTests()
         {
-            XpServices.Include(typeof(ConfigurationSection)).BuildXpServices();
+            XpServices.BuildFor().Desktop().Include(typeof(ConfigurationSection)).BuildXpServices();
         }
     }
-
-    
 }

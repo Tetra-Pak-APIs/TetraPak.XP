@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Logging;
 
 namespace authClient.console
@@ -18,8 +19,8 @@ namespace authClient.console
         {
             Console.WriteLine("+---------------------------------------------------+");
             Console.WriteLine("|  o = get new token using OIDC                     |");
-            Console.WriteLine("|  c = get new token using client credentials       |");
             Console.WriteLine("|  s = get token silently (OIDC)                    |");
+            Console.WriteLine("|  c = get new token using Client Credentials       |");
             Console.WriteLine("|  q = quit                                         |");
             Console.WriteLine("+---------------------------------------------------+");
 
@@ -46,7 +47,11 @@ namespace authClient.console
             switch (command)
             {
                 case NewOidcTokenCommand:
-                    await auth.NewTokenAsync();
+                    await auth.NewTokenAsync(GrantType.OIDC);
+                    break;
+                
+                case NewCcTokenCommand:
+                    await auth.NewTokenAsync(GrantType.CC);
                     break;
                 
                 case SilentTokenCommand:

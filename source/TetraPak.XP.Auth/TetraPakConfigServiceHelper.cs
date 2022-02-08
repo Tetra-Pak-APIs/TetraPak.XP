@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 
 namespace TetraPak.XP.Auth
@@ -37,7 +38,7 @@ namespace TetraPak.XP.Auth
             }
 
             collection.AddConfiguration(folder);
-            collection.AddSingleton<TetraPakConfig>();
+            collection.AddSingleton<ITetraPakConfiguration,TetraPakConfig>();
             return collection;
         }
     }

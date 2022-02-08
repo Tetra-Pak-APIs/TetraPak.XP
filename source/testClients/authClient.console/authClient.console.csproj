@@ -13,4 +13,10 @@
       <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

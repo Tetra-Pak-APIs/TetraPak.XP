@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Configuration
@@ -36,6 +37,7 @@ namespace TetraPak.XP.Configuration
                 s_isConfigurationAdded = true;
             }
 
+            collection.RegisterXpServices();
             collection.AddSingleton<IConfiguration>(p =>
             {
                 var environmentResolver = p.GetRequiredService<IRuntimeEnvironmentResolver>();

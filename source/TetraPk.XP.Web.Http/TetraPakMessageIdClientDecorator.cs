@@ -7,11 +7,9 @@ namespace TetraPk.XP.Web.Http
 {
     public class TetraPakMessageIdClientDecorator : IHttpClientDecorator
     {
-        
-        
         public Task<Outcome<HttpClient>> DecorateAsync(HttpClient client)
         {
-            if (client.DefaultRequestHeaders.TryGetValues(Headers.RequestMessageId, out var values))
+            if (!client.DefaultRequestHeaders.TryGetValues(Headers.RequestMessageId, out _))
             {
                 client.DefaultRequestHeaders.TryAddWithoutValidation(Headers.RequestMessageId, new RandomString());
             }

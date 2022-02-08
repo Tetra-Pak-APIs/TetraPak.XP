@@ -12,7 +12,6 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
-using TetraPak.XP.Web;
 using TetraPak.XP.Web.Debugging;
 using TetraPk.XP.Web.Http;
 using TetraPk.XP.Web.Http.Debugging;
@@ -25,14 +24,13 @@ namespace TetraPak.XP.Auth
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class TetraPakClientCredentialsGrantService : IClientCredentialsGrantService
     {
-        readonly TetraPakConfig _tetraPakConfig;
+        readonly ITetraPakConfiguration _tpConfig;
         readonly IHttpClientProvider _httpClientProvider;
         readonly ITimeLimitedRepositories? _cache;
         readonly IHttpContextAccessor? _httpContextAccessor;
+        readonly ILog? _log;
 
         const string CacheRepository = CacheRepositories.Tokens.ClientCredentials;
-
-        ILog? Log => _tetraPakConfig.Log;
 
         HttpContext? HttpContext => _httpContextAccessor?.HttpContext;
 
@@ -87,13 +85,14 @@ namespace TetraPak.XP.Auth
 
                 var keyValues = formsValues.Select(kvp 
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
-                
-                var request = new HttpRequestMessage(HttpMethod.Post, _tetraPakConfig.TokenIssuerUrl)
+
+                var tokenIssuerUrl = await _tpConfig.GetTokenIssuerUrlAsync();
+                var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUrl)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
                 };
-                var messageId = HttpContext?.Request.GetMessageId(_tetraPakConfig);
-                var sb = Log?.IsEnabled(LogRank.Trace) ?? false
+                var messageId = HttpContext?.Request.GetMessageId(_tpConfig);
+                var sb = _log?.IsEnabled(LogRank.Trace) ?? false
                     ? await (await request.ToGenericHttpRequestAsync()).ToStringBuilderAsync(
                         new StringBuilder(), 
                         () => TraceHttpRequestOptions.Default(messageId)
@@ -107,7 +106,7 @@ namespace TetraPak.XP.Auth
                 {
                     sb.AppendLine();
                     await (await response.ToGenericHttpResponseAsync()).ToStringBuilderAsync(sb);
-                    Log.Trace(sb.ToString(), messageId);
+                    _log.Trace(sb.ToString(), messageId);
                 }
                 
                 if (!response.IsSuccessStatusCode)
@@ -134,27 +133,27 @@ namespace TetraPak.XP.Auth
             catch (Exception ex)
             {
                 ex = new Exception($"Failed to acquire token using client credentials. {ex.Message}", ex);
-                Log.Error(ex);
+                _log.Error(ex);
                 return Outcome<ClientCredentialsResponse>.Fail(ex);
             }
             
             Outcome<ClientCredentialsResponse> loggedFailedOutcome(HttpResponseMessage response, LogMessageId? messageId)
             {
                 var ex = new HttpServerException(response); 
-                if (Log is null)
+                if (_log is null)
                     return Outcome<ClientCredentialsResponse>.Fail(ex);
 
                 // var messageId = _tetraPakConfig.AmbientData.GetMessageId(true);
                 var message = new StringBuilder();
                 message.AppendLine("Client credentials failure (state dump to follow if DEBUG log level is enabled)");
-                if (Log.IsEnabled(LogRank.Debug))
+                if (_log.IsEnabled(LogRank.Debug))
                 {
                     var dump = new StateDump().WithStackTrace();
-                    dump.AddAsync(_tetraPakConfig, "AuthConfig");
+                    dump.AddAsync(_tpConfig, "AuthConfig");
                     dump.AddAsync(clientCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
-                Log.Error(ex, message.ToString(), messageId);
+                _log.Error(ex, message.ToString(), messageId);
                 return Outcome<ClientCredentialsResponse>.Fail(ex);
             }
         }
@@ -216,7 +215,7 @@ namespace TetraPak.XP.Auth
             if (string.IsNullOrWhiteSpace(credentials.Identity) || string.IsNullOrWhiteSpace(credentials.Secret))
                 throw new InvalidOperationException("Invalid credentials. Please specify client id and secret");
 
-            return new BasicAuthCredentials(credentials.Identity, credentials.Secret);
+            return new BasicAuthCredentials(credentials.Identity, credentials.Secret!);
         }
 
         /// <summary>
@@ -229,41 +228,48 @@ namespace TetraPak.XP.Auth
         /// </returns>
         protected virtual Task<Outcome<Credentials>> OnGetCredentialsAsync()
         {
-            if (string.IsNullOrWhiteSpace(_tetraPakConfig.ClientId))
+            if (string.IsNullOrWhiteSpace(_tpConfig.ClientId))
                 return Task.FromResult(Outcome<Credentials>.Fail(
                     new HttpServerConfigurationException("Client credentials have not been provisioned")));
 
             return Task.FromResult(Outcome<Credentials>.Success(
-                new BasicAuthCredentials(_tetraPakConfig.ClientId, _tetraPakConfig.ClientSecret!)));
+                new BasicAuthCredentials(_tpConfig.ClientId!, _tpConfig.ClientSecret!)));
         }
 
         /// <summary>
         ///   Initializes the <see cref="TetraPakClientCredentialsGrantService"/>.
         /// </summary>
-        /// <param name="tetraPakConfig">
+        /// <param name="tpConfig">
         ///   The Tetra Pak integration configuration.
         /// </param>
         /// <param name="httpClientProvider">
         ///   A HttpClient factory.
         /// </param>
+        /// <param name="log">
+        ///   (optional)<br/>
+        ///   A logger provider.   
+        /// </param>
         /// <param name="httpContextAccessor">
         ///   Provides access to the current request/response <see cref="HttpContext"/>. 
         /// </param>
         /// <param name="cache">
+        ///   (optional)<br/>
         ///   A cache to reduce traffic and improve performance
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   Any parameter was <c>null</c>.
         /// </exception>
         public TetraPakClientCredentialsGrantService(
-            TetraPakConfig tetraPakConfig, 
+            ITetraPakConfiguration tpConfig, 
             IHttpClientProvider httpClientProvider,
-            ITimeLimitedRepositories cache,
+            ITimeLimitedRepositories? cache = null,
+            ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
         {
-            _tetraPakConfig = tetraPakConfig ?? throw new ArgumentNullException(nameof(tetraPakConfig));
+            _tpConfig = tpConfig;
             _httpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
             _httpContextAccessor = httpContextAccessor;
+            _log = log;
             _cache = cache;
         }
     }

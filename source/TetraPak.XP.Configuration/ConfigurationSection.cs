@@ -10,11 +10,12 @@ using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Serialization;
 #if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-[assembly:XpService(typeof(ConfigurationSection))]
+[assembly:XpService(typeof(IConfigurationSection), typeof(ConfigurationSection))]
 
 namespace TetraPak.XP.Configuration
 {
@@ -24,6 +25,7 @@ namespace TetraPak.XP.Configuration
     [Serializable]
     [JsonConverter(typeof(DynamicEntityJsonConverter<ConfigurationSection>))]
     [JsonConvertDynamicEntities(FactoryType = typeof(ConfigurationSectionFactory))]
+    [JsonKeyFormat(KeyTransformationFormat.None)]
     [DebuggerDisplay("{ToString()}")] 
     public class ConfigurationSection : DynamicEntity, IConfigurationSectionExtended
     {
@@ -337,9 +339,12 @@ namespace TetraPak.XP.Configuration
                     return useDefault;
             }
 
+            if (obj is not string stringValue)
+                return useDefault;
+            
             foreach (var parser in s_valueParsers)
             {
-                if (parser(key, typeof(T), out obj, null!) && obj is T tValue)
+                if (parser(stringValue, typeof(T), out obj, null!) && obj is T tValue)
                     return tValue;
             }
 
@@ -456,6 +461,30 @@ namespace TetraPak.XP.Configuration
                     o = null!;
                     return false;
                 },
+                
+                // enum
+                (string? stringValue, Type tgtType, out object? o, object useDefault) =>
+                {
+                    if (tgtType.IsEnum)
+                    {
+                        o = null!;
+                        return false;
+                    }
+
+                    var s = stringValue?.Trim(); // todo Consider supporting names with whitespace (make identifier). Eg: "Client Credentials" => "ClientCredentials"
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        o = useDefault;
+                        return true;
+                    }
+
+                    if (s!.TryParseEnum(tgtType, out o)) 
+                        return true;
+                    
+                    o = null;
+                    return false;
+                },
+                
                 (string? stringValue, Type tgtType, out object? o, object useDefault) =>
                 {
                     if (tgtType != typeof(TimeSpan))

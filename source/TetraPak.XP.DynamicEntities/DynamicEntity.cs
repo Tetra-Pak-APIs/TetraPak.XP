@@ -12,6 +12,16 @@ using TetraPak.XP.Serialization;
 
 namespace TetraPak.XP.DynamicEntities
 {
+    public class JsonKeyFormatAttribute : Attribute
+    {
+        public KeyTransformationFormat Format { get; }
+
+        public JsonKeyFormatAttribute(KeyTransformationFormat format)
+        {
+            Format = format;
+        }
+    }
+    
     [Serializable]
     [JsonConverter(typeof(DynamicEntityJsonConverter<DynamicEntity>))]
     public partial class DynamicEntity : IDictionary<string,object?> 
@@ -26,14 +36,14 @@ namespace TetraPak.XP.DynamicEntities
         IDictionary<string, object?> _dictionary = new Dictionary<string, object?>();
         KeyTransformationFormat? _jsonKeyFormat;
 
-        public static KeyTransformationFormat DefaultKeyTransformationFormat { get; set; }
+        public static KeyTransformationFormat DefaultGlobalKeyTransformationFormat { get; set; }
 
         /// <summary>
         ///   Gets or sets the JSON key format used for all values. 
         /// </summary>
         public KeyTransformationFormat JsonKeyFormat
         {
-            get => _jsonKeyFormat ?? DefaultKeyTransformationFormat;
+            get => _jsonKeyFormat ?? DefaultGlobalKeyTransformationFormat;
             set => _jsonKeyFormat = value;
         }
 
@@ -352,6 +362,11 @@ namespace TetraPak.XP.DynamicEntities
         public virtual object Clone(Type returnType)
         {
             return FromJson(ToJson(), returnType)!;
+        }
+
+        public DynamicEntity()
+        {
+            _jsonKeyFormat = GetType().GetCustomAttribute<JsonKeyFormatAttribute>()?.Format;
         }
     }
 }

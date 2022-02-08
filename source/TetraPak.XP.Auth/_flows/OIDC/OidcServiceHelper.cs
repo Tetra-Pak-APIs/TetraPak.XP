@@ -59,6 +59,8 @@ namespace TetraPak.XP.Auth.OIDC
             ILog? log = null)
         where TBrowser : class, ILoopbackBrowser
         {
+            // todo The OIDC browser should be provider thru DI, not as a type
+            // todo The OIDC service should take its config from IConfiguration (provided by DI); not from AuthApplication
             XpServices.RegisterLiteral<DiscoveryDocumentCache>();
             services.AddAuthApplication(authApplication);
             services.AddSingleton<ILoopbackBrowser, TBrowser>();

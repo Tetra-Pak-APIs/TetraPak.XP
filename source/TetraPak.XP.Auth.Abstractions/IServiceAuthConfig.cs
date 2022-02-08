@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Configuration;
@@ -92,6 +93,8 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Gets the configuration path.
         /// </summary>
         ConfigPath? ConfigPath { get; }
+
+        Task<Uri> GetTokenIssuerUrlAsync();
         
         // /// <summary>
         // ///   Gets the <see cref="IConfiguration"/> instance used to populate the properties. obsolete

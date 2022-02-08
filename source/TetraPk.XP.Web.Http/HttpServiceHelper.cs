@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 
 namespace TetraPk.XP.Web.Http
@@ -9,7 +10,7 @@ namespace TetraPk.XP.Web.Http
         static bool s_isHttpClientProviderAdded;
         static readonly object s_syncRoot = new();
 
-        public static IServiceCollection AddHttpClientProvider(this IServiceCollection collection)
+        public static IServiceCollection AddTetraPakHttpClientProvider(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -19,6 +20,7 @@ namespace TetraPk.XP.Web.Http
                 s_isHttpClientProviderAdded = true;
             }
 
+            collection.AddConfiguration();
             collection.AddSingleton<IHttpClientProvider>(p =>
             {
                 var config = p.GetRequiredService<ITetraPakConfiguration>();

@@ -13,6 +13,7 @@ namespace TetraPak.XP.Serialization
                 KeyTransformationFormat.PascalCase => s.ToPascalCaseIdentifier(),
                 KeyTransformationFormat.SnakeCase => s.ToSnakeCaseIdentifier(),
                 KeyTransformationFormat.KebabCase => s.ToKebabCaseIdentifier(),
+                KeyTransformationFormat.None => s,
                 _ => throw new ArgumentOutOfRangeException(nameof(transformationFormat))
             };
         }
@@ -130,12 +131,14 @@ namespace TetraPak.XP.Serialization
     /// </summary>
     public enum KeyTransformationFormat
     {
+        None,
+
         CamelCase,
         
         PascalCase,
         
         SnakeCase,
         
-        KebabCase
+        KebabCase,
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System;
+using TetraPak.XP;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 
-[assembly:XpService(typeof(DesktopRuntimeEnvironmentResolver))]
+[assembly:XpService(typeof(IRuntimeEnvironmentResolver), typeof(DesktopRuntimeEnvironmentResolver))]
 
 namespace TetraPak.XP.Desktop
 {
@@ -19,6 +20,11 @@ namespace TetraPak.XP.Desktop
             return Enum.TryParse<RuntimeEnvironment>(s, true, out var value)
                 ? value
                 : useDefault;
+        }
+
+        public DesktopRuntimeEnvironmentResolver()
+        {
+            
         }
     }
 }
