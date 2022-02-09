@@ -62,7 +62,7 @@ namespace TetraPak.XP.DynamicEntities
                         ? OnDebugReadPropertyValue(key, ref reader, entity, options) 
                         : OnReadPropertyValue(key, ref reader, entity, options);
 #else
-                    var value = OnReadPropertyValue(ref reader, key, entity, options);
+                    var value = OnReadPropertyValue(key, ref reader, entity, options);
 #endif
                     if (keyMap?.Map is {} && keyMap.Map.TryGetValue(key, out var mappedKey))
                     {

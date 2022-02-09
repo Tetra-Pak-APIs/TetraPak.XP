@@ -94,7 +94,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetraPak.XP.Web.Abstraction
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "platforms", "platforms", "{F6096208-F4BB-4F64-92DB-C65C933D0D22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetraPk.XP.Web.Http", "TetraPk.XP.Web.Http\TetraPk.XP.Web.Http.csproj", "{44BA38B3-C8B0-4EAF-93C4-69ECED42BBE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetraPak.XP.Web.Http", "TetraPak.XP.Web.Http\TetraPak.XP.Web.Http.csproj", "{44BA38B3-C8B0-4EAF-93C4-69ECED42BBE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

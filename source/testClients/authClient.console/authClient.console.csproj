@@ -8,15 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\TetraPak.XP.Auth.Abstractions\TetraPak.XP.Auth.Abstractions.csproj" />
-      <ProjectReference Include="..\..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
-      <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
     </ItemGroup>
 
 </Project>

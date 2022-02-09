@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +19,7 @@ namespace TetraPak.XP.DependencyInjection
         static IServiceProvider? s_provider;
         static readonly HashSet<Assembly> s_registeredAssemblies = new();
 
-        public static bool IsDefaultSingleton { get; set; } = true;
+        public static bool DefaultIsSingleton { get; set; } = true;
 
         // public static bool IsDefaultImplementingSingleInterface { get; set; } = true; // Experiment concept (leaving it out for now)
 
@@ -86,6 +85,10 @@ namespace TetraPak.XP.DependencyInjection
         ///   When set, this flag requires a client to ask for the registered type literally. Requesting a
         ///   base class or implemented interface should not resolve to this type.
         /// </param>
+        /// <param name="isSingleton">
+        ///   (optional; default=<see cref="DefaultIsSingleton"/>)<br/>
+        ///   Specifies whether the service is a singleton.
+        /// </param>
         /// <exception cref="ArgumentException">
         ///   The type was an interface or abstract class (must be a concrete class or value type).
         /// </exception>
@@ -112,7 +115,7 @@ namespace TetraPak.XP.DependencyInjection
             //     }
             // }
             
-            var isIndeedSingleton = isSingleton ?? IsDefaultSingleton; // :-)
+            var isIndeedSingleton = isSingleton ?? DefaultIsSingleton; // :-)
             if (implementingType.IsAbstract)
                 throw new ArgumentException(
                     $"Cannot register abstract types with {typeof(XpServices)}. Only concrete implementations are allowed");
@@ -439,6 +442,20 @@ namespace TetraPak.XP.DependencyInjection
                 return collection;
             }
         }
+
+        public static IServiceCollection UseServiceCollection(IServiceCollection collection, bool replace = false)
+        {
+            lock (s_syncRoot)
+            {
+                if (s_serviceCollection is { } && !replace)
+                    throw new InvalidOperationException("A service collection is already in use");
+                
+                s_serviceCollection = collection;
+                s_serviceCollection.RegisterXpServices();
+                collection.RegisterXpServices();
+                return s_serviceCollection;
+            }
+        }
         
         public static IServiceCollection NewServiceCollection()
         {
@@ -484,6 +501,10 @@ namespace TetraPak.XP.DependencyInjection
             => collection.BuildXpServices();
             
         public IServiceCollection GetServiceCollection() => XpServices.GetServiceCollection();
+
+        public IServiceCollection UseServiceCollection(IServiceCollection collection) 
+            =>
+            XpServices.UseServiceCollection(collection);
 
         public XpServicesBuilder Include(params Type[] types)
         {

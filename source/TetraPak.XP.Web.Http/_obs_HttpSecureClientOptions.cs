@@ -1,7 +1,7 @@
 // using System.Net.Http;
 // using TetraPak.XP.Auth.Abstractions;
 //
-// namespace TetraPk.XP.Web.Http obsolete
+// namespace TetraPak.XP.Web.Http obsolete
 // {
 //     /// <summary>
 //     ///   Used to configure a <see cref="HttpClient"/> through a <see cref="IHttpClientProvider"/>.

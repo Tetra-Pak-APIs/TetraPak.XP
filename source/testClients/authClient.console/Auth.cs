@@ -93,6 +93,8 @@ namespace authClient.console
             {
                 sb.Append("  id_token=");
                 sb.AppendLine(outcome.Value.IdToken);
+                
+                
             }
             if (!string.IsNullOrWhiteSpace(outcome.Value.RefreshToken))
             {
@@ -104,13 +106,14 @@ namespace authClient.console
 
         public Auth(ILog log)
         {
-            var c = XpServices.BuildFor().Desktop().GetServiceCollection();
             var authApp = (AuthApplication)"DEV; hiJSBHQzj0v5k58j2SYTT8h54iIO8OIr; http://localhost:42444/auth";
-            c.AddSingleton(_ => log);
-            c.AddSingleton(_ => authApp);
-            c.AddTetraPakOidcAuthentication<DesktopLoopbackBrowser>(authApp); 
-            c.AddTetraPakClientCredentialsAuthentication();
-            var services = c.BuildXpServiceProvider();
+            var collection = new ServiceCollection();
+            var services = XpServices.BuildFor().Desktop().UseServiceCollection(collection)
+                .AddSingleton(_ => log)
+                .AddSingleton(_ => authApp)
+                .AddTetraPakOidcAuthentication<DesktopLoopbackBrowser>(authApp)
+                .AddTetraPakClientCredentialsAuthentication()
+                .BuildXpServiceProvider();
             _log = services.GetService<ILog>();
             _authenticator = services.GetRequiredService<IAuthenticator>();
         }
