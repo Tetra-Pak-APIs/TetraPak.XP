@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TetraPak.XP.Auth.ClientCredentials;
 using TetraPk.XP.Web.Http;
 
 namespace TetraPak.XP.Auth.DeviceCode
 {
+    /// <summary>
+    ///   Provides convenient methods for configuring Device Code Auth flow.
+    /// </summary>
     public static class DeviceCodeServiceHelper
     {
         static bool s_isClientCredentialsAdded;

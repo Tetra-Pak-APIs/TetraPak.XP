@@ -12,7 +12,23 @@ namespace TetraPak.XP.Configuration
     {
         readonly IRuntimeEnvironmentResolver _runtimeEnvironmentResolver;
         
-        public Task<IConfigurationSection?> LoadFromAsync(
+        public async Task<IConfigurationSection> LoadFromAsync(
+            DirectoryInfo? folder = null,
+            ILog? log = null,
+            RuntimeEnvironment? environment = null)
+        {
+            folder ??= new DirectoryInfo(Environment.CurrentDirectory);
+            var file = new FileInfo(Path.Combine(folder.FullName, "appsettings.json"));
+            log.Trace($"Loads configuration from {file.FullName}");
+            var config = await LoadFromAsync(file);
+            environment ??= _runtimeEnvironmentResolver.ResolveRuntimeEnvironment();
+            return environment == RuntimeEnvironment.Production
+                ? config
+                : await overloadFromAsync(config, folder, log, environment);
+        }
+
+        async Task<IConfigurationSection> overloadFromAsync(
+            IConfigurationSection configuration,
             DirectoryInfo? folder = null,
             ILog? log = null,
             RuntimeEnvironment? environment = null)
@@ -22,10 +38,15 @@ namespace TetraPak.XP.Configuration
             var filename = environment == RuntimeEnvironment.Production
                 ? "appsettings.json"
                 : $"appsettings.{environment.ToString()}.json";
-            return LoadFromAsync(new FileInfo(Path.Combine(folder.FullName, filename)));
+            var file = new FileInfo(Path.Combine(folder.FullName, filename));
+            if (!file.Exists)
+                return configuration;
+            
+            var overloadConfig = await LoadFromAsync(file);
+            return await configuration.OverloadAsync(overloadConfig);
         }
 
-        public Task<IConfigurationSection?> LoadFromAsync(
+        public Task<IConfigurationSection> LoadFromAsync(
             string path,
             ILog? log = null,
             RuntimeEnvironment? environment = null)
@@ -39,12 +60,16 @@ namespace TetraPak.XP.Configuration
             throw new DirectoryNotFoundException($"Path not found: {path}");
         }
 
-        public static async Task<IConfigurationSection?> LoadFromAsync(FileInfo file)
+        public static async Task<IConfigurationSection> LoadFromAsync(FileInfo file)
         {
             if (!file.Exists)
                 throw new FileNotFoundException($"Could not find configuration file: {file.FullName}");
 
+#if NET5_0_OR_GREATER            
+            await using var stream = file.OpenRead();
+#else
             using var stream = file.OpenRead();
+#endif            
             try
             {
                 var configSection = await JsonSerializer.DeserializeAsync<ConfigurationSection>(stream); 

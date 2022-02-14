@@ -118,10 +118,9 @@ namespace TetraPak.XP.DynamicEntities
                 return failItemNotFound<TValue>(key);
 
             var value = property.GetValue(this);
-            if (value is not TValue castValue)
-                return Outcome<TValue>.Fail(new InvalidCastException($"{key} cannot be cast to {typeof(TValue)}"));
-            
-            return Outcome<TValue>.Success(castValue);
+            return value is TValue castValue 
+                ? Outcome<TValue>.Success(castValue) 
+                : Outcome<TValue>.Fail(new InvalidCastException($"{key} cannot be cast to {typeof(TValue)}"));
         }
 
         protected virtual Outcome<TValue> OnTrySetPropertyValue<TValue>(string key, TValue value)

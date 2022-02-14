@@ -29,7 +29,7 @@ namespace TetraPak.XP.Configuration
         /// <param name="value">
         ///   The value to be applied. 
         /// </param>
-        Task SetAsync(string key, string value);
+        Task SetAsync(string key, object? value);
 
         /// <summary>
         /// Gets a configuration sub-section with the specified key.
@@ -83,6 +83,6 @@ namespace TetraPak.XP.Configuration
         ///   method should only return one item (which, in turn, contains one child configuration:
         ///   "LogLevel").
         /// </remarks>
-        Task<IEnumerable<IConfigurationSection>> GetChildrenAsync();
+        Task<IEnumerable<IConfigurationItem>> GetChildrenAsync();
     }
 }

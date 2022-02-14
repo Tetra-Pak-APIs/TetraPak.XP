@@ -72,6 +72,32 @@ namespace authClient.console
             sb.AppendLine(outcome.Value!.AccessToken);
             _log.Information(sb.ToString());
         }
+        
+        void writeToLog(Outcome<DeviceCodeResponse> outcome)
+        {
+            if (!outcome)
+            {
+                if (!string.IsNullOrWhiteSpace(outcome.Message))
+                {
+                    _log.Warning(outcome.Message);
+                }
+                else if (outcome.Exception is { })
+                {
+                    _log.Warning(outcome.Exception.Message);
+                }
+                else
+                {
+                    _log.Warning("Device code grant failed with no message");
+                }
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("SUCCESS!");
+            sb.Append("  access_token=");
+            sb.AppendLine(outcome.Value!.AccessToken);
+            _log.Information(sb.ToString());
+        }
 
         void writeToLog(Outcome<AuthResult> outcome)
         {
@@ -120,6 +146,7 @@ namespace authClient.console
                 .AddSingleton(_ => authApp)
                 .AddTetraPakOidcAuthentication<DesktopLoopbackBrowser>(authApp)
                 .AddTetraPakClientCredentialsAuthentication()
+                .AddTetraPakDeviceCodeAuthentication()
                 .BuildXpServiceProvider();
             _log = services.GetService<ILog>();
             _authenticator = services.GetRequiredService<IAuthenticator>();

@@ -26,6 +26,12 @@
             ///   Identifies the cache repository used for JWT bearer tokens acquired from the local DevProxy. 
             /// </summary>
             public const string DevProxy = "DpTokens";
+            
+            /// <summary>
+            ///   Identifies the cache repository used for tokens acquired from device code grants. 
+            /// </summary>
+            public const string DeviceCodeCredentials = "DcTokens";
+
         }
     }
 }

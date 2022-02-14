@@ -96,6 +96,8 @@ namespace TetraPak.XP.Auth.Abstractions
 
         Task<Uri> GetTokenIssuerUrlAsync();
         
+        Task<Uri> GetDeviceCodeIssuerUrlAsync();
+        
         // /// <summary>
         // ///   Gets the <see cref="IConfiguration"/> instance used to populate the properties. obsolete
         // /// </summary>

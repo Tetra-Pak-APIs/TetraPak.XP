@@ -20,17 +20,17 @@ namespace TetraPak.XP.Configuration
         
         public ILog? Log { get; }
 
-        public string? Value
-        {
-            get => Section?.Value ?? string.Empty;
-            set
-            {
-                if (Section is null)
-                    return;
-                    
-                Section.Value = value;
-            }
-        }
+        // public object? Value obsolete
+        // {
+        //     get => Section?.Value ?? string.Empty;
+        //     set
+        //     {
+        //         if (Section is null)
+        //             return;
+        //             
+        //         Section.Value = value;
+        //     }
+        // }
 
         public int Count => Section?.Count ?? 0;
 
@@ -49,7 +49,7 @@ namespace TetraPak.XP.Configuration
             return Section is { } ? await Section.GetAsync(key, useDefault) : useDefault;
         }
 
-        public Task SetAsync(string key, string value)
+        public Task SetAsync(string key, object? value)
         {
             return Section is null 
                 ? Task.CompletedTask 
@@ -63,11 +63,11 @@ namespace TetraPak.XP.Configuration
                 : Task.FromResult<IConfigurationSection?>(null);
         }
 
-        public Task<IEnumerable<IConfigurationSection>> GetChildrenAsync()
+        public Task<IEnumerable<IConfigurationItem>> GetChildrenAsync()
         {
             return Section is {} 
                 ? Section.GetChildrenAsync() 
-                : Task.FromResult<IEnumerable<IConfigurationSection>>(Array.Empty<IConfigurationSection>());
+                : Task.FromResult<IEnumerable<IConfigurationItem>>(Array.Empty<IConfigurationSection>());
         }
 
         protected virtual Task<T?> GetFromFieldThenSectionAsync<T>(

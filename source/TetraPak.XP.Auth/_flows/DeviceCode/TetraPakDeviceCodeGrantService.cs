@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Auth.ClientCredentials;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web.Debugging;
@@ -19,13 +18,9 @@ namespace TetraPak.XP.Auth.DeviceCode
 {
     public class TetraPakDeviceCodeGrantService : GrantServiceBase, IDeviceCodeGrantService
     {
-        readonly ITetraPakConfiguration _tpConfig;
-        readonly IHttpClientProvider _httpClientProvider;
-        readonly IHttpContextAccessor? _httpContextAccessor;
-        readonly ILog? _log;
-        readonly ITimeLimitedRepositories? _cache;
+        const string CacheRepository = CacheRepositories.Tokens.DeviceCodeCredentials;
 
-        public async Task<Outcome<ClientCredentialsResponse>> AcquireTokenAsync(
+        public async Task<Outcome<DeviceCodeResponse>> AcquireTokenAsync(
             CancellationToken? cancellationToken = null, 
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 
@@ -37,17 +32,17 @@ namespace TetraPak.XP.Auth.DeviceCode
                 var ct = cancellationToken ?? CancellationToken.None;
                 if (clientCredentials is null)
                 {
-                    var ccOutcome = await OnGetCredentialsAsync();
+                    var ccOutcome = await getCredentialsAsync();
                     if (!ccOutcome)
-                        return Outcome<ClientCredentialsResponse>.Fail(ccOutcome.Exception!);
+                        return Outcome<DeviceCodeResponse>.Fail(ccOutcome.Exception!);
 
                     clientCredentials = ccOutcome.Value!;
                 }
 
                 var basicAuthCredentials = ValidateBasicAuthCredentials(clientCredentials);
                 var cachedOutcome = forceAuthorization 
-                        ? Outcome<ClientCredentialsResponse>.Fail(new Exception("nisse")) // nisse Write proper error message
-                        : await OnGetCachedResponse(basicAuthCredentials);
+                        ? Outcome<DeviceCodeResponse>.Fail(new Exception("nisse")) // nisse Write proper error message
+                        : await GetCachedResponse<DeviceCodeResponse>(CacheRepository, basicAuthCredentials);
                 if (cachedOutcome)
                 {
                     var cachedResponse = cachedOutcome.Value!;
@@ -55,9 +50,9 @@ namespace TetraPak.XP.Auth.DeviceCode
                         return cachedOutcome;
                 }
                 
-                var clientOutcome = await _httpClientProvider.GetHttpClientAsync();
+                var clientOutcome = await GetHttpClientAsync();
                 if (!clientOutcome)
-                    return Outcome<ClientCredentialsResponse>.Fail(
+                    return Outcome<DeviceCodeResponse>.Fail(
                         new HttpServerConfigurationException(
                             "Client credentials service failed to obtain a HTTP client (see inner exception)", 
                             clientOutcome.Exception));
@@ -66,7 +61,7 @@ namespace TetraPak.XP.Auth.DeviceCode
                 client.DefaultRequestHeaders.Authorization = basicAuthCredentials.ToAuthenticationHeaderValue();
                 var formsValues = new Dictionary<string, string>
                 {
-                    ["grant_type"] = "client_credentials"
+                    ["client_id"] = basicAuthCredentials.Identity
                 };
                 if (scope is { })
                 {
@@ -76,13 +71,13 @@ namespace TetraPak.XP.Auth.DeviceCode
                 var keyValues = formsValues.Select(kvp 
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var tokenIssuerUrl = await _tpConfig.GetTokenIssuerUrlAsync();
-                var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUrl)
+                var deviceCodeIssuerUrl = await TetraPakConfig.GetDeviceCodeIssuerUrlAsync();
+                var request = new HttpRequestMessage(HttpMethod.Post, deviceCodeIssuerUrl)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
                 };
-                var messageId = HttpContext?.Request.GetMessageId(_tpConfig);
-                var sb = _log?.IsEnabled(LogRank.Trace) ?? false
+                var messageId = GetMessageId();
+                var sb = Log?.IsEnabled(LogRank.Trace) ?? false
                     ? await (await request.ToGenericHttpRequestAsync()).ToStringBuilderAsync(
                         new StringBuilder(), 
                         () => TraceHttpRequestOptions.Default(messageId)
@@ -96,7 +91,7 @@ namespace TetraPak.XP.Auth.DeviceCode
                 {
                     sb.AppendLine();
                     await (await response.ToGenericHttpResponseAsync()).ToStringBuilderAsync(sb);
-                    _log.Trace(sb.ToString(), messageId);
+                    Log.Trace(sb.ToString(), messageId);
                 }
                 
                 if (!response.IsSuccessStatusCode)
@@ -108,14 +103,14 @@ namespace TetraPak.XP.Auth.DeviceCode
                 var stream = await response.Content.ReadAsStreamAsync();
 #endif
                 var responseBody =
-                    await JsonSerializer.DeserializeAsync<ClientCredentialsResponseBody>(
+                    await JsonSerializer.DeserializeAsync<DeviceCodeResponseBody>(
                         stream,
                         cancellationToken: ct);
 
-                var outcome = ClientCredentialsResponse.TryParse(responseBody!);
+                var outcome = DeviceCodeResponse.TryParse(responseBody!);
                 if (outcome)
                 {
-                    await OnCacheResponseAsync(basicAuthCredentials, outcome.Value!);
+                    await CacheResponseAsync(CacheRepository, basicAuthCredentials, outcome.Value!);
                 }
 
                 return outcome;
@@ -123,43 +118,54 @@ namespace TetraPak.XP.Auth.DeviceCode
             catch (Exception ex)
             {
                 ex = new Exception($"Failed to acquire token using client credentials. {ex.Message}", ex);
-                _log.Error(ex);
-                return Outcome<ClientCredentialsResponse>.Fail(ex);
+                Log.Error(ex);
+                return Outcome<DeviceCodeResponse>.Fail(ex);
             }
             
-            Outcome<ClientCredentialsResponse> loggedFailedOutcome(HttpResponseMessage response, LogMessageId? messageId)
+            Outcome<DeviceCodeResponse> loggedFailedOutcome(HttpResponseMessage response, LogMessageId? messageId)
             {
                 var ex = new HttpServerException(response); 
-                if (_log is null)
-                    return Outcome<ClientCredentialsResponse>.Fail(ex);
+                if (Log is null)
+                    return Outcome<DeviceCodeResponse>.Fail(ex);
 
                 // var messageId = _tetraPakConfig.AmbientData.GetMessageId(true);
                 var message = new StringBuilder();
                 message.AppendLine("Client credentials failure (state dump to follow if DEBUG log level is enabled)");
-                if (_log.IsEnabled(LogRank.Debug))
+                if (Log.IsEnabled(LogRank.Debug))
                 {
                     var dump = new StateDump().WithStackTrace();
-                    dump.AddAsync(_tpConfig, "AuthConfig");
+                    dump.AddAsync(TetraPakConfig, "AuthConfig");
                     dump.AddAsync(clientCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
-                _log.Error(ex, message.ToString(), messageId);
-                return Outcome<ClientCredentialsResponse>.Fail(ex);
+                Log.Error(ex, message.ToString(), messageId);
+                return Outcome<DeviceCodeResponse>.Fail(ex);
             }
+        }
+        
+        Task<Outcome<Credentials>> getCredentialsAsync()
+        {
+            if (string.IsNullOrWhiteSpace(TetraPakConfig.ClientId))
+                return Task.FromResult(Outcome<Credentials>.Fail(
+                    new HttpServerConfigurationException("Client credentials have not been provisioned")));
+
+            return Task.FromResult(Outcome<Credentials>.Success(
+                new BasicAuthCredentials(TetraPakConfig.ClientId!, TetraPakConfig.ClientSecret!)));
         }
 
         public TetraPakDeviceCodeGrantService(
-            ITetraPakConfiguration tpConfig, 
+            ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             ITimeLimitedRepositories? cache = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
+        : base(tetraPakConfig, httpClientProvider, cache, log, httpContextAccessor)
         {
-            _tpConfig = tpConfig;
-            _httpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
-            _httpContextAccessor = httpContextAccessor;
-            _log = log;
-            _cache = cache;
+            // _tetraPakConfig = tetraPakConfig; obsolete
+            // _httpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
+            // _httpContextAccessor = httpContextAccessor;
+            // _log = log;
+            // _cache = cache;
         }
     }
 }

@@ -105,7 +105,11 @@ namespace TetraPak.XP.Auth.Abstractions
             if (!value.StartsWith(Qualifier))
                 return false;
 
+#if NET5_0_OR_GREATER            
+            identity = value[Qualifier.Length..];
+#else
             identity = value.Substring(Qualifier.Length);
+#endif
             return true;
         }
 

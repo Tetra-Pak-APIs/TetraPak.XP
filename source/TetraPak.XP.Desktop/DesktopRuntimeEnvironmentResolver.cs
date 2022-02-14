@@ -21,10 +21,5 @@ namespace TetraPak.XP.Desktop
                 ? value
                 : useDefault;
         }
-
-        public DesktopRuntimeEnvironmentResolver()
-        {
-            
-        }
     }
 }

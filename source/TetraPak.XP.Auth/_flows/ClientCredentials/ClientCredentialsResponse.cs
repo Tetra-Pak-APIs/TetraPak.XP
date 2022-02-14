@@ -3,18 +3,15 @@ using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.Auth.ClientCredentials
 {
-    public class ClientCredentialsResponse
+    public class ClientCredentialsResponse : GrantResponse
     {
-        public ActorToken AccessToken { get; }
+        // public ActorToken AccessToken { get; } obsolete
+        // 
+        // public TimeSpan ExpiresIn { get; }
+        //
+        // public MultiStringValue Scope { get; }
 
-        public TimeSpan ExpiresIn { get; }
-
-        public MultiStringValue Scope { get; }
-
-        public ClientCredentialsResponse Clone(TimeSpan expiresIn)
-        {
-            return new ClientCredentialsResponse(AccessToken, expiresIn, Scope);
-        }
+        // public ClientCredentialsResponse Clone(TimeSpan expiresIn) => new(AccessToken, expiresIn, Scope);
 
         internal static Outcome<ClientCredentialsResponse> TryParse(ClientCredentialsResponseBody body)
         {
@@ -47,10 +44,11 @@ namespace TetraPak.XP.Auth.ClientCredentials
         }
         
         ClientCredentialsResponse(ActorToken accessToken, TimeSpan expiresIn, MultiStringValue? scope)
+        : base(accessToken, expiresIn, scope)
         {
-            AccessToken = accessToken;
-            ExpiresIn = expiresIn;
-            Scope = scope ?? MultiStringValue.Empty;
+            // AccessToken = accessToken; obsolete
+            // ExpiresIn = expiresIn; 
+            // Scope = scope ?? MultiStringValue.Empty;
         }
     }
 }

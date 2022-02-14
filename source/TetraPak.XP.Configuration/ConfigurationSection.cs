@@ -69,15 +69,6 @@ namespace TetraPak.XP.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the section value.
-        /// </summary>
-        public string? Value 
-        {
-            get => Get<string?>();
-            set => Set(value);
-        }
-
-        /// <summary>
         ///   Gets a value that indicates whether the configuration section contains no information. 
         /// </summary>
         [JsonIgnore]
@@ -373,7 +364,7 @@ namespace TetraPak.XP.Configuration
         
         public Task<string> GetAsync(string key, string? useDefault = null) => Task.FromResult(GetValue(key, useDefault)!);
 
-        public Task SetAsync(string key, string value)
+        public Task SetAsync(string key, object? value)
         {
             SetValue(key, value);
             return Task.CompletedTask;
@@ -381,18 +372,22 @@ namespace TetraPak.XP.Configuration
 
         public Task<IConfigurationSection?> GetSectionAsync(string key) => Task.FromResult(GetValue<IConfigurationSection>(key));
 
-        public Task<IEnumerable<IConfigurationSection>> GetChildrenAsync()
+        public Task<IEnumerable<IConfigurationItem>> GetChildrenAsync()
         {
-            var children = new List<IConfigurationSection>();
+            var children = new List<IConfigurationItem>();
             foreach (var pair in this)
             {
                 if (pair.Value is IConfigurationSection child)
                 {
                     children.Add(child);
                 }
+                else
+                {
+                    children.Add(new ConfigurationValue(this, pair.Key, pair.Value));
+                }
             }
 
-            return Task.FromResult<IEnumerable<IConfigurationSection>>(children);
+            return Task.FromResult<IEnumerable<IConfigurationItem>>(children);
         }
         
         /// <summary>

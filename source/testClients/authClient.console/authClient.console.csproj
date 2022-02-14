@@ -11,11 +11,14 @@
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="appsettings.Sandbox.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="TetraPak.XP.Auth" Version="1.0.0-alpha.5" />
-      <PackageReference Include="TetraPak.XP.Desktop" Version="1.0.0-alpha.5" />
+      <ProjectReference Include="..\..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
     </ItemGroup>
 
 </Project>

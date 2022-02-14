@@ -39,6 +39,12 @@ namespace TetraPak.XP.Auth
             return Task.FromResult(new Uri(_tokenIssuerUrl ?? defaultUrl("/oauth2/token")));
         }
         
+        public Task<Uri> GetDeviceCodeIssuerUrlAsync()
+        {
+            // todo consider supporting getting from well-known discovery document
+            return Task.FromResult(new Uri(_tokenIssuerUrl ?? defaultUrl("/oauth2/device_authorization")));
+        }
+        
         string defaultUrl(string path) => $"{AuthDomain}{path}";
         
         /// <summary>

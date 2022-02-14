@@ -37,18 +37,25 @@ namespace TetraPak.XP.Configuration
             var indentation = indent == 0 ? string.Empty : new string(' ', indent);
             var children = await self.GetChildrenAsync();
             var sb = new StringBuilder();
-            foreach (var child in children)
+            foreach (var item in children)
             {
                 sb.Append(indentation);
-                sb.Append(child.Key);
+                sb.Append(item.Key);
                 sb.Append(": ");
-                if (child.Value is { })
+                if (item is IConfigurationValue value)
                 {
-                    sb.AppendLine(child.Value);
+                    if (value.Value is not string stringValue)
+                    {
+                        sb.AppendLine(value.ToString());
+                        continue;
+                    }
+                    sb.Append('"');
+                    sb.Append(stringValue);
+                    sb.AppendLine("\"");
                     continue;
                 }
 
-                if (!(await child.GetChildrenAsync()).Any())
+                if (!(await item.GetChildrenAsync()).Any())
                 {
                     sb.AppendLine("(empty)");
                     continue;
@@ -61,7 +68,7 @@ namespace TetraPak.XP.Configuration
                 }
 
                 sb.AppendLine(" {");
-                sb.AppendLine(await child.ToStringValues(true, indent + 3));
+                sb.AppendLine(await item.ToStringValues(true, indent + 3));
                 sb.Append(indentation);
                 sb.AppendLine("}");
             }
@@ -183,6 +190,34 @@ namespace TetraPak.XP.Configuration
 
             value = TimeSpan.Zero;
             return false;
+        }
+
+        internal static async Task<IConfigurationSection> OverloadAsync(
+            this IConfigurationSection self,
+            IConfigurationSection overloading)
+        {
+            var selfItems = (await self.GetChildrenAsync()).ToDictionary(i => i.Key);
+            
+            foreach (var item in await overloading.GetChildrenAsync())
+            {
+                if (item is IConfigurationValue value)
+                {
+                    // note This might overload a whole configuration section with one value (is that ok?; maybe warn or throw?)
+                    await self.SetAsync(item.Key, value.Value);
+                }
+                else if (item is IConfigurationSection section)
+                {
+                    if (selfItems.TryGetValue(item.Key, out var selfItem) &&
+                        selfItem is IConfigurationSection selfSection)
+                    {
+                        await selfSection.OverloadAsync(section);
+                        continue;
+                    }
+                    await self.SetAsync(item.Key, item);
+                }
+            }
+
+            return self;
         }
     }
 }
