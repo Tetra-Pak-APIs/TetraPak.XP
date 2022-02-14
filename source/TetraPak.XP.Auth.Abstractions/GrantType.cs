@@ -58,6 +58,18 @@
         ///   returning an identity token with the access token).
         /// </summary>
         OpenIdConnect = CC,
+        
+        /// <summary>
+        ///   Abbreviation for <see cref="DeviceCode"/>.
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        DC,
+
+        /// <summary>
+        ///   The service is authenticating itself towards the backend service
+        ///   using the Device Code Grant.
+        /// </summary>
+        DeviceCode = DC,
 
         /// <summary>
         ///   Abbreviation for <see cref="Automatic"/>.

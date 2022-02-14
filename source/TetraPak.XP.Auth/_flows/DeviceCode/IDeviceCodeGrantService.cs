@@ -2,17 +2,18 @@
 using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Auth.ClientCredentials;
 
-namespace TetraPak.XP.Auth.ClientCredentials
+namespace TetraPak.XP.Auth.DeviceCode
 {
     /// <summary>
     ///   Implementors of this interface are able to acquire a token using the
-    ///   OAuth Client Credentials grant. 
+    ///   OAuth Device Code grant. 
     /// </summary>
-    public interface IClientCredentialsGrantService
+    public interface IDeviceCodeGrantService
     {
         /// <summary>
-        ///   Requests a token using the OAuth Client Credentials grant.   
+        ///   Requests a token using the OAuth Device Code grant.   
         /// </summary>
         /// <param name="cancellationToken">
         ///   (optional)<br/>

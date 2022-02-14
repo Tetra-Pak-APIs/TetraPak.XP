@@ -1,13 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.Auth.ClientCredentials;
 using TetraPk.XP.Web.Http;
 
-namespace TetraPak.XP.Auth.ClientCredentials
+namespace TetraPak.XP.Auth.DeviceCode
 {
-    /// <summary>
-    ///   Helps with adding support for the Client Credentials grant type
-    ///   (see <see cref="AddTetraPakClientCredentialsAuthentication"/>). 
-    /// </summary>
-    public static class ClientCredentialsServiceHelper
+    public static class DeviceCodeServiceHelper
     {
         static bool s_isClientCredentialsAdded;
         static readonly object s_syncRoot = new();
@@ -15,9 +12,9 @@ namespace TetraPak.XP.Auth.ClientCredentials
         
         /// <summary>
         ///   (fluent api)<br/>
-        ///   Adds support for OAuth Client Credentials grant to the application and returns the <paramref name="collection"/>. 
+        ///   Adds support for OAuth Device Code grant to the application and returns the <paramref name="collection"/>. 
         /// </summary>
-        public static IServiceCollection AddTetraPakClientCredentialsAuthentication(this IServiceCollection collection)
+        public static IServiceCollection AddTetraPakDeviceCodeAuthentication(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -29,7 +26,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
             
             collection.AddTetraPakConfiguration();
             collection.AddTetraPakHttpClientProvider();
-            collection.AddSingleton<IClientCredentialsGrantService,TetraPakClientCredentialsGrantService>();
+            collection.AddSingleton<IDeviceCodeGrantService,TetraPakDeviceCodeGrantService>();
             return collection;
         }
     }

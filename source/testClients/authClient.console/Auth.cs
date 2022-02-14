@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Auth.ClientCredentials;
+using TetraPak.XP.Auth.DeviceCode;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
@@ -24,6 +26,11 @@ namespace authClient.console
                 case GrantType.CC:
                     var cc = XpServices.GetRequired<IClientCredentialsGrantService>();
                     writeToLog(await cc.AcquireTokenAsync());
+                    break;
+                
+                case GrantType.DC:
+                    var dc = XpServices.GetRequired<IDeviceCodeGrantService>();
+                    writeToLog(await dc.AcquireTokenAsync());
                     break;
                 
                 case GrantType.OIDC:

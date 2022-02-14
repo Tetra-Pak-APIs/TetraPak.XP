@@ -1,8 +1,7 @@
 ﻿using System;
-using TetraPak.AspNet.Api.Auth;
 using TetraPak.XP.Auth.Abstractions;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.Auth.ClientCredentials
 {
     public class ClientCredentialsResponse
     {

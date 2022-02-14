@@ -5,7 +5,7 @@
     <RootNamespace>TetraPk.XP.Web.Http</RootNamespace>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageVersion>1.0.0-alpha.4</PackageVersion>
+    <PackageVersion>1.0.0-alpha.5</PackageVersion>
     <AssemblyVersion>0.1.4</AssemblyVersion>
     <FileVersion>0.1.4</FileVersion>
     <LangVersion>default</LangVersion>

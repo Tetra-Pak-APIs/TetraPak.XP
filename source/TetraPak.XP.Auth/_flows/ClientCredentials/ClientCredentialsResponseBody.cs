@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-using TetraPak.XP.Auth;
 
-namespace TetraPak.AspNet.Api.Auth
+namespace TetraPak.XP.Auth.ClientCredentials
 {
     /// <summary>
     ///   Represents the response from a successful client credentials request

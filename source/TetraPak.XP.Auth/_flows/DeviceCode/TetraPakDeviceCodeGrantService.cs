@@ -8,39 +8,30 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Caching;
+using TetraPak.XP.Auth.ClientCredentials;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web.Debugging;
 using TetraPk.XP.Web.Http;
 using TetraPk.XP.Web.Http.Debugging;
 
-namespace TetraPak.XP.Auth.ClientCredentials
+namespace TetraPak.XP.Auth.DeviceCode
 {
-    /// <summary>
-    ///   A default service to support the client credentials grant type.
-    /// </summary>
-    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-    public class TetraPakClientCredentialsGrantService : IClientCredentialsGrantService
+    public class TetraPakDeviceCodeGrantService : GrantServiceBase, IDeviceCodeGrantService
     {
         readonly ITetraPakConfiguration _tpConfig;
         readonly IHttpClientProvider _httpClientProvider;
-        readonly ITimeLimitedRepositories? _cache;
         readonly IHttpContextAccessor? _httpContextAccessor;
         readonly ILog? _log;
+        readonly ITimeLimitedRepositories? _cache;
 
-        const string CacheRepository = CacheRepositories.Tokens.ClientCredentials;
-
-        HttpContext? HttpContext => _httpContextAccessor?.HttpContext;
-
-        /// <inheritdoc />
         public async Task<Outcome<ClientCredentialsResponse>> AcquireTokenAsync(
-            CancellationToken? cancellationToken = null,
+            CancellationToken? cancellationToken = null, 
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 
             bool forceAuthorization = false)
         {
-            // todo Consider breaking up this method (it's too big) 
+             // todo Consider breaking up this method (it's too big) 
             try
             {
                 var ct = cancellationToken ?? CancellationToken.None;
@@ -53,7 +44,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
                     clientCredentials = ccOutcome.Value!;
                 }
 
-                var basicAuthCredentials = OnValidateBasicAuthCredentials(clientCredentials);
+                var basicAuthCredentials = ValidateBasicAuthCredentials(clientCredentials);
                 var cachedOutcome = forceAuthorization 
                         ? Outcome<ClientCredentialsResponse>.Fail(new Exception("nisse")) // nisse Write proper error message
                         : await OnGetCachedResponse(basicAuthCredentials);
@@ -157,108 +148,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
             }
         }
 
-        /// <summary>
-        ///   Invoked from <see cref="AcquireTokenAsync"/> when to try fetching a cached auth response.  
-        /// </summary>
-        /// <param name="credentials">
-        ///     The credentials used to acquire the response.
-        /// </param>
-        /// <returns>
-        ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
-        ///   a <see cref="ClientCredentialsResponse"/> or, on failure, an <see cref="Exception"/>.
-        /// </returns>
-        protected virtual async Task<Outcome<ClientCredentialsResponse>> OnGetCachedResponse(Credentials credentials)
-        {
-            if (_cache is null)
-                return Outcome<ClientCredentialsResponse>.Fail(new Exception("No cached token"));
-
-            var cachedOutcome = await _cache.ReadAsync<ClientCredentialsResponse>(
-                credentials.Identity,
-                CacheRepository);
-
-            if (!cachedOutcome)
-                return cachedOutcome;
-
-            var remainingLifeSpan = cachedOutcome.GetRemainingLifespan();
-            return cachedOutcome
-                ? Outcome<ClientCredentialsResponse>.Success(cachedOutcome.Value!.Clone(remainingLifeSpan))
-                : cachedOutcome;
-        }
-
-        /// <summary>
-        ///   Invoked from <see cref="AcquireTokenAsync"/> when receiving a successful auth response.  
-        /// </summary>
-        /// <param name="credentials">
-        ///     The credentials used to acquire the response.
-        /// </param>
-        /// <param name="response">
-        ///     The response to be cached.
-        /// </param>
-        /// <returns>
-        ///   The <paramref name="response"/> value.
-        /// </returns>
-        protected virtual async Task OnCacheResponseAsync(Credentials credentials, ClientCredentialsResponse response)
-        {
-            if (_cache is null) 
-                return;
-
-            await _cache.CreateOrUpdateAsync(
-                response,
-                credentials.Identity,
-                CacheRepository,
-                response.ExpiresIn);
-        }
-        
-        static BasicAuthCredentials OnValidateBasicAuthCredentials(Credentials credentials)
-        {
-            if (string.IsNullOrWhiteSpace(credentials.Identity) || string.IsNullOrWhiteSpace(credentials.Secret))
-                throw new InvalidOperationException("Invalid credentials. Please specify client id and secret");
-
-            return new BasicAuthCredentials(credentials.Identity, credentials.Secret!);
-        }
-
-        /// <summary>
-        ///   This virtual asynchronous method is automatically invoked when <see cref="AcquireTokenAsync"/>
-        ///   needs client credentials. 
-        /// </summary>
-        /// <returns>
-        ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
-        ///   a <see cref="Credentials"/> or, on failure, an <see cref="Exception"/>.
-        /// </returns>
-        protected virtual Task<Outcome<Credentials>> OnGetCredentialsAsync()
-        {
-            if (string.IsNullOrWhiteSpace(_tpConfig.ClientId))
-                return Task.FromResult(Outcome<Credentials>.Fail(
-                    new HttpServerConfigurationException("Client credentials have not been provisioned")));
-
-            return Task.FromResult(Outcome<Credentials>.Success(
-                new BasicAuthCredentials(_tpConfig.ClientId!, _tpConfig.ClientSecret!)));
-        }
-
-        /// <summary>
-        ///   Initializes the <see cref="TetraPakClientCredentialsGrantService"/>.
-        /// </summary>
-        /// <param name="tpConfig">
-        ///   The Tetra Pak integration configuration.
-        /// </param>
-        /// <param name="httpClientProvider">
-        ///   A HttpClient factory.
-        /// </param>
-        /// <param name="log">
-        ///   (optional)<br/>
-        ///   A logger provider.   
-        /// </param>
-        /// <param name="httpContextAccessor">
-        ///   Provides access to the current request/response <see cref="HttpContext"/>. 
-        /// </param>
-        /// <param name="cache">
-        ///   (optional)<br/>
-        ///   A cache to reduce traffic and improve performance
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///   Any parameter was <c>null</c>.
-        /// </exception>
-        public TetraPakClientCredentialsGrantService(
+        public TetraPakDeviceCodeGrantService(
             ITetraPakConfiguration tpConfig, 
             IHttpClientProvider httpClientProvider,
             ITimeLimitedRepositories? cache = null,
