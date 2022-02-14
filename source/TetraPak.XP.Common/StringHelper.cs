@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-#nullable enable
-
 namespace TetraPak.XP
 {
     /// <summary>
@@ -843,7 +841,7 @@ namespace TetraPak.XP
             return allowWhitespace || self.Any(c => !char.IsWhiteSpace(c));
         }
 
-        public static bool IsUnassigned(this string self, bool isWhitespaceAllowed = false) =>
+        public static bool IsUnassigned(this string? self, bool isWhitespaceAllowed = false) =>
             !self.IsAssigned(isWhitespaceAllowed);
 
         /// <summary>

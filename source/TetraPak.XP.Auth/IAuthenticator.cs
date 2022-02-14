@@ -11,9 +11,9 @@ namespace TetraPak.XP.Auth
         ///   Attempts to acquire an access token.
         /// </summary>
         /// <param name="allowCached">
-        ///   (optional; default = <c>true</c>)<br/>
-        ///   Can be used to override global cache setting
-        ///   value for this particular operation.
+        ///     (optional; default = <c>true</c>)<br/>
+        ///     Can be used to override global cache setting
+        ///     value for this particular operation.
         /// </param>
         /// <returns>
         ///   A <seealso cref="Outcome{T}"/> indicating success while also carrying

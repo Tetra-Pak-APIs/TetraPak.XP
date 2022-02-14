@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Logging;
 
 namespace authClient.console
@@ -10,14 +11,18 @@ namespace authClient.console
         static readonly ILog s_log = new BasicLog().WithConsoleLogging();
 
         const char QuitCommand = 'q';
-        const char NewTokenCommand = 'n';
+        const char NewCcTokenCommand = 'c';
+        const char NewOidcTokenCommand = 'o';
+        const char NewDcTokenCommand = 'd';
         const char SilentTokenCommand = 's';
 
         public static async Task Main(string[] args)
         {
             Console.WriteLine("+---------------------------------------------------+");
-            Console.WriteLine("|  n = get new token                                |");
-            Console.WriteLine("|  s = get token silently                           |");
+            Console.WriteLine("|  o = get new token using OIDC                     |");
+            Console.WriteLine("|  s = get token silently (OIDC)                    |");
+            Console.WriteLine("|  c = get new token using Client Credentials       |");
+            Console.WriteLine("|  d = get new token using Device Code              |");
             Console.WriteLine("|  q = quit                                         |");
             Console.WriteLine("+---------------------------------------------------+");
 
@@ -43,8 +48,16 @@ namespace authClient.console
         {
             switch (command)
             {
-                case NewTokenCommand:
-                    await auth.NewTokenAsync();
+                case NewOidcTokenCommand:
+                    await auth.NewTokenAsync(GrantType.OIDC);
+                    break;
+                
+                case NewCcTokenCommand:
+                    await auth.NewTokenAsync(GrantType.CC);
+                    break;
+                
+                case NewDcTokenCommand:
+                    await auth.NewTokenAsync(GrantType.DC);
                     break;
                 
                 case SilentTokenCommand:

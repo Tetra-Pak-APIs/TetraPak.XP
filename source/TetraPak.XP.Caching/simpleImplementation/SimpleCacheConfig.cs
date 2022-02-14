@@ -11,7 +11,7 @@ namespace TetraPak.XP.Caching
     /// <summary>
     ///   A configuration section specifying caching strategies. 
     /// </summary>
-    public class SimpleCacheConfig : ConfigurationSection, IEnumerable<KeyValuePair<string,ITimeLimitedRepositoryOptions>>
+    public class SimpleCacheConfig : ConfigurationSectionWrapper, IEnumerable<KeyValuePair<string,ITimeLimitedRepositoryOptions>>
     {
         readonly Task _loadTask;
         SimpleCache? _cache;
@@ -25,13 +25,6 @@ namespace TetraPak.XP.Caching
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        internal static string ValidateIsAssigned(string? sectionIdentifier)
-        {
-            return string.IsNullOrWhiteSpace(sectionIdentifier)
-                ? throw new ArgumentNullException(nameof(sectionIdentifier))
-                : sectionIdentifier!;
-        }
 
         /// <summary>
         ///   Gets the configuration for a cache repository.
@@ -90,15 +83,16 @@ namespace TetraPak.XP.Caching
         
         Task loadRepositoryConfigsAsync()
         {
-            return Task.Run(async () =>
+            return Task.Run(async () => 
             {
-                var childSections = await Section!.GetChildrenAsync();
+                var childSections = await GetChildrenAsync();
                 foreach (var childSection in childSections)
                 {
-                    var config = new SimpleTimeLimitedRepositoryOptions(_cache, Section, Log, childSection.Key);
+                    var config = new SimpleTimeLimitedRepositoryOptions(_cache, Section, childSection.Key, Log);
                     _repositoryConfigs.Add(childSection.Key, config);
                 }
             });
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -107,14 +101,15 @@ namespace TetraPak.XP.Caching
         /// <param name="cache"></param>
         /// <param name="configuration"></param>
         /// <param name="log"></param>
-        /// <param name="sectionIdentifier"></param>
+        /// <param name="key"></param>
         public SimpleCacheConfig(
             SimpleCache? cache,
             IConfiguration configuration, 
-            ILog? log, 
-            string? sectionIdentifier = null) 
-        : base(configuration, log, ValidateIsAssigned(sectionIdentifier))
+            string key,
+            ILog? log = null) 
+        : base(configuration, ValidateAssigned(key), log)
         {
+            // todo This class needs to rely on the root configuration (implemented per platform) rather than inheritance
             _cache = cache;
             _repositoryConfigs = new Dictionary<string, ITimeLimitedRepositoryOptions>();
             _loadTask = loadRepositoryConfigsAsync(); // loads configuration in background

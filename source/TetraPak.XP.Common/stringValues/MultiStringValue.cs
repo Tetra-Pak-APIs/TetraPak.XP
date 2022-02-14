@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json.Serialization;
-#if NET5_0_OR_GREATER        
+using TetraPak.XP.Serialization;
+#if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-#nullable enable
 
 namespace TetraPak.XP
 {
@@ -17,11 +17,15 @@ namespace TetraPak.XP
     /// </summary>
     /// <seealso cref="IStringValue"/>
     /// <seealso cref="StringValueBase"/>
-    // [Serializable, JsonConverter(typeof(JsonStringValueSerializer<MultiStringValue>))]
+    [Serializable, JsonConverter(typeof(JsonStringValueSerializer<MultiStringValue>))]
     [DebuggerDisplay("{" + nameof(StringValue) + "}")]
     public class MultiStringValue : StringValueBase, IEnumerable<string>
     {
-        string[]? _items;
+        // these thread-statics are always initialized from `WithArgs`, which is always invoked from ctor
+        [ThreadStatic]
+        static string? s_separator;
+        [ThreadStatic]
+        static StringComparison? s_comparison;
 
         /// <summary>
         ///   The default separator used for parsing a <see cref="MultiStringValue"/>. 
@@ -33,156 +37,49 @@ namespace TetraPak.XP
         /// </summary>
         public string Separator { get; protected set; }
 
+        public StringComparison Comparison { get; private set; }
+
         /// <summary>
         ///   Gets the string elements of the value as an <see cref="Array"/> of <see cref="string"/>.
         /// </summary>
         [JsonIgnore]
-        public string[]? Items
-        {
-            get => _items; 
-            private set => _items = OnSetItems(value);
-        }
+        public string[] Items { get; private set; }
+        
+        [JsonIgnore]
+        public bool IsEmpty { get; private set; }
 
-        /// <summary>
-        ///   Called by the <see cref="Items"/> setter to allow derived classes to validate or coerce
-        ///   the assigned value (the base implementation simply returns the <paramref name="value"/>). 
-        /// </summary>
-        /// <param name="value">
-        ///   The items to be assigned.
-        /// </param>
-        protected virtual string[]? OnSetItems(string[]? value) => value;
+        public static MultiStringValue Empty => new();
 
         /// <summary>
         ///   Gets the number of <see cref="Items"/> in the value.
         /// </summary>
-        public int Count => Items?.Length ?? 0;
-        
-        /// <summary>
-        ///   Creates and returns an empty <see cref="MultiStringValue"/>.
-        /// </summary>
-        public static MultiStringValue Empty { get; } = new();
+        public int Count => Items.Length;
 
-        public string this[int index] => Items?.Any() ?? false
-            ? Items![index]
+        public string this[int index] => Items.Any()
+            ? Items[index]
             : throw new ArgumentOutOfRangeException();
 
         /// <summary>
-        ///   Called internally to resolve the item separator pattern in use.
+        ///   Invoked when parsing is done and needs to validate the items to be assigned to
+        ///   the <see cref="Items"/> property. This provides an opportunity for derived classes
+        ///   to perform validation
         /// </summary>
+        /// <param name="items">
+        ///   Ar array of items to be validated.
+        /// </param>
         /// <returns></returns>
-        protected virtual string OnGetSeparator() => Separator;
-
-        /// <summary>
-        ///   Converts a string to its <see cref="MultiStringValue"/> equivalent.
-        ///   A return value indicates whether the conversion succeeded.
-        /// </summary>
-        /// <param name="stringValue">
-        ///   A string containing a <see cref="MultiStringValue"/> to convert.
-        /// </param>
-        /// <param name="multiStringValue">
-        ///   The successfully parsed <see cref="MultiStringValue"/>.
-        /// </param>
-        /// <param name="comparison">
-        ///   (optional)<br/>
-        ///   A <see cref="StringComparer"/> used for parsing the <see cref="MultiStringValue"/>.
-        ///   This is mainly intended for the need in derived classes that needs to override the
-        ///   <see cref="OnValidateItem"/> method. The comparer have no effect in this class. 
-        /// </param>
-        /// <returns>
-        ///   <c>true</c> if <paramref name="stringValue"/> was converted successfully; otherwise, <c>false</c>.
-        /// </returns>
-        /// <seealso cref="TryParse{T}"/>
-#if NET5_0_OR_GREATER        
-        public static bool TryParse(
-            string stringValue,
-            [NotNullWhen(true)] out MultiStringValue? multiStringValue,
-            StringComparison comparison = StringComparison.Ordinal)
-#else
-        public static bool TryParse(
-            string stringValue,
-            out MultiStringValue? multiStringValue,
-            StringComparison comparison = StringComparison.Ordinal)
- #endif
+        protected virtual Outcome<string[]> OnValidate(string[] items)
         {
-            return TryParse<MultiStringValue>(stringValue, out multiStringValue, comparison);
-        }
-        
-        /// <summary>
-        ///   Converts a string to its <see cref="MultiStringValue"/>-compatible equivalent.
-        ///   A return value indicates whether the conversion succeeded.
-        /// </summary>
-        /// <param name="stringValue"></param>
-        /// <param name="multiStringValue"></param>
-        /// <param name="comparison"></param>
-        /// <typeparam name="T">
-        ///   A <see cref="Type"/>, deriving from <see cref="MultiStringValue"/>,
-        ///   for <paramref name="stringValue"/> to be converted to. 
-        /// </typeparam>
-        /// <returns>
-        ///   <c>true</c> if <paramref name="stringValue"/> was converted successfully; otherwise, <c>false</c>.
-        /// </returns>
-        /// <seealso cref="TryParse"/>
-#if NET5_0_OR_GREATER        
-        public static bool TryParse<T>(
-            string stringValue, 
-            [NotNullWhen(true)] out T? multiStringValue, 
-            StringComparison comparison = StringComparison.Ordinal)
-#else
-        public static bool TryParse<T>(
-            string stringValue, 
-            out T? multiStringValue, 
-            StringComparison comparison = StringComparison.Ordinal)
-#endif
-        where T : MultiStringValue
-        {
-            multiStringValue = (T?) Activator.CreateInstance(typeof(T));
-            if (multiStringValue is null)
-                return false;
-                
-            var parseOutcome = multiStringValue.tryParse(stringValue, comparison);
-            if (parseOutcome)
+            for (var i = 0; i < items.Length; i++)
             {
-                multiStringValue.setInternal(stringValue, parseOutcome.Value!);
-                return true;
+                var outcome = OnValidateItem(items[i]);
+                if (!outcome)
+                    return Outcome<string[]>.Fail(outcome.Exception!);
+
+                items[i] = outcome.Value!;
             }
-            
-            multiStringValue = null;
-            return false;
-        }
 
-        void setInternal(string stringValue, string[] items)
-        {
-            StringValue = stringValue;
-            Items = items;
-        }
-
-        protected void SetInternal(IEnumerable<string> items)
-        {
-            Items = items.ToArray();
-            StringValue = Items.ConcatCollection(Separator);
-        }
-
-        Outcome<string[]> tryParse(string? value, StringComparison comparison = StringComparison.Ordinal)
-        {
-            if (value.IsAssigned())
-                return Outcome<string[]>.Fail(new FormatException($"Invalid {typeof(MultiStringValue)} format: \"{value}\""));
-
-            var separator = OnGetSeparator();
-            var split = value!.Split(new[] {separator}, StringSplitOptions.RemoveEmptyEntries);
-            if (split.Length == 0)
-                return Outcome<string[]>.Fail(new FormatException($"Invalid {typeof(MultiStringValue)} format: \"{value}\""));
-
-            var roles = new List<string>();
-            foreach (var s in split)
-            {
-                var trimmed = s.Trim();
-                var validateOutcome = OnValidateItem(trimmed, comparison);
-                if (!validateOutcome)
-                    return Outcome<string[]>.Fail(validateOutcome.Exception!);
-                
-                roles.Add(trimmed);
-            }
-            return Outcome<string[]>.Success(roles.ToArray());
+            return Outcome<string[]>.Success(items);
         }
 
         /// <summary>
@@ -225,24 +122,17 @@ namespace TetraPak.XP
         ///   
         /// </param>
         /// <returns></returns>
-        [DebuggerStepThrough]
-        public static implicit operator MultiStringValue(string? stringValue) => 
-            stringValue is null 
-                ? Empty 
-                : new MultiStringValue(stringValue);
+        // [DebuggerStepThrough]
+        public static implicit operator MultiStringValue(string? stringValue) => new(stringValue, DefaultSeparator);
 
         /// <inheritdoc />
         public override string ToString() => StringValue;
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
-        public IEnumerator<string> GetEnumerator() => Items is null 
-            ? new ArrayEnumerator<string>(Array.Empty<string>()) 
-            : new ArrayEnumerator<string>(Items);
+        public IEnumerator<string> GetEnumerator() => new ArrayEnumerator<string>(Items);
 
         #region .  Equality  .
 
@@ -263,19 +153,20 @@ namespace TetraPak.XP
         /// </returns>
         public virtual bool EqualsSemantically(
             MultiStringValue? other, 
-            StringComparison comparison = StringComparison.InvariantCulture)
+            StringComparison? comparison = null)
         {
-            var length = Items?.Length;
-            if (other is null || length != other.Items?.Length)
+            var length = Items.Length;
+            if (other is null || length != other.Items.Length)
                 return false;
 
+            var useComparison = comparison ?? Comparison;
             for (var i = 0; i < length; i++)
             {
-                var test = Items![i];
+                var test = Items[i];
                 var match = false;
                 for (var j = 0; j < length && !match; j++)
                 {
-                    match = test.Equals(other.Items![j], comparison);
+                    match = test.Equals(other.Items[j], useComparison);
                 }
 
                 if (!match)
@@ -296,7 +187,7 @@ namespace TetraPak.XP
         /// </returns>
         public virtual bool Equals(MultiStringValue? other)
         {
-            return other is not null && string.Equals(StringValue, other.StringValue);
+            return other is not null && string.Equals(StringValue, other.StringValue, Comparison);
         }
 
         /// <summary>
@@ -320,8 +211,6 @@ namespace TetraPak.XP
         ///   A hash code for the current value.
         /// </returns>
         public override int GetHashCode() => StringValue.GetHashCode();
-
-        // public bool Contains(string value) => Items?.Contains(value) ?? false; obsolete
 
         /// <summary>
         ///   Comparison operator overload.
@@ -379,14 +268,13 @@ namespace TetraPak.XP
         }
         #endregion
         
-        void validateSupported(IEnumerable<string> items)
+        string[] validate(string[] items)
         {
-            foreach (var item in items)
-            {
-                var validateOutcome = OnValidateItem(item);
-                if (!validateOutcome)
-                    throw validateOutcome.Exception!;
-            }
+            var outcome = OnValidate(items);
+            if (!outcome)
+                throw outcome.Exception!;
+                
+            return outcome.Value!;
         }
 
         /// <summary>
@@ -412,39 +300,254 @@ namespace TetraPak.XP
             return new MultiStringValue(set.ToArray());
         }
 
-        void setStringValue() => StringValue = Items.ConcatCollection(OnGetSeparator());
+        /// <summary>
+        ///   Clones the <see cref="Items"/> value and returns it with one or more items
+        ///   appended to the end.
+        /// </summary>
+        /// <param name="items">
+        ///   One or more items to be added. 
+        /// </param>
+        /// <returns>
+        ///   An array of <see cref="string"/>s.
+        /// </returns>
+        protected string[] AddRange(IEnumerable<string> items) => AddRange(items.ToArray());
 
-        protected void SetStringValue(string stringValue) => StringValue = stringValue;
-
-        protected void AddRange(IEnumerable<string> items)
+        /// <summary>
+        ///   Clones the <see cref="Items"/> value and returns it with one or more items
+        ///   appended to the end.
+        /// </summary>
+        /// <param name="items">
+        ///   One or more items to be added. 
+        /// </param>
+        /// <returns>
+        ///   An array of <see cref="string"/>s.
+        /// </returns>
+        protected string[] AddRange(params string[] items)
         {
-            var list = Items?.ToList() ?? new List<string>();
+            var list = Items.ToList();
             list.AddRange(items);
-            SetInternal(list);
-        }
-
-        protected void InsertRange(int index, IEnumerable<string> items)
-        {
-            var list = Items?.ToList() ?? new List<string>();
-            list.InsertRange(index, items);
-            SetInternal(list);
-        }
-
-        protected void RemoveAt(int index)
-        {
-            var list = Items?.ToList() ?? new List<string>();
-            list.RemoveAt(index);
-            SetInternal(list);
+            return list.ToArray();
         }
 
         /// <summary>
-        ///   Initializes an <see cref="Empty"/> <see cref="MultiStringValue"/>.
+        ///   Clones the <see cref="Items"/> value and returns it with one or more items
+        ///   inserted at a specified position.
         /// </summary>
-        public MultiStringValue() : base("")
+        /// <param name="index">
+        ///   Specifies the position where the <paramref name="items"/> should be inserted.
+        /// </param>
+        /// <param name="items">
+        ///   One or more items to be inserted. 
+        /// </param>
+        /// <returns>
+        ///   An array of <see cref="string"/>s.
+        /// </returns>
+        protected string[] InsertRange(int index, IEnumerable<string> items) => InsertRange(index, items.ToArray());
+
+        /// <summary>
+        ///   Clones the <see cref="Items"/> value and returns it with one or more items
+        ///   inserted at a specified position.
+        /// </summary>
+        /// <param name="index">
+        ///   Specifies the position where the <paramref name="items"/> should be inserted.
+        /// </param>
+        /// <param name="items">
+        ///   One or more items to be inserted. 
+        /// </param>
+        /// <returns>
+        ///   An array of <see cref="string"/>s.
+        /// </returns>
+        protected string[] InsertRange(int index, params string[] items)
         {
-            Separator = DefaultSeparator;
+            var list = Items.ToList();
+            list.InsertRange(index, items);
+            return list.ToArray();
+        }
+        
+        /// <summary>
+        ///   Clones the <see cref="Items"/> value and returns it with one or more items
+        ///   removed from specified position.
+        /// </summary>
+        /// <param name="index">
+        ///   Specifies the position where items should be removed.
+        /// </param>
+        /// <param name="count">
+        ///   (optional; default = 1, min value = 1)<br/>
+        ///   The number of items to be removed from the result.
+        /// </param>
+        /// <returns>
+        ///   An array of <see cref="string"/>s.
+        /// </returns>
+        protected string[] RemoveAt(int index, int count = 1)
+        {
+            count = Math.Max(count, 1);
+            var list = Items.ToList();
+            for (var i = 0; i < count; i++)
+            {
+                list.RemoveAt(index);
+            }
+            return list.ToArray();
+        }
+        
+        /// <summary>
+        ///   (fluent api; intended for use with ctor)<br/>
+        ///   Assigns the <see cref="Separator"/> and <see cref="Comparison"/> properties and returns the
+        ///   passed in <paramref name="stringValue"/>.
+        /// </summary>
+        protected static string? WithArgs(string? stringValue, string? separator, StringComparison comparison)
+        {
+            // note: The thread-statics are only set once in a thread
+            s_separator ??= separator ?? DefaultSeparator;
+            s_comparison ??= comparison;
+            return stringValue;
         }
 
+        /// <summary>
+        ///   Overrides the base method to support initialization and validation of <see cref="Items"/>.
+        /// </summary>
+        /// <param name="stringValue"></param>
+        /// <returns>
+        ///   A (possibly coerced) value to be assigned as <see cref="StringValueBase.StringValue"/>.
+        /// </returns>
+        /// <seealso cref="OnValidate"/>
+        /// <seealso cref="OnValidateItem"/>
+        protected override string OnParse(string? stringValue)
+        {
+            Separator = s_separator!;
+            Comparison = s_comparison!.Value;
+            var outcome = tryParse(stringValue);
+            if (!outcome)
+            {
+                Items = Array.Empty<string>();
+                return base.OnParse(AsError(outcome.Message));
+            }
+
+            Items = validate(outcome.Value!);
+            IsEmpty = Items.Length == 0;
+            return stringValue!;
+        }
+
+        Outcome<string[]> tryParse(string? value)
+        {
+            if (value.IsUnassigned())
+                return Outcome<string[]>.Success(Array.Empty<string>());
+
+            var split = value!.Split(new[] {Separator}, StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length == 0)
+                return Outcome<string[]>.Fail(new FormatException($"Invalid {GetType()} format: \"{value}\""));
+
+            var items = new List<string>();
+            foreach (var s in split)
+            {
+                var trimmed = s.Trim();
+                var validateOutcome = OnValidateItem(trimmed, s_comparison!.Value);
+                if (!validateOutcome)
+                    return Outcome<string[]>.Fail(validateOutcome.Exception!);
+                
+                items.Add(trimmed);
+            }
+            return Outcome<string[]>.Success(items.ToArray());
+        }
+
+        /// <summary>
+        ///   Converts a string to its <see cref="MultiStringValue"/>-compatible equivalent.
+        ///   A return value indicates whether the conversion succeeded.
+        /// </summary>
+        /// <param name="stringValue"></param>
+        /// <param name="multiStringValue"></param>
+        /// <param name="comparison"></param>
+        /// <typeparam name="T">
+        ///   A <see cref="Type"/>, deriving from <see cref="MultiStringValue"/>,
+        ///   for <paramref name="stringValue"/> to be converted to. 
+        /// </typeparam>
+        /// <returns>
+        ///   <c>true</c> if <paramref name="stringValue"/> was converted successfully; otherwise, <c>false</c>.
+        /// </returns>
+        /// <seealso cref="TryParse"/>
+        public static bool TryParse<T>(
+            string? stringValue,
+#if NET5_0_OR_GREATER            
+            [NotNullWhen(true)] out T? multiStringValue,
+ #else
+            out T? multiStringValue,
+#endif
+            string? separator = null,
+            StringComparison? comparison = null)
+        where T : MultiStringValue
+        {
+            // 1st try just calling the 3-arg ctor ...
+            var ctor = typeof(T).GetConstructor(new[] { typeof(string), typeof(string), typeof(StringComparison) });
+            if (ctor is { })
+            {
+                try
+                {
+                    multiStringValue = (T) ctor.Invoke(new object[] { stringValue!, separator!, comparison! });
+                    return true;
+                }
+                catch 
+                {
+                    // ignored
+                }
+            }
+
+            // next, try calling the 1-arg ctor ...
+            ctor = typeof(T).GetConstructor(new[] { typeof(string) });
+            if (ctor is { })
+            {
+                try
+                {
+                    multiStringValue = (T) ctor.Invoke(new object[] { stringValue! });
+                    return true;
+                }
+                catch 
+                {
+                    // ignored
+                }
+            }
+
+            multiStringValue = null;
+            return false;
+            // 
+            //
+            // multiStringValue = (T?) Activator.CreateInstance(typeof(T)); obsolete
+            // if (multiStringValue is null)
+            //     return false;
+            //
+            // try
+            // {
+            //     multiStringValue.Parse(stringValue);
+            // }
+            // catch (Exception ex)
+            // {
+            //     Console.WriteLine(ex);
+            //     throw;
+            // }
+            //     
+            // var parseOutcome = multiStringValue.tryParse(stringValue);
+            // if (parseOutcome)
+            // {
+            //     
+            //     multiStringValue.setInternal(stringValue, parseOutcome.Value!);
+            //     return true;
+            // }
+            //
+            // multiStringValue = null;
+            // return false;
+        }
+
+        internal T WithComparison<T>(StringComparison comparison) where T : MultiStringValue
+        {
+            Comparison = comparison;
+            return (T)this;
+        }
+        
+
+        public MultiStringValue() : this(string.Empty)
+        {
+        }
+
+        // note Separator and Comparison are _always_ initialized thru `WithArgs` and Items are always initialized from OnParse 
+#pragma warning disable CS8618
         /// <summary>
         ///   Initializes the value.
         /// </summary>
@@ -459,20 +562,16 @@ namespace TetraPak.XP
         ///   The <paramref name="stringValue"/> string representation was incorrectly formed.
         /// </exception>
         /// <seealso cref="DefaultSeparator"/>
+        /// <param name="comparison">
+        ///   Specifies how to perform comparison for <see cref="MultiStringValue"/>s.
+        /// </param>
         //[DebuggerStepThrough] 
-        public MultiStringValue(string? stringValue, string? separator = null) 
-        : base(stringValue)
+        public MultiStringValue(
+            string? stringValue, 
+            string? separator = null, 
+            StringComparison comparison = StringComparison.Ordinal) 
+        : base(WithArgs(stringValue, separator ?? s_separator ?? DefaultSeparator, comparison))
         {
-            Separator = separator.IsAssigned(true) ? separator! : DefaultSeparator;
-            if (IsError || !stringValue.IsAssigned())
-                return;
-            
-            var parseOutcome = tryParse(stringValue);
-            if (!parseOutcome)
-                throw parseOutcome.Exception!;
-
-            Items = parseOutcome.Value;
-            SetStringValue(stringValue!);
         }
 
         /// <summary>
@@ -485,16 +584,16 @@ namespace TetraPak.XP
         ///   (optional; default=<see cref="DefaultSeparator"/>)<br/>
         ///   Initializes <see cref="Separator"/>.
         /// </param>
-        public MultiStringValue(string[] items, string? separator = null) 
-        : base("")
+        /// <param name="comparison">
+        ///   Specifies how to perform comparison for <see cref="MultiStringValue"/>s.
+        /// </param>
+        public MultiStringValue(
+            string[] items, 
+            string? separator = null, 
+            StringComparison comparison = StringComparison.Ordinal) 
+        : base(WithArgs(items.ConcatCollection(), separator, comparison))
         {
-            Separator = separator.IsAssigned(true) ? separator! : DefaultSeparator;
-            if (items.Length == 0)
-                return;
-
-            validateSupported(items);
-            Items = items;
-            setStringValue();
         }
+#pragma warning restore CS8618
     }
 }

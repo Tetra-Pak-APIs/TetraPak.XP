@@ -17,8 +17,8 @@ namespace TetraPak.XP.Caching
             DateTime? spawnTimeUtc = null)
             => Implementation.CreateAsync(value, key, repository, customLifeSpan, spawnTimeUtc);
 
-        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repository)
-            => Implementation.ReadAsync<T>(key, repository);
+        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repositoryName)
+            => Implementation.ReadAsync<T>(key, repositoryName);
 
         public override Task UpdateAsync(object value,
             string key,

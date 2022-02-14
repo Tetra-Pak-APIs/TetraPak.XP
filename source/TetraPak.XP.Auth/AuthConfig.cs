@@ -225,7 +225,7 @@ namespace TetraPak.XP.Auth
             return environment switch
             {
                 RuntimeEnvironment.Development => new Uri(DevelopmentAuthorityUrl),
-                RuntimeEnvironment.Test => throw new NotSupportedException($"Unsupported environment: {environment}"),
+                //RuntimeEnvironment.Test => throw new NotSupportedException($"Unsupported environment: {environment}"), obsolete
                 RuntimeEnvironment.Migration => new Uri(MigrationAuthorityUrl),
                 RuntimeEnvironment.Production => new Uri(ProductionAuthorityUrl),
                 _ => throw new ArgumentOutOfRangeException()
@@ -237,7 +237,7 @@ namespace TetraPak.XP.Auth
             return environment switch
             {
                 RuntimeEnvironment.Development => new Uri(DevelopmentTokenIssuerUrl),
-                RuntimeEnvironment.Test => throw new NotSupportedException($"Unsupported environment: {environment}"),
+                //RuntimeEnvironment.Test => throw new NotSupportedException($"Unsupported environment: {environment}"), obsolete
                 RuntimeEnvironment.Migration => new Uri(MigrationTokenIssuerUrl),
                 RuntimeEnvironment.Production => new Uri(ProductionTokenIssuerUrl),
                 _ => throw new ArgumentOutOfRangeException()

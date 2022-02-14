@@ -64,44 +64,41 @@ namespace prepNuget
             return -1;
         }
 
-        protected override string[] OnSetItems(string[]? value)
+        protected override Outcome<string[]> OnValidate(string[] items)
         {
-            if (value is null)
-                throw new FormatException("Nuget version cannot be unassigned");
-
-            return value.Length switch
+            return items.Length switch
             {
-                3 => compile(value),
-                4 => compileWithPrerelease(value),
-                _ => throw new FormatException("Nuget version must be 3 or four elements")
+                3 => compile(items),
+                4 => compileWithPrerelease(items),
+                _ => Outcome<string[]>.Fail(new FormatException("Nuget version must be 3 or four elements"))
             };
         }
 
-        string[] compile(string[] value)
+        Outcome<string[]> compile(string[] items)
         {
-            if (!int.TryParse(value[0], out var major))
+            if (!int.TryParse(items[0], out var major))
                 throw formatError();
 
-            if (!int.TryParse(value[0], out var minor))
+            if (!int.TryParse(items[0], out var minor))
                 throw formatError();
 
-            if (!int.TryParse(value[0], out var revision))
+            if (!int.TryParse(items[0], out var revision))
                 throw formatError();
 
             Major = major;
             Minor = minor;
             Revision = revision;
 
-            return value;
+            return Outcome<string[]>.Success(items);
 
             Exception formatError() => new FormatException("Nuget version must be 3 or four elements");
         }
 
-        string[] compileWithPrerelease(string[] value)
+        Outcome<string[]> compileWithPrerelease(string[] items)
         {
-            compile(value);
-            Prerelease = new NugetPrerelease(value[4]);
-            return value;
+            compile(items);
+            Prerelease = new NugetPrerelease(items[4]);
+            return Outcome<string[]>.Success(items);
         }
 
         public NugetVersion(string stringValue) 
@@ -116,20 +113,19 @@ namespace prepNuget
 
         public int Version { get; set; }
 
-        protected override string[] OnSetItems(string[]? value)
+
+        protected override Outcome<string[]> OnValidate(string[] items)
         {
-            if (value is null)
-                throw new FormatException("Prerelease must be assigned");
-            
-            if (value.Length != 2)
+            if (items.Length != 2)
                 throw new FormatException("Invalid prerelease format");
 
-            if (!int.TryParse(value[2], out var version))
+            if (!int.TryParse(items[2], out var version))
                 throw new FormatException("Invalid prerelease format");
             
-            Phase = value[0];
+            Phase = items[0];
             Version = version;
-            return value;
+            
+            return Outcome<string[]>.Success(items);
         }
 
         public int Compare(NugetPrerelease other)

@@ -8,8 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="TetraPak.XP.Auth" Version="1.0.0-alpha.2" />
-      <PackageReference Include="TetraPak.XP.Desktop" Version="1.0.0-alpha.2" />
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="TetraPak.XP.Auth" Version="1.0.0-alpha.5" />
+      <PackageReference Include="TetraPak.XP.Desktop" Version="1.0.0-alpha.5" />
     </ItemGroup>
 
 </Project>

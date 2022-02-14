@@ -29,10 +29,10 @@ namespace TetraPak.XP.Auth
             return _secureCache.CreateAsync(value, key, repository, customLifeSpan, spawnTimeUtc);
         }
 
-        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repository)
+        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repositoryName)
         {
             key = ensureTokensSubRepository(key);
-            return _secureCache.ReadAsync<T>(key, repository);
+            return _secureCache.ReadAsync<T>(key, repositoryName);
         }
 
         public override Task UpdateAsync(

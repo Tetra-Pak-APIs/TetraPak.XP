@@ -3,50 +3,217 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
-#nullable enable
+#if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace TetraPak.XP
 {
     public static class TypeHelper
     {
-
+        /// <summary>
+        ///   Examines a type and returns a value to indicate whether it is type compatible with another type
+        ///   or implements a contract. By default this is a pretty "relaxed" way of comparing two types.
+        /// </summary>
+        /// <param name="type">
+        ///   The type to be examined.
+        /// </param>
+        /// <param name="otherType">
+        ///   A class, struct or interface to be tested as a base type or contract.
+        /// </param>
+        /// <param name="laxEnumerationComparison">
+        ///   (optional; default=<c>true</c>)<br/>
+        ///   When the type and the <paramref name="otherType"/> are both collections this parameter specifies
+        ///   whether to only consider the collection item types. This means that the two collection types
+        ///   are considered compatible if their respective item types are type compatible and disregards
+        ///   the collection type (<see cref="Array"/>, <see cref="List{T}"/>, <see cref="HashSet{T}"/> etc.)    
+        /// </param>
+        /// <param name="conversionOverloads">
+        ///   (optional; default=<see cref="ConversionOverload.Any"/>)<br/>
+        ///   Specifies whether to consider implicit operator overloads.
+        ///   When set the type is considered to be type compatible with the <paramref name="otherType"/>
+        ///   if it implements an overloaded implicit type cast for <see cref="otherType"/>.
+        /// </param>
+        /// <param name="excludeGenericArguments">
+        ///   Specifies whether to only consider the base type when the <paramref name="otherType"/> is generic.
+        ///   When set a type such as <c>class MyType : OtherType&lt;T&gt;</c> is considered to derived from
+        ///   <c>OtherType&lt;T&gt;</c> regardless of the latter's generic argument (<c>T</c>).
+        ///   This can be useful to check whether a "is" a collection (which is usually generic) for example.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if the examined type is considered to be type compatible with the <paramref name="otherType"/>;
+        ///   otherwise <c>false</c>.
+        /// </returns>
+        /// <seealso cref="Is{T}"/>
+        /// <seealso cref="IsDerivedFrom{T}"/>
+        /// <seealso cref="IsDerivedFrom"/>
         public static bool Is(
-            this Type? self, 
-            Type? type, 
+            this Type? type, 
+            Type? otherType, 
             bool laxEnumerationComparison = true, 
-            bool includeImplicitOperatorOverloads = false)
+            ConversionOverload conversionOverloads = ConversionOverload.Any,
+            bool excludeGenericArguments = false)
         {
-            if (self is null || type is null)
+            if (type is null || otherType is null)
                 return false;
 
-            if (type == self)
+            if (otherType == type)
                 return true;
 
-            if (type.IsInterface)
-                return self.ImplementsInterface(type);
-            
-            if (type.IsAssignableFrom(self) || self.IsAssignableFrom(type))
+            if (otherType.IsInterface)
+                return type.IsImplementingInterface(otherType);
+
+            // ReSharper disable once InlineTemporaryVariable note added for clarity
+            var baseClass = otherType;
+            if (type.IsDerivedFrom(baseClass, excludeGenericArguments))
                 return true;
 
-            if (includeImplicitOperatorOverloads && type == typeof(string) && self.IsOverloadingImplicitOperator<string>())
+            if (conversionOverloads != ConversionOverload.None && baseClass == typeof(string) 
+                                                                 && type.IsConvertingTo<string>(conversionOverloads))
                 return true;
 
-            if (!self.IsCollection())
+            if (!type.IsCollection())
                 return false;
 
-            if (!type.IsCollection() || !laxEnumerationComparison) 
+            if (!baseClass.IsCollection() || !laxEnumerationComparison) 
                 return false;
 
-            var type1 = self.GetCollectionElementType();
-            var type2 = type.GetCollectionElementType();
+            var type1 = type.GetCollectionElementType();
+            var type2 = baseClass.GetCollectionElementType();
             return type1?.Is(type2) ?? false;
         }
-        
-        public static bool ImplementsInterface<T>(this Type? self) 
-            => self.ImplementsInterface(typeof(T));
 
-        public static bool ImplementsInterface(this Type? self, Type @interface) 
+        /// <summary>
+        ///   Examines a type and returns a value to indicate whether it is type compatible with another type
+        ///   or implements a contract. By default this is a pretty "relaxed" way of comparing two types.
+        /// </summary>
+        /// <param name="type">
+        ///   The type to be examined.
+        /// </param>
+        /// <param name="otherType">
+        ///   A class, struct or interface to be tested as a base type or contract.
+        /// </param>
+        /// <param name="laxEnumerationComparison">
+        ///   (optional; default=<c>true</c>)<br/>
+        ///   When the type and the <paramref name="otherType"/> are both collections this parameter specifies
+        ///   whether to only consider the collection item types. This means that the two collection types
+        ///   are considered compatible if their respective item types are type compatible and disregards
+        ///   the collection type (<see cref="Array"/>, <see cref="List{T}"/>, <see cref="HashSet{T}"/> etc.)    
+        /// </param>
+        /// <param name="conversionOverloads">
+        ///   (optional; default=<see cref="ConversionOverload.Any"/>)<br/>
+        ///   Specifies whether to consider implicit operator overloads.
+        ///   When set the type is considered to be type compatible with the <paramref name="otherType"/>
+        ///   if it implements an overloaded implicit type cast for <see cref="otherType"/>.
+        /// </param>
+        /// <param name="excludeGenericArguments">
+        ///   Specifies whether to only consider the base type when the <paramref name="otherType"/> is generic.
+        ///   When set a type such as <c>class MyType : OtherType&lt;T&gt;</c> is considered to derived from
+        ///   <c>OtherType&lt;T&gt;</c> regardless of the latter's generic argument (<c>T</c>).
+        ///   This can be useful to check whether a "is" a collection (which is usually generic) for example.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if the examined type is considered to be type compatible with the <paramref name="otherType"/>;
+        ///   otherwise <c>false</c>.
+        /// </returns>
+        /// <seealso cref="Is{T}"/>
+        /// <seealso cref="IsDerivedFrom{T}"/>
+        /// <seealso cref="IsDerivedFrom"/>
+        public static bool Is<T>(
+            this Type? type,
+            Type? otherType,
+            bool laxEnumerationComparison = true,
+            ConversionOverload conversionOverloads = ConversionOverload.Any,
+            bool excludeGenericArguments = false)
+            => type.Is(typeof(T), laxEnumerationComparison, conversionOverloads, excludeGenericArguments); 
+
+        /// <summary>
+        ///   Analyzes a reference <seealso cref="Type"/> and returns a value indicating whether
+        ///   it is derived from another reference <seealso cref="Type"/>.
+        /// </summary>
+        /// <param name="type">
+        ///   The (potentially derived) type to be examined.
+        /// </param>
+        /// <param name="baseType">
+        ///   A type to be tested as a base type.
+        /// </param>
+        /// <param name="excludeGenericArguments">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Specifies whether to exclude generic arguments when assessing the relationship.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if <paramref name="type"/> derives from <paramref name="baseType"/>;
+        ///   otherwise <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        ///   Please note that <paramref name="type"/> and <paramref name="baseType"/> needs to be
+        ///   reference types, as this method only validated inheritance (not contract implementation).
+        ///   To check for both inheritance and contract implementation
+        ///   use <see cref="Is{T}"/> (or <see cref="Is"/>) instead. 
+        /// </remarks>
+        /// <seealso cref="Is{T}"/>
+        /// <seealso cref="Is"/>
+        /// <seealso cref="IsDerivedFrom{T}"/>
+        public static bool IsDerivedFrom(this Type? type, Type baseType, bool excludeGenericArguments = false)
+        {
+            if (type is null)
+                throw new ArgumentNullException(nameof(type));
+            
+            if (type.IsValueType || type.IsInterface || baseType.IsValueType || baseType.IsInterface)
+                return false;
+                
+            while (type is {} && type != typeof(object))
+            {
+                var cur = type.IsGenericType && excludeGenericArguments 
+                    ? type.GetGenericTypeDefinition() 
+                    : type;
+                if (baseType == cur)
+                    return true;
+
+                type = type.BaseType;
+            }
+            return false;
+        }
+        
+        /// <summary>
+        ///   Analyzes a <seealso cref="Type"/> and returns a value indicating whether
+        ///   it is derived from another <seealso cref="Type"/>.
+        /// </summary>
+        /// <param name="type">
+        ///   The (potentially derived) type to be examined.
+        /// </param>
+        /// <param name="excludeGenericArguments">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Specifies whether to exclude generic arguments when assessing the relationship.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if <paramref name="type"/> derives from <typeparamref name="T"/>;
+        ///   otherwise <c>false</c>.
+        /// </returns>
+        /// <typeparam name="T">
+        ///   A type to be tested as a base type.
+        /// </typeparam>
+        /// <returns>
+        ///   <c>true</c> if <paramref name="type"/> derives from <typeparamref name="T"/>;
+        ///   otherwise <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        ///   Please note that <paramref name="type"/> and <typeparamref name="T"/> needs to be
+        ///   reference types, as this method only validated inheritance (not contract implementation).
+        ///   To check for both inheritance and contract implementation
+        ///   use <see cref="Is{T}"/> (or <see cref="Is"/>) instead. 
+        /// </remarks>
+        /// <seealso cref="Is{T}"/>
+        /// <seealso cref="Is"/>
+        /// <seealso cref="IsDerivedFrom"/>
+        public static bool IsDerivedFrom<T>(this Type? type, bool excludeGenericArguments = false) 
+            where T : class
+            => type.IsDerivedFrom(typeof(T), excludeGenericArguments);
+
+        public static bool IsImplementingInterface<T>(this Type? self) 
+            => self.IsImplementingInterface(typeof(T));
+
+        public static bool IsImplementingInterface(this Type? self, Type @interface) 
             => self?.GetInterface(@interface.FullName ?? string.Empty) != null;
 
         public static bool IsNullable(this Type self)
@@ -186,7 +353,7 @@ namespace TetraPak.XP
             if (treatStringAsUnary && type == typeof(string))
                 return false;
                 
-            if (!type.ImplementsInterface<IEnumerable>())
+            if (!type.IsImplementingInterface<IEnumerable>())
             {
                 collectionType = null;
                 return false;
@@ -310,7 +477,7 @@ namespace TetraPak.XP
 
         public static bool IsCollection(this Type type)
         {
-            return type.ImplementsInterface<IEnumerable>();
+            return type.IsImplementingInterface<IEnumerable>();
         }
         
         public static bool IsCollectionOf(
@@ -376,7 +543,11 @@ namespace TetraPak.XP
         /// </returns>
         public static bool IsCollectionOf<T>(
             this object? obj,
-            /*[NotNullWhen(true)]*/ out IEnumerable<T?>? items, 
+#if NET5_0_OR_GREATER            
+            [NotNullWhen(true)] out IEnumerable<T?>? items,
+ #else
+            out IEnumerable<T?>? items,
+#endif
             bool treatStringAsUnary = true)
         {
             if (!obj.IsCollectionOf(typeof(T), out var enumerable, treatStringAsUnary))
@@ -441,21 +612,50 @@ namespace TetraPak.XP
             return list;
         }
 
+        /// <summary>
+        ///   Gets a value specifying whether the <seealso cref="Type"/> declares an
+        ///   overloaded implicit type method.
+        /// </summary>
+        /// <typeparam name="T">
+        ///   The overloaded <seealso cref="Type"/>.
+        /// </typeparam>
+        /// <param name="type">
+        ///   The <see cref="Type"/> declaring the requested implicit overloaded type method.
+        /// </param>
+        /// <param name="overload">
+        ///   (optional; default=<see cref="ConversionOverload.Any"/>)<br/>
+        ///   Specifies the type of conversion overload to look for. 
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if the type declares an implicit overloaded type method; otherwise <c>false</c>.
+        /// </returns>
+        /// <seealso cref="getOverloadingOperator"/>
+        public static bool IsConvertingTo<T>(this Type type, ConversionOverload overload = ConversionOverload.Any) 
+             => type.getOverloadingOperator(typeof(T), overload) != null;
+
          /// <summary>
          ///   Gets a value specifying whether the <seealso cref="Type"/> declares an
-         ///   overloaded implicit type method.
+         ///   overloaded type conversion method.
          /// </summary>
-         /// <typeparam name="T">
-         ///   The overloaded <seealso cref="Type"/>.
-         /// </typeparam>
-         /// <param name="self">
+         /// <param name="type">
          ///   The <see cref="Type"/> declaring the requested implicit overloaded type method.
+         /// </param>
+         /// <param name="convertedType">
+         ///   The overloaded <seealso cref="Type"/> conversion.
+         /// </param>
+         /// <param name="overload">
+         ///   (optional; default=<see cref="ConversionOverload.Any"/><br/>
+         ///   The type of conversion to be examined (implicit, explicit or both)
          /// </param>
          /// <returns>
          ///   <c>true</c> if the type declares an implicit overloaded type method; otherwise <c>false</c>.
          /// </returns>
-         /// <seealso cref="GetOverloadingImplicitOperator"/>
-         public static bool IsOverloadingImplicitOperator<T>(this Type self) => self.GetOverloadingImplicitOperator(typeof(T)) != null;
+         /// <seealso cref="getOverloadingOperator"/>
+         public static bool IsConvertingTo(
+             this Type type, 
+             Type convertedType,
+             ConversionOverload overload = ConversionOverload.Any) 
+             => type.getOverloadingOperator(convertedType, ConversionOverload.Any) != null;
 
          /// <summary>
          ///   Attempts getting an implicit overload operator type method.
@@ -466,18 +666,35 @@ namespace TetraPak.XP
          /// <param name="type">
          ///   The overloaded <see cref="Type"/>.
          /// </param>
+         /// <param name="overload">
+         ///   Specifies the type of conversion (implicit / explicit).
+         /// </param>
          /// <returns>
          ///   The <see cref="MethodInfo"/> if the requested implicit overloaded type method exists; otherwise <c>null</c>.
          /// </returns>
-         /// <seealso cref="IsOverloadingImplicitOperator{T}"/>
-         /// <seealso cref="IsOverloadingImplicitOperator{T}"/>
-         public static MethodInfo? GetOverloadingImplicitOperator(this Type self, Type type)
+         /// <seealso cref="IsConvertingTo{T}"/>
+         /// <seealso cref="IsConvertingTo{T}"/>
+         /// <exception cref="ArgumentOutOfRangeException">
+         ///   <paramref name="overload"/> was not <see cref="ConversionOverload.Implicit"/>
+         ///   or <see cref="ConversionOverload.Explicit"/>
+         /// </exception>
+         static MethodInfo? getOverloadingOperator(this Type self, Type type, ConversionOverload overload)
          {
-             return self.GetMethods().FirstOrDefault(overloadedImplicitOperator);
-            
-             bool overloadedImplicitOperator(MethodInfo m)
+             var ident = overload switch
              {
-                 if (m.Name != "op_Implicit" || !m.IsStatic || m.ReturnType != self)
+                 ConversionOverload.Implicit => "op_Implicit",
+                 ConversionOverload.Explicit => "op_Explicit",
+                 ConversionOverload.None => null,
+                 ConversionOverload.Any => throw new ArgumentOutOfRangeException(nameof(overload)),
+                 _ => throw new ArgumentOutOfRangeException(nameof(overload))
+             };
+             return ident is null 
+                 ? null 
+                 : self.GetMethods().FirstOrDefault(overloadedOperator);
+
+             bool overloadedOperator(MethodInfo m)
+             {
+                 if (m.Name != ident || !m.IsStatic || m.ReturnType != self)
                      return false;
 
                  var parameters = m.GetParameters();
@@ -487,7 +704,7 @@ namespace TetraPak.XP
                  return parameters[0].ParameterType == type;
              }
          }
-         
+        
          public static TValue GetDefaultValue<TValue>() => (TValue) GetDefaultValue(typeof(TValue))!;
 
          public static object? GetDefaultValue(this Type type)
@@ -565,5 +782,42 @@ namespace TetraPak.XP
              return -1;
          }
 
+         public static bool TryParseEnum(this string self, Type enumType, out object? result, bool ignoreCare = false)
+         {
+             if (enumType.IsNullable())
+             {
+                 enumType = enumType.GetGenericArguments()[0];
+             }
+             
+             if (!enumType.IsEnum)
+                 throw new InvalidOperationException($"{enumType} is not an Enum type");
+             
+#if NET5_0_OR_GREATER
+            return Enum.TryParse(enumType, self, ignoreCare, out result);
+#else
+            try
+            {
+                result = Enum.Parse(enumType, self, ignoreCare);
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+#endif
+         }
+    }
+
+    [Flags]
+    public enum ConversionOverload
+    {
+        None = 0,
+        
+        Implicit = 1,
+        
+        Explicit = 2,
+        
+        Any = Implicit | Explicit
     }
 }

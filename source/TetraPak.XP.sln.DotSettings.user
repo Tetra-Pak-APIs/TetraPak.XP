@@ -1,4 +1,8 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=2E36708F_002DFCE3_002D43E4_002D878D_002DFA54FB13240E_002Ff_003AConfigurationSection_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
+	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ACollectionExtensions_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003F_002E_002E_003FUsers_003Fserembrattj_003FAppData_003FRoaming_003FJetBrains_003FRider2021_002E3_003Fresharper_002Dhost_003FSourcesCache_003F2a252719c763dc4c8555d5be2ad283d8d5dd9bcf8617e6598028df7ceffe9b_003FCollectionExtensions_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
+	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=DA4BB014_002D0AD1_002D476A_002D87EC_002D5C1E765A385C_002Ff_003AXpServices_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
+	<s:String x:Key="/Default/CodeInspection/PencilsConfiguration/ActualSeverity/@EntryValue">INFO</s:String>
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\tetrapak.auth.xamarin\1.3.1\lib\netstandard20\TetraPak.Auth.Xamarin.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\microsoft.aspnetcore.http\2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll" /&gt;&#xD;
@@ -6,6 +10,19 @@
 &lt;/AssemblyExplorer&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1df9f9fe_002D345f_002D4132_002Daf97_002D5cd635d76646/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Ensure_can_only_register_concrete_types" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::4F1CBCE8-5CB7-4DAC-8AB2-2CECD15070FD::net5.0::TetraPak.XP.DependencyInjection.Tests.XpServicesTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.UnitTest1.Load_configuration_from_specified_file&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Nisse&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_append_insert_and_removeAt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_initialization&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::FC07AD85-EFA4-4A60-9836-1A3509768905::net5.0::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_append_insert_and_removeAt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::FC07AD85-EFA4-4A60-9836-1A3509768905::net5.0::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_initialization&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7d0a0724_002D101d_002D4d21_002D91b9_002D8699c58c5be8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Load_configuration_from_specified_file_and_assert_paths" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

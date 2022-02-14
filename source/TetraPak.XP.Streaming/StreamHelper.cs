@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 
-#nullable enable
-
 namespace TetraPak.XP.Streaming
 {
     public static class StreamHelper

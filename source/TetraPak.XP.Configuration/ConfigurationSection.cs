@@ -1,40 +1,87 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using TetraPak.XP.Configuration;
+using TetraPak.XP.DependencyInjection;
+using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Serialization;
 #if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-[assembly:InternalsVisibleTo("TetraPak.XP.Caching")]
+[assembly:XpService(typeof(IConfigurationSection), typeof(ConfigurationSection))]
 
 namespace TetraPak.XP.Configuration
 {
     /// <summary>
     ///   Provides access to the configuration framework through a POCO class. 
     /// </summary>
-    [DebuggerDisplay("{" + nameof(ConfigPath) + "}")]
-    public abstract class ConfigurationSection 
+    [Serializable]
+    [JsonConverter(typeof(DynamicEntityJsonConverter<ConfigurationSection>))]
+    [JsonConvertDynamicEntities(FactoryType = typeof(ConfigurationSectionFactory))]
+    [JsonKeyFormat(KeyTransformationFormat.None)]
+    [DebuggerDisplay("{ToString()}")] 
+    public class ConfigurationSection : DynamicEntity, IConfigurationSectionExtended
     {
-#if DEBUG
-        static int s_debugCount;
+        const string RootKey = ".";
+        static readonly List<ArbitraryValueParser> s_valueParsers = getDefaultValueParsers();
+        ConfigPath? _configPath;
+        ILog? _log;
+        string _key = RootKey;
 
-        public int DebugInstanceId { get; } = s_debugCount++;
-#endif
+        /// <summary>
+        /// Gets the key this section occupies in its parent.
+        /// </summary>
+        public string Key
+        {
+            get => _key;
+            internal set
+            {
+                _key = value;
+                invalidatePath();
+            }
+        }
 
-        static readonly List<ArbitraryValueParser> s_valueParsers = new();
+        /// <summary>
+        /// Gets the full path to this section within the <see cref="Configuration.IConfiguration"/>.
+        /// </summary>
+        public string Path
+        {
+            get => _configPath?.StringValue ?? string.Empty;
+            private set => _configPath = new ConfigPath(value);
+        }
+
+        public override string ToString() => _configPath is null ? "(root)" : _configPath.StringValue;
+
+        internal ConfigPath BuildPath()
+        {
+            if (ParentConfiguration is null)
+                return Key != RootKey ? new ConfigPath(Key) : ConfigPath.Empty;
+
+            _configPath = (ConfigPath)new ConfigPath(ParentConfiguration.Path).Push(Key);
+            return _configPath;
+        }
+
+        /// <summary>
+        /// Gets or sets the section value.
+        /// </summary>
+        public string? Value 
+        {
+            get => Get<string?>();
+            set => Set(value);
+        }
 
         /// <summary>
         ///   Gets a value that indicates whether the configuration section contains no information. 
         /// </summary>
-        [JsonIgnore] 
-        // ReSharper disable once MemberCanBePrivate.Global
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
-        public bool IsEmpty { get; }
+        [JsonIgnore]
+        public bool IsEmpty => Count == 0;
 
         /// <summary>
         ///   Can be overridden. Returns the expected configuration section identifier like in this example:<br/>
@@ -44,46 +91,23 @@ namespace TetraPak.XP.Configuration
         ///   }
         ///   </code>
         /// </summary>
-        public string SectionIdentifier { get; protected set; }
-        
-        /// <summary>
-        ///   Gets the encapsulated <see cref="IConfigurationSection"/>.  
-        /// </summary>
-        public IConfigurationSection? Section { get; protected set; }
+        public string? SectionIdentifier { get; protected set; }
 
         /// <summary>
-        ///   Gets the parent <see cref="IConfiguration"/> section
+        ///   Gets the parent <see cref="Configuration.IConfiguration"/> section
         ///   (or <c>null</c> if this section is also the configuration root).
         /// </summary>
-        public IConfiguration? ParentConfiguration { get; }
-        
+        internal IConfigurationSection? ParentConfiguration { get; set; }
+
         /// <summary>
         ///   Gets a logger.
         /// </summary>
-        public ILog? Log { get; protected set; }
+        public ILog? Log => _log ?? getParentLog();
 
-        /// <summary>
-        ///   Gets the section's configuration path.
-        /// </summary>
-        public ConfigPath? ConfigPath { get; protected set; }
-        
-        string? getSectionKey(ConfigPath? sectionIdentifier, IConfiguration? configuration)
-        {
-            if (sectionIdentifier?.IsEmpty() ?? true)
-            {
-                sectionIdentifier = SectionIdentifier;
-            }
-            if (sectionIdentifier.Count == 1)
-                return sectionIdentifier;
-
-            if (configuration is not IConfigurationSection section) 
-                return sectionIdentifier;
-            
-            var sectionPath = (ConfigPath) section.Path;
-            return sectionIdentifier.StringValue!.StartsWith(sectionPath!) 
-                ? sectionIdentifier.Pop(sectionPath.Count, SequentialPosition.Start) 
-                : sectionIdentifier;
-        }
+        ILog? getParentLog() =>
+            ParentConfiguration is ConfigurationSection parentSection
+                ? parentSection.Log
+                : null;
 
         /// <summary>
         ///   Obtains a <see cref="FieldInfo"/> object for a specified field.
@@ -114,6 +138,8 @@ namespace TetraPak.XP.Configuration
 
             return fieldInfo;
         }
+
+        internal FieldInfo? GetField(string fieldName, bool inherited = false) => OnGetField(fieldName, inherited);
         
 #if NET5_0_OR_GREATER
         internal bool TryGetFieldValue<T>(string propertyName, [NotNullWhen(true)] out T value, bool inherited = false)
@@ -172,19 +198,15 @@ namespace TetraPak.XP.Configuration
         ///   found in the configuration section. 
         ///   </para> 
         /// </remarks>
-        protected async Task<T?> GetFromFieldThenSectionAsync<T>(
+        internal Task<T?> GetFromFieldThenSectionAsync<T>(
             T useDefault = default!, 
             TypedValueParser<T>? parser = null, 
             bool inherited = true,
             [CallerMemberName] string propertyName = null!)
         {
-            if (TryGetFieldValue<T>(propertyName, out var fieldValue, inherited))
-                return fieldValue;
-
-            var s = Section is {} ? await Section.GetAsync(propertyName) : null;
-            return parser is {}
-                ? parser(s, out var sectionValue) ? sectionValue : useDefault! 
-                : await parseSectionValueAsync<T>(s, useDefault!, propertyName);
+            return Task.FromResult(TryGetFieldValue<T>(propertyName, out var fieldValue, inherited) 
+                ? fieldValue 
+                : GetValue<T>(propertyName));
         }
         
         /// <summary>
@@ -220,122 +242,176 @@ namespace TetraPak.XP.Configuration
         ///   found in the configuration section. 
         ///   </para> 
         /// </remarks>
-        protected async Task<T?> GetFromSectionThenField<T>(
+        protected Task<T?> GetFromSectionThenField<T>(
             T? useDefault = default, 
             TypedValueParser<T>? parser = null, 
             bool inherited = true,
             [CallerMemberName] string propertyName = null!)
         {
-            var s = Section is {} ? await Section.GetAsync(propertyName) : null;
-            if (!string.IsNullOrEmpty(s))
-                return parser is {}
-                    ? parser(s, out var sectionValue) ? sectionValue : useDefault! 
-                    : await parseSectionValueAsync<T>(s, useDefault!, propertyName);
-
-            return TryGetFieldValue<T>(propertyName, out var fieldValue, inherited) 
+            var value = GetValue(propertyName, useDefault);
+            if (value is { })
+                return Task.FromResult(value)!;
+            
+            return Task.FromResult(TryGetFieldValue<T>(propertyName, out var fieldValue, inherited) 
                 ? fieldValue 
-                : useDefault;
+                : useDefault);
         }
 
-        async Task<T?> parseSectionValueAsync<T>(string? stringValue, T useDefault, string propertyName)
+        /// <summary>
+        ///   Attempts reading a value, first from a backing field and then from the configuration section.
+        /// </summary>
+        /// <param name="useDefault">
+        ///   A default value to be returned if no value could be obtained,
+        ///   from a backing field or the configuration section. 
+        /// </param>
+        /// <param name="parser">
+        ///   (optional)<br/>
+        ///   A parser handler, allowing custom parsing of non-standard value types.
+        /// </param>
+        /// <param name="inherited">
+        ///   (optional; default=<c>true</c>)<br/>
+        ///   Specifies whether to include backing fields from super classes.
+        /// </param>
+        /// <param name="propertyName">
+        ///   The name of the requested value (presumably a property name).
+        /// </param>
+        /// <remarks>
+        ///   <para>
+        ///   The method first reads a value from a backing field (name convention based on property).
+        ///   If the field is <c>null</c> (or does not exist) the method instead attempts reading the value
+        ///   from the configuration section. If the configuration section also doesn't supported the value
+        ///   the method returns the <paramref name="useDefault"/> value.
+        ///   </para>
+        ///   <para>
+        ///   For values that must be fetched from the configuration section the method automatically supports
+        ///   parsing standard value types, such as <see cref="DateTime"/>, <see cref="TimeSpan"/>
+        ///   and all the numeric value types. For other types you need to pass
+        ///   a <paramref name="parser"/> delegate or the method will not be able to convert the textual value
+        ///   found in the configuration section. 
+        ///   </para> 
+        /// </remarks>
+        protected T? GetFromFieldThenSection<T>(
+            T useDefault = default!, 
+            ValueParser<T>? parser = null, 
+            bool inherited = true,
+            [CallerMemberName] string propertyName = null!)
         {
+            if (TryGetFieldValue<T>(propertyName, out var fieldValue, inherited))
+                return fieldValue;
+
+            return GetValue<T?>(propertyName);
+        }
+
+        public virtual Task<T?> GetAsync<T>(string key, T? useDefault = default) => Task.FromResult(GetValue(key, useDefault));
+
+        public override T? GetValue<T>(string key, T? useDefault = default) where T : default
+        {
+            var path = new ConfigPath(key);
+            object? obj;
+            if (path.Count != 1)
+            {
+                // obtain from child entity ...
+                key = path.Root;
+                obj = base.GetValue<object>(key);
+                switch (obj)
+                {
+                    case null:
+                        return useDefault;
+                    
+                    case ConfigurationSection section:
+                        return section.GetValue(path.Pop(1, SequentialPosition.Start), useDefault);
+                    
+                    case DynamicEntity entity:
+                        return getEntityValue(entity, path.Pop(1, SequentialPosition.Start), useDefault);
+                }
+            }
+            
+            if (typeof(T) == typeof(string))
+                return base.GetValue(key, useDefault);
+
+            obj = base.GetValue<object>(key);
+            switch (obj)
+            {
+                case T t:
+                    return t;
+                
+                case null:
+                    return useDefault;
+            }
+
+            if (obj is not string stringValue)
+                return useDefault;
+            
             foreach (var parser in s_valueParsers)
             {
-                if (!parser(stringValue, typeof(T), out var parsedValue, useDefault))
-                {
-                    return (T?)Convert.ChangeType(parsedValue, typeof(T));
-                }
+                if (parser(stringValue, typeof(T), out obj, null!) && obj is T tValue)
+                    return tValue;
             }
 
             return useDefault;
-            
-            // var s = stringValue?.Trim(); obsolete
-            // if (typeof(T) == typeof(string))
-            //     return string.IsNullOrEmpty(s)
-            //         ? useDefault!
-            //         : (T) Convert.ChangeType(s, typeof(T));
-            //     
-            // // automatically support IStringValue...
-            // if (typeof(IStringValue).IsAssignableFrom(typeof(T)))
-            //     return string.IsNullOrEmpty(s)
-            //         ? useDefault
-            //         : (T?) Convert.ChangeType(StringValueBase.MakeStringValue<T>(s), typeof(T))!; 
-            //     
-            // // automatically support boolean values 
-            // if (typeof(T) == typeof(bool) && Section is {})
-            //     return (await Section.GetAsync(propertyName)).TryParseConfiguredBool(out var boolValue)
-            //         ? (T) Convert.ChangeType(boolValue, typeof(T))
-            //         : useDefault!;
-            //
-            // // automatically support TimeSpan values 
-            // if (typeof(T) == typeof(TimeSpan) && Section is {})
-            //     return (await Section.GetAsync(propertyName)).TryParseConfiguredTimeSpan(out var timeSpanValue)
-            //         ? (T) Convert.ChangeType(timeSpanValue, typeof(T))
-            //         : useDefault!;
-            //
-            // var value = Section is {} ? await Section.GetAsync(propertyName) : null;
-            
-            
+        }
+
+        T? getEntityValue<T>(DynamicEntity entity, DynamicPath path, T? useDefault)
+        {
+            if (path.Count == 1)
+                return entity.GetValue(path.StringValue, useDefault);
+
+            var child = entity.GetValue<object>(path.Root);
+            if (child is DynamicEntity childEntity)
+                return childEntity.GetValue(path.Pop(1, SequentialPosition.Start), useDefault);
+
+            return useDefault;
+        }
+        
+        void detachFromParent()
+        {
+            ParentConfiguration = null;
+            _configPath = null;
+        }
+
+        void invalidatePath() => _configPath = null;
+        
+        public Task<string> GetAsync(string key, string? useDefault = null) => Task.FromResult(GetValue(key, useDefault)!);
+
+        public Task SetAsync(string key, string value)
+        {
+            SetValue(key, value);
+            return Task.CompletedTask;
+        }
+
+        public Task<IConfigurationSection?> GetSectionAsync(string key) => Task.FromResult(GetValue<IConfigurationSection>(key));
+
+        public Task<IEnumerable<IConfigurationSection>> GetChildrenAsync()
+        {
+            var children = new List<IConfigurationSection>();
+            foreach (var pair in this)
+            {
+                if (pair.Value is IConfigurationSection child)
+                {
+                    children.Add(child);
+                }
+            }
+
+            return Task.FromResult<IEnumerable<IConfigurationSection>>(children);
         }
         
         /// <summary>
-        ///   Instantiates a <see cref="ConfigurationSection"/>.
-        /// </summary>
-        /// <param name="configuration">
-        ///   The <see cref="IConfiguration"/> instance that contains the configuration section to be encapsulated.
-        /// </param>
-        /// <param name="log">
-        ///   Initializes the <see cref="Log"/> value.
-        /// </param>
-        /// <param name="configPath">
-        ///   (optional; default=value from <see cref="SectionIdentifier"/>)<br/>
-        ///   Specifies the configuration section to be encapsulated. 
-        /// </param>
-        protected ConfigurationSection(
-            IConfiguration? configuration, 
-            ILog? log,
-            ConfigPath? configPath = null)
-        {
-            ParentConfiguration = configuration;
-            if (configPath?.StringValue?.Contains(configPath.Separator) ?? false)
-            {
-                SectionIdentifier = configPath.CopyLast()!;
-                ConfigPath = configPath;
-            }
-            else
-            {
-                SectionIdentifier = configPath!;
-                ConfigPath = ParentConfiguration is IConfigurationSection section
-                    ? $"{section.Path}:{configPath}"
-                    : configPath; 
-                
-            }
-
-            var sectionKey = getSectionKey(configPath, configuration);
-            Section = configuration?.GetSectionAsync(sectionKey).Result;
-            IsEmpty = Section?.IsEmpty().Result ?? true; 
-            Log = log;
-            ConfigPath = configPath;
-        }
-
-        /// <summary>
         ///   Initializes the configuration section.
         /// </summary>
-#pragma warning disable 8618
-        protected ConfigurationSection()
+        public ConfigurationSection(ILog? log = null)
         {
-            addDefaultValueParsers();
+            _log = log;
         }
 
-        void addDefaultValueParsers()
+        static List<ArbitraryValueParser> getDefaultValueParsers()
         {
             // automatically support ...
-            s_valueParsers.AddRange(new ArbitraryValueParser[]
+            return new ArbitraryValueParser[]
             {
                 // string
-                (string? stringValue, Type tgtType, out object o, object useDefault) =>
+                (string? stringValue, Type tgtType, out object? o, object useDefault) =>
                 {
-                    if (Section is null || tgtType != typeof(string))
+                    if (tgtType != typeof(string))
                     {
                         o = null!;
                         return false;
@@ -347,9 +423,9 @@ namespace TetraPak.XP.Configuration
                 },
                 
                 // IStringValue
-                (string? stringValue, Type tgtType, out object o, object useDefault) =>
+                (string? stringValue, Type tgtType, out object? o, object useDefault) =>
                 {
-                    if (Section is null || !typeof(IStringValue).IsAssignableFrom(tgtType))
+                    if (!typeof(IStringValue).IsAssignableFrom(tgtType))
                     {
                         o = null!;
                         return false;
@@ -361,9 +437,9 @@ namespace TetraPak.XP.Configuration
                 },
 
                 // boolean
-                (string? stringValue, Type tgtType, out object o, object useDefault) =>
+                (string? stringValue, Type tgtType, out object? o, object useDefault) =>
                 {
-                    if (Section is null || tgtType != typeof(bool))
+                    if (tgtType != typeof(bool))
                     {
                         o = null!;
                         return false;
@@ -376,7 +452,7 @@ namespace TetraPak.XP.Configuration
                         return true;
                     }
 
-                    if (s!.TryParseConfiguredBool(out var boolValue))
+                    if (s.TryParseConfiguredBool(out var boolValue))
                     {
                         o = boolValue;
                         return true;
@@ -385,9 +461,33 @@ namespace TetraPak.XP.Configuration
                     o = null!;
                     return false;
                 },
-                (string? stringValue, Type tgtType, out object o, object useDefault) =>
+                
+                // enum
+                (string? stringValue, Type tgtType, out object? o, object useDefault) =>
                 {
-                    if (Section is null || tgtType != typeof(bool))
+                    if (tgtType.IsEnum)
+                    {
+                        o = null!;
+                        return false;
+                    }
+
+                    var s = stringValue?.Trim(); // todo Consider supporting names with whitespace (make identifier). Eg: "Client Credentials" => "ClientCredentials"
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        o = useDefault;
+                        return true;
+                    }
+
+                    if (s!.TryParseEnum(tgtType, out o)) 
+                        return true;
+                    
+                    o = null;
+                    return false;
+                },
+                
+                (string? stringValue, Type tgtType, out object? o, object useDefault) =>
+                {
+                    if (tgtType != typeof(TimeSpan))
                     {
                         o = null!;
                         return false;
@@ -400,7 +500,7 @@ namespace TetraPak.XP.Configuration
                         return true;
                     }
 
-                    if (s!.TryParseConfiguredTimeSpan(out var timeSpanValue))
+                    if (s.TryParseConfiguredTimeSpan(out var timeSpanValue))
                     {
                         o = timeSpanValue;
                         return true;
@@ -409,7 +509,7 @@ namespace TetraPak.XP.Configuration
                     o = null!;
                     return false;
                 }
-            });
+            }.ToList();
 
         }
 #pragma warning restore 8618

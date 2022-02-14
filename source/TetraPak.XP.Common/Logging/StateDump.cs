@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace TetraPak.XP.Logging
 {
     /// <summary>

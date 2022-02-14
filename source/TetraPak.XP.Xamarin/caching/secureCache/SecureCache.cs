@@ -21,8 +21,8 @@ namespace TetraPak.XP.Xamarin
             DateTime? spawnTimeUtc = null)
             => _implementation.CreateAsync(value, key, repository, customLifeSpan, spawnTimeUtc);
 
-        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repository)
-            => _implementation.ReadAsync<T>(key, repository);
+        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repositoryName)
+            => _implementation.ReadAsync<T>(key, repositoryName);
 
         public override Task UpdateAsync(object value,
             string key,

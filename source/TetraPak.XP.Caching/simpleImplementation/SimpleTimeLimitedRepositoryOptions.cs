@@ -2,9 +2,6 @@
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
-using ConfigurationSection=TetraPak.XP.Configuration.ConfigurationSection;
-
-#nullable enable
 
 namespace TetraPak.XP.Caching
 {
@@ -13,7 +10,7 @@ namespace TetraPak.XP.Caching
     /// </summary>
     /// <seealso cref="SimpleCache"/>
     /// <seealso cref="SimpleCacheConfig"/>
-    public class SimpleTimeLimitedRepositoryOptions : ConfigurationSection, ITimeLimitedRepositoryOptions
+    public class SimpleTimeLimitedRepositoryOptions : ConfigurationSectionWrapper, ITimeLimitedRepositoryOptions
     {
         SimpleCache? _cache;
         // ReSharper disable NotAccessedField.Local
@@ -22,7 +19,7 @@ namespace TetraPak.XP.Caching
         TimeSpan? _extendedLifeSpan;
         TimeSpan? _maxLifeSpan;
         TimeSpan? _adjustedLifeSpan;
-        // ReSharper restore NotAccessedField.Local
+       // ReSharper restore NotAccessedField.Local
         
         
         /// <summary>
@@ -209,7 +206,7 @@ namespace TetraPak.XP.Caching
         
         internal static SimpleTimeLimitedRepositoryOptions AsDefault(SimpleCache simpleCache) 
         {
-            return new SimpleTimeLimitedRepositoryOptions
+            return new SimpleTimeLimitedRepositoryOptions(simpleCache, null, null)
             {
                 _cache = simpleCache,
                 _lifeSpan = simpleCache.DefaultLifeSpan,
@@ -233,7 +230,7 @@ namespace TetraPak.XP.Caching
         /// <summary>
         ///   Returns a configuration with all values initialized to <see cref="TimeSpan.Zero"/>.
         /// </summary>
-        public static SimpleTimeLimitedRepositoryOptions Zero => new()
+        public static SimpleTimeLimitedRepositoryOptions Zero => new(null, null, null)
         {
             _lifeSpan = TimeSpan.Zero,
             _extendedLifeSpan = TimeSpan.Zero,
@@ -251,26 +248,27 @@ namespace TetraPak.XP.Caching
         /// </remarks>
         public void MergeFrom(ITimeLimitedRepositoryOptions options)
         {
-            var type = options.GetType();
-            var properties = type.GetProperties();
-            foreach (var property in properties)
-            {
-                if (property.IsIndexer() || !property.CanWrite)
-                    continue;
-
-                object? value;
-                if (options is ConfigurationSection section)
-                {
-                    if (!section.TryGetFieldValue(property.Name, out value))
-                        continue;
-
-                    SetFieldValue(property.Name, value!);
-                    continue;
-                }
-
-                value = property.GetValue(options);
-                SetFieldValue(property.Name, value!);
-            }
+            throw new NotImplementedException();
+            // var type = options.GetType(); // todo
+            // var properties = type.GetProperties();
+            // foreach (var property in properties)
+            // {
+            //     if (property.IsIndexer() || !property.CanWrite)
+            //         continue;
+            //
+            //     object? value;
+            //     if (options is ConfigurationSection section)
+            //     {
+            //         if (!section.TryGetFieldValue(property.Name, out value))
+            //             continue;
+            //
+            //         SetFieldValue(property.Name, value!);
+            //         continue;
+            //     }
+            //
+            //     value = property.GetValue(options);
+            //     SetFieldValue(property.Name, value!);
+            // }
         }
 
         /// <summary>
@@ -278,21 +276,21 @@ namespace TetraPak.XP.Caching
         /// </summary>
         public SimpleTimeLimitedRepositoryOptions(
             SimpleCache? cache,
-            IConfiguration configuration, 
-            ILog? log, 
-            string sectionIdentifier) 
-        : base(configuration, log, SimpleCacheConfig.ValidateIsAssigned(sectionIdentifier))
+            IConfiguration? configuration,
+            string? key,
+            ILog? log = null) 
+        : base(configuration, key, log)
         {
             _cache = cache;
         }
 
-        /// <summary>
-        ///   Initializes the <see cref="SimpleTimeLimitedRepositoryOptions"/>.
-        /// </summary>
-#pragma warning disable 8618
-        SimpleTimeLimitedRepositoryOptions()
-        {
-        }
-#pragma warning restore 8618
+//         /// <summary>
+//         ///   Initializes the <see cref="SimpleTimeLimitedRepositoryOptions"/>.
+//         /// </summary>
+// #pragma warning disable 8618
+//         SimpleTimeLimitedRepositoryOptions() : base()
+//         {
+//         }
+// #pragma warning restore 8618
     }
 }

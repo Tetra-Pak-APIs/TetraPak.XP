@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TetraPak.XP.Logging;
 
 [assembly:InternalsVisibleTo("TetraPak.XP.DependencyInjection.Tests")]
@@ -16,20 +17,28 @@ namespace TetraPak.XP.DependencyInjection
         static readonly Dictionary<Type, ResolutionInfo> s_registered = new();
         static IServiceCollection? s_serviceCollection;
         static IServiceProvider? s_provider;
+        static readonly HashSet<Assembly> s_registeredAssemblies = new();
 
-        public static bool IsDefaultSingleton { get; set; } = true;
+        public static bool DefaultIsSingleton { get; set; } = true;
+
+        // public static bool IsDefaultImplementingSingleInterface { get; set; } = true; // Experiment concept (leaving it out for now)
 
         class ResolutionInfo
         {
             /// <summary>
             ///   Specifies whether the service is a singleton.
             /// </summary>
-            public bool IsSingleton { get; set; }
+            public bool IsSingleton { get; }
 
             /// <summary>
             ///   The service type.
             /// </summary>
-            public Type Type { get; set; }
+            public Type Type { get; }
+            
+            /// <summary>
+            ///   The service type.
+            /// </summary>
+            public Type? ImplementingType { get; }
             
             /// <summary>
             ///   A resolved instance. 
@@ -42,53 +51,104 @@ namespace TetraPak.XP.DependencyInjection
             /// </summary>
             public bool IsTypeLiteral { get; }
 
-            public ResolutionInfo(Type type, bool isSingleton, bool isTypeLiteral)
+            internal ResolutionInfo(Type type, bool isSingleton, bool isTypeLiteral)
             {
                 Type = type;
                 IsSingleton = isSingleton;
                 Service = null!;
                 IsTypeLiteral = isTypeLiteral;
             }
-
+            
+            internal ResolutionInfo(Type type, Type implementingType, bool isSingleton)
+            {
+                Type = type;
+                ImplementingType = implementingType;
+                IsSingleton = isSingleton;
+                Service = null!;
+                IsTypeLiteral = false;
+            }
         }
 
         /// <summary>
         ///   Registers a service implementation for a specified type, explicitly or implicitly.
         /// </summary>
-        /// <param name="type">
+        /// <param name="implementingType">
         ///   The service type to be registered.  
         /// </param>
-        /// <param name="throwOnConflict">
+        /// <param name="skipOnConflict">
         ///   (optional; default=<c>true</c>)<br/>
-        ///   Specifies whether to throw an exception if the type was already registered;
-        ///   Otherwise the request is simply ignored.
+        ///   Specifies whether to ignore the request if the type was already registered;
+        ///   Otherwise an exception will be thrown.
         /// </param>
         /// <param name="isTypeLiteral">
         ///   (optional; default=<c>false</c>)<br/>
         ///   When set, this flag requires a client to ask for the registered type literally. Requesting a
         ///   base class or implemented interface should not resolve to this type.
         /// </param>
+        /// <param name="isSingleton">
+        ///   (optional; default=<see cref="DefaultIsSingleton"/>)<br/>
+        ///   Specifies whether the service is a singleton.
+        /// </param>
         /// <exception cref="ArgumentException">
         ///   The type was an interface or abstract class (must be a concrete class or value type).
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///   The <paramref name="type"/> was already registered -and- the <paramref name="throwOnConflict"/> was set. 
+        ///   The <paramref name="implementingType"/> was already registered -and- the <paramref name="skipOnConflict"/> was not set. 
         /// </exception>
-        public static void Register(Type type, bool throwOnConflict = true, bool isTypeLiteral = false)
+        public static void Register(
+            Type implementingType, 
+            bool skipOnConflict = true, 
+            bool isTypeLiteral = false,
+            bool? isSingleton = null) 
+            =>
+            Register(implementingType, null!, skipOnConflict, isTypeLiteral, isSingleton);
+
+        public static void Register(Type implementingType, Type? interfaceType, bool skipOnConflict = true, bool isTypeLiteral = false, bool? isSingleton = null)
         {
-            if (type.IsAbstract)
+            // if (IsDefaultImplementingSingleInterface && !isTypeLiteral && implementingType is null) Experimental concept (leaving it out for now)
+            // {
+            //     // check for single interface and assume this type is an implementation it ...
+            //     var interfaces = type.GetInterfaces();
+            //     if (interfaces.Length == 1)
+            //     {
+            //         implementingType = interfaces[0];
+            //     }
+            // }
+            
+            var isIndeedSingleton = isSingleton ?? DefaultIsSingleton; // :-)
+            if (implementingType.IsAbstract)
                 throw new ArgumentException(
                     $"Cannot register abstract types with {typeof(XpServices)}. Only concrete implementations are allowed");
-
-            if (s_registered.ContainsKey(type))
-            {
-                if (!throwOnConflict)
-                    return;
-                
-                throw new InvalidOperationException($"Type was already registered: {type}");
-            }
             
-            s_registered.Add(type, new ResolutionInfo(type, IsDefaultSingleton, isTypeLiteral));
+            if (interfaceType is {} && isTypeLiteral)
+                throw new InvalidOperationException(
+                    $"Cannot register {nameof(interfaceType)} and also set {nameof(isTypeLiteral)}");
+
+            if (s_registered.ContainsKey(implementingType))
+            {
+                if (skipOnConflict)
+                    return;
+
+                throw new InvalidOperationException($"Type was already registered: {implementingType}");
+            }
+
+            if (s_serviceCollection is { } && interfaceType is { })
+            {
+                if (isIndeedSingleton)
+                {
+                    s_serviceCollection.TryAddSingleton(interfaceType, implementingType);
+                }
+                else
+                {
+                    s_serviceCollection.TryAddTransient(interfaceType, implementingType);
+                }
+            }
+
+            s_registered.Add(implementingType,
+                interfaceType is { }
+                    ? new ResolutionInfo(implementingType, interfaceType, isTypeLiteral)
+                    : new ResolutionInfo(implementingType, isIndeedSingleton, isTypeLiteral));
+
         }
 
         /// <summary>
@@ -112,7 +172,7 @@ namespace TetraPak.XP.DependencyInjection
         ///   A literal service is only resolved when requested "literally". Requesting a base class
         ///   or an interface implemented by the service will return an unsuccessful outcome. 
         /// </remarks>
-        public static void RegisterLiteral<T>() => Register(typeof(T), isTypeLiteral:true);
+        public static void RegisterLiteral<T>(bool skipOnConflict = true) => Register(typeof(T), skipOnConflict, true);
         
         public static T? Get<T>()
         {
@@ -190,25 +250,13 @@ namespace TetraPak.XP.DependencyInjection
                 var registeredType = pair.Key;
                 var registrationInfo = pair.Value;
                 
-                if (!type.Is(registeredType))
+                if (!type.Is(registeredType, false))
                     continue;
 
                 if (registrationInfo.IsTypeLiteral && type != registeredType)
                     continue;
 
                 return activate(registeredType, registrationInfo);
-                // activateOutcome = tryActivate(registeredType, cannotResolve); obsolete
-                // if (!activateOutcome)
-                //     continue;
-                //
-                // var service = activateOutcome.Value!;
-                // var resolution = new ResolutionInfo(type, registrationInfo.IsSingleton, false);
-                // if (registrationInfo.IsSingleton)
-                // {
-                //     resolution.Service = service;
-                // }
-                // s_resolved.Add(type, resolution);
-                // return Outcome<object>.Success(service);
             }
             
             return activateOutcome ?? Outcome<object>.Fail(failCannotResolveServiceFor(type));
@@ -254,7 +302,7 @@ namespace TetraPak.XP.DependencyInjection
                 foreach (var parameter in parameterInfos)
                 {
                     var outcome = tryGet(parameter.ParameterType, false, cannotResolve);
-                    if (!outcome)
+                    if (!outcome && !parameter.IsOptional)
                     {
                         isMatchingArgs = false;
                         break;
@@ -281,24 +329,27 @@ namespace TetraPak.XP.DependencyInjection
             return Outcome<object>.Fail($"Failed when activating service {type}", new Exception("Could not resolve a suitable constructor"));
         }
 
-        // public static void Init(IServiceCollection serviceCollection)
-        // {
-        //     // todo if needed
-        // }
+        public static IServiceCollection RegisterXpServices(ILog? log = null)
+            => RegisterXpServices(null, log);
 
-        public static IServiceCollection RegisterXpServices(this IServiceCollection services, ILog? log = null)
+        public static IServiceCollection RegisterXpServices(this IServiceCollection? collection, ILog? log = null)
         {
             try
             {
+                collection ??= GetServiceCollection();
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 for (var i = 0; i < assemblies.Length; i++)
                 {
-                    // fetch all [XpDependency] attributes (invokes their ctor which registers their specified Type) ...
+                    // fetch all [assembly:XpService(...)] attributes (invokes their ctor which registers their specified Type) ...
                     var asm = assemblies[i];
+                    if (s_registeredAssemblies.Contains(asm))
+                        continue;
+                    
                     asm.GetCustomAttributes<XpServiceAttribute>();
+                    s_registeredAssemblies.Add(asm);
                 }
 
-                return services;
+                return collection;
             }
             catch (Exception ex)
             {
@@ -306,6 +357,35 @@ namespace TetraPak.XP.DependencyInjection
                 throw;
             }
         }
+
+        public static IServiceProvider BuildXpServices() => BuildXpServices(null!);
+
+        public static IServiceProvider BuildXpServices(this IServiceCollection? self)
+        {
+            var collection = RegisterXpServices(self);
+            return BuildXpServiceProvider(collection);
+        }
+
+        /// <summary>
+        ///   Forces loading assemblies for automatic service registration (see remarks).   
+        /// </summary>
+        /// <param name="types">
+        ///   One or more types from assemblies that needs to be loaded before declarative
+        ///   service registration (see remarks). 
+        /// </param>
+        /// <returns>
+        ///   A <see cref="XpServicesBuilder"/> object to support the fluent code api. 
+        /// </returns>
+        /// <remarks>
+        ///   As the <see cref="XpServices"/> api supports both "classic" procedure service
+        ///   configuration as well as the declarative approach (using assembly-level
+        ///   <see cref="XpServiceAttribute"/>s) you need a mechanism to ensure the required assemblies
+        ///   are loaded prior to calling any of the configuration methods
+        ///   (such as <see cref="BuildXpServices()"/> or (<see cref="RegisterXpServices(TetraPak.XP.Logging.ILog?)"/>
+        /// </remarks>
+        public static XpServicesBuilder Include(params Type[] types) =>new(types);
+
+        public static XpPlatformServicesBuilder BuildFor(params Type[] types) => new(types);
 
         public static IServiceProvider BuildXpServiceProvider(this IServiceCollection serviceCollection)
         {
@@ -344,28 +424,44 @@ namespace TetraPak.XP.DependencyInjection
             }
         }
 
-        public static IServiceCollection GetServiceCollection()
+        public static IServiceCollection GetServiceCollection(bool useExisting = true)
         {
             lock (s_syncRoot)
             {
-                if (s_serviceCollection is { })
+                if (s_serviceCollection is null)
+                {
+                    s_serviceCollection = new ServiceCollection();
+                    s_serviceCollection.RegisterXpServices();
                     return s_serviceCollection;
+                }
 
-                return s_serviceCollection = new ServiceCollection();
+                var collection = useExisting 
+                    ? s_serviceCollection 
+                    : new ServiceCollection();
+                collection.RegisterXpServices();
+                return collection;
+            }
+        }
+
+        public static IServiceCollection UseServiceCollection(IServiceCollection collection, bool replace = false)
+        {
+            lock (s_syncRoot)
+            {
+                if (s_serviceCollection is { } && !replace)
+                    throw new InvalidOperationException("A service collection is already in use");
+                
+                s_serviceCollection = collection;
+                s_serviceCollection.RegisterXpServices();
+                collection.RegisterXpServices();
+                return s_serviceCollection;
             }
         }
         
-        public static IServiceCollection NewServiceCollection(bool useExisting)
+        public static IServiceCollection NewServiceCollection()
         {
             lock (s_syncRoot)
             {
-                if (!useExisting)
-                    return new XpServiceCollection();
-                    
-                if (s_serviceCollection is { })
-                    return s_serviceCollection;
-
-                return s_serviceCollection = new XpServiceCollection();
+                return s_serviceCollection = new ServiceCollection();
             }
         }
 
@@ -379,5 +475,61 @@ namespace TetraPak.XP.DependencyInjection
                 s_resolved.Clear();
             }
         }
+    }
+    
+    /// <summary>
+    ///   This class is only used to provided a convenient fluid code api for supplying
+    ///   needed services by pre-loading the declaring assemblies before the declarative
+    ///   services declaration process is invoked.  
+    /// </summary>
+    public class XpServicesBuilder
+    {
+        // note This list is just to force the linker to load the required assemblies
+        // ReSharper disable once NotAccessedField.Local
+        Type[] _triggerAssemblyLoading;
+
+        /// <summary>
+        ///   Simply invokes the <see cref="XpServices.RegisterXpServices(TetraPak.XP.Logging.ILog?)"/> method.
+        /// </summary>
+        public IServiceCollection RegisterXpServices(IServiceCollection? collection) 
+            => collection.RegisterXpServices();
+                
+        /// <summary>
+        ///   Simply invokes the <see cref="XpServices.BuildXpServices()"/> method.
+        /// </summary>
+        public IServiceProvider BuildXpServices(IServiceCollection? collection = null) 
+            => collection.BuildXpServices();
+            
+        public IServiceCollection GetServiceCollection() => XpServices.GetServiceCollection();
+
+        public IServiceCollection UseServiceCollection(IServiceCollection collection) 
+            =>
+            XpServices.UseServiceCollection(collection);
+
+        public XpServicesBuilder Include(params Type[] types)
+        {
+            _triggerAssemblyLoading = types;
+            return this;
+        }
+
+        internal XpServicesBuilder(params Type[] types)
+        {
+            _triggerAssemblyLoading = types;
+        }
+
+    }
+
+    public class XpPlatformServicesBuilder // : XpServicesBuilder
+    {
+        readonly Type[] _types;
+
+        public XpServicesBuilder Build() => new(_types); 
+        
+        public XpPlatformServicesBuilder(Type[] types)
+        {
+            _types = types;
+        }
+
+
     }
 }

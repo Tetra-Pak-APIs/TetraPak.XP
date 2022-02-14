@@ -2,8 +2,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
-
-#nullable enable
+using TetraPak.XP.Serialization;
 
 namespace TetraPak.XP
 {
@@ -15,16 +14,18 @@ namespace TetraPak.XP
     /// </remarks>
     /// <seealso cref="IStringValue"/>
     /// <seealso cref="MultiStringValue"/>
-    // [Serializable, JsonConverter(typeof(JsonStringValueSerializer<StringValueBase>))]
-    [DebuggerDisplay("ToString()")]
+    [Serializable, JsonConverter(typeof(JsonStringValueSerializer<StringValueBase>))]
+    [DebuggerDisplay("{ToString()}")]
     public class StringValueBase : IStringValue // todo consider making StringValueBase immutable
     {
-        string? _stringValue;
-
         /// <summary>
         ///   A string identifier to qualify an erroneous string value. 
         /// </summary>
         public const string ErrorQualifier = "#ERROR:";
+
+        protected const string NoParse = "__(NOPARSE)__";
+
+        readonly int _hashCode;
         
         /// <summary>
         /// 
@@ -35,13 +36,9 @@ namespace TetraPak.XP
         /// <summary>
         ///   The textual representation of the <see cref="IStringValue"/>.
         /// </summary>
-        public virtual string StringValue 
-        {
-            get => _stringValue ?? string.Empty;
-            protected set => _stringValue = value;
-        } 
+        public string StringValue { get; }
 
-        string? parse(string? stringValue) => OnParse(stringValue);
+        protected string Parse(string? stringValue) => OnParse(stringValue);
 
         /// <summary>
         ///   Instantiates a <see cref="IStringValue"/> of the specified type.
@@ -70,10 +67,10 @@ namespace TetraPak.XP
         ///   The textual representation of the requested <see cref="IStringValue"/>.
         /// </param>
         /// <returns>
-        ///   A <see cref="IStringValue"/> object of type <typeparamref name="T"/>.
+        ///   A <see cref="IStringValue"/> object of type <paramref name="targetType"/>.
         /// </returns>
         /// <exception cref="TargetInvocationException">
-        ///   The <typeparamref name="T"/> type does not implement <see cref="IStringValue"/>.
+        ///   The <paramref name="targetType"/> type does not implement <see cref="IStringValue"/>.
         /// </exception>
         public static object MakeStringValue(Type targetType, string? s)
         {
@@ -108,14 +105,18 @@ namespace TetraPak.XP
         ///   Instead it will simply look for the <see cref="ErrorQualifier"/> to determine whether
         ///   it is already an erroneous <see cref="IStringValue"/>.  
         /// </remarks>
-        protected virtual string? OnParse(string? stringValue)
+        protected virtual string OnParse(string? stringValue)
         {
-            if (!stringValue.IsAssigned(true) || !stringValue!.StartsWith(ErrorQualifier))
-                return stringValue;
+            if (stringValue.IsUnassigned(true) || !stringValue!.StartsWith(ErrorQualifier))
+                return stringValue ?? string.Empty;
 
             IsError = true;
             return stringValue;
         }
+
+        protected bool IsAssignedAndNotError(string? stringValue)
+            => stringValue.IsAssigned(true) && !stringValue!.StartsWith(ErrorQualifier);
+        
 
         /// <inheritdoc />
         public override string ToString() => StringValue;
@@ -131,10 +132,7 @@ namespace TetraPak.XP
         /// <returns>
         ///   <c>true</c> if <paramref name="other"/> is equal to the current value; otherwise <c>false</c>.
         /// </returns>
-        public bool Equals(StringValueBase? other)
-        {
-            return other is not null && string.Equals(StringValue, other.StringValue);
-        }
+        public bool Equals(StringValueBase? other) => other is not null && _hashCode == other._hashCode;
 
         /// <summary>
         ///   Determines whether the specified object is equal to the current version.
@@ -145,10 +143,7 @@ namespace TetraPak.XP
         /// <returns>
         ///   <c>true</c> if the specified object is equal to the current version; otherwise <c>false</c>.
         /// </returns>
-        public override bool Equals(object? obj)
-        {
-            return obj is MultiStringValue other && Equals(other);
-        }
+        public override bool Equals(object? obj) => obj is MultiStringValue other && Equals(other);
 
         /// <summary>
         ///   Serves as the default hash function.
@@ -156,11 +151,8 @@ namespace TetraPak.XP
         /// <returns>
         ///   A hash code for the current value.
         /// </returns>
-        public override int GetHashCode()
-        {
-            return StringValue is {} ? StringValue.GetHashCode() : 0;
-        }
-        
+        public override int GetHashCode() => _hashCode;
+
         /// <summary>
         ///   Comparison operator overload.
         /// </summary>
@@ -179,10 +171,13 @@ namespace TetraPak.XP
 
         #endregion        
         
-        void setStringValue(string stringValue)
-        {
-            StringValue = stringValue;
-        }
+        protected string AsError(string? stringValue) => $"{ErrorQualifier}{stringValue ?? ""}";
+
+        protected string AsParsed(string value) => $"{NoParse}{value}";
+
+        static bool isParsed(string? stringValue) => stringValue.IsAssigned() && stringValue!.StartsWith(NoParse);
+
+        static string stripParsed(string stringValue) => stringValue.Substring(NoParse.Length);
 
         /// <summary>
         ///   Initializes the <see cref="IStringValue"/>.
@@ -190,11 +185,10 @@ namespace TetraPak.XP
         /// <param name="stringValue">
         ///   The textual representation of the <see cref="IStringValue"/>.
         /// </param>
-#pragma warning disable CS8618
         public StringValueBase(string? stringValue)
         {
-            setStringValue(parse(stringValue) ?? string.Empty);
+            StringValue = isParsed(stringValue) ? stripParsed(stringValue!) : Parse(stringValue);
+            _hashCode = StringValue.GetHashCode();
         }
-#pragma warning restore CS8618
     }
 }
