@@ -30,7 +30,7 @@ namespace authClient.console
                 
                 case GrantType.DC:
                     var dc = XpServices.GetRequired<IDeviceCodeGrantService>();
-                    writeToLog(await dc.AcquireTokenAsync());
+                    writeToLog(await dc.AcquireTokenAsync(askUserToVerifyCode));
                     break;
                 
                 case GrantType.OIDC:
@@ -41,6 +41,8 @@ namespace authClient.console
                     throw new ArgumentOutOfRangeException(nameof(grantType), grantType, null);
             }
         }
+
+        static void askUserToVerifyCode(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
 
         public async Task SilentTokenAsync()
         {

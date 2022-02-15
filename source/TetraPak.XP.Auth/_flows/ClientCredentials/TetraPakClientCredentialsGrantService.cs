@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
-using TetraPak.XP.Web.Debugging;
+using TetraPak.XP.Web.Http;
+using TetraPak.XP.Web.Http.Debugging;
 using TetraPk.XP.Web.Http;
-using TetraPk.XP.Web.Http.Debugging;
 
 namespace TetraPak.XP.Auth.ClientCredentials
 {

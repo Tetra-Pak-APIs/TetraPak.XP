@@ -4,9 +4,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-using TetraPak.XP.Web.Debugging;
 
-namespace TetraPk.XP.Web.Http.Debugging
+namespace TetraPak.XP.Web.Http.Debugging
 {
     /// <summary>
     ///   Convenient methods for working with <see cref="GenericHttpRequest"/>s.
@@ -24,19 +23,26 @@ namespace TetraPk.XP.Web.Http.Debugging
         ///   (optional)<br/>
         ///   A unique string value for tracking a request/response (mainly for diagnostics purposes).
         /// </param>
+        /// <param name="contentAsString">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Specifies that request content should be recorded as a string.
+        ///   This is only useful for tracing purposes.
+        /// </param>
         /// <returns>
         ///   A <see cref="GenericHttpRequest"/>
         /// </returns>
         public static async Task<GenericHttpRequest> ToGenericHttpRequestAsync(
             this HttpRequestMessage request, 
-            string? messageId = null)
+            string? messageId = null,
+            bool contentAsString = false)
             => new()
             {
                 MessageId = messageId,
                 Method = request.Method.Method,
                 Uri = request.RequestUri,
                 Headers = request.Headers,
-                Content = request.Content is {} ? await request.Content.ReadAsStreamAsync() : null 
+                Content = request.Content is {} ? await request.Content.ReadAsStreamAsync() : null,
+                ContentAsString = contentAsString && request.Content is {} ? await request.Content.ReadAsStringAsync() : null
             };
 
         /// <summary>

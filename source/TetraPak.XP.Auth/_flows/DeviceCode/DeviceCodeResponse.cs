@@ -5,7 +5,7 @@ namespace TetraPak.XP.Auth.DeviceCode
 {
     public class DeviceCodeResponse : GrantResponse
     {
-        internal static Outcome<DeviceCodeResponse> TryParse(DeviceCodeResponseBody body)
+        internal static Outcome<DeviceCodeResponse> TryParse(DeviceCodeAuthorizationResponseBody body)
         {
             var accessToken = string.IsNullOrWhiteSpace(body.TokenType)
                 ? body.AccessToken

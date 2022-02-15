@@ -15,9 +15,9 @@ namespace TetraPak.XP.Auth.DeviceCode
         /// <summary>
         ///   Requests a token using the OAuth Device Code grant.   
         /// </summary>
-        /// <param name="cancellationToken">
+        /// <param name="cancellationTokenSource">
         ///   (optional)<br/>
-        ///   A cancellation token.
+        ///   Allows cancelling the request.
         /// </param>
         /// <param name="clientCredentials">
         ///   (optional)<br/>
@@ -37,7 +37,8 @@ namespace TetraPak.XP.Auth.DeviceCode
         ///   when successful; otherwise an <see cref="Outcome"/>.
         /// </returns>
         Task<Outcome<DeviceCodeResponse>> AcquireTokenAsync(
-            CancellationToken? cancellationToken = null,
+            Action<VerificationArgs> verificationUriHandler,
+            CancellationTokenSource? cancellationTokenSource = null,
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 
             bool forceAuthorization = false);

@@ -23,9 +23,16 @@ namespace TetraPak.XP.Auth
         ///   The value is a <see cref="RuntimeEnvironment"/> enum value. 
         /// </summary>
         [StateDump]
-        public RuntimeEnvironment Environment 
-            =>
-            Get<RuntimeEnvironment?>() ?? _environmentResolver.ResolveRuntimeEnvironment();
+        public RuntimeEnvironment Environment
+        {
+            get
+            {
+                var resolved = _environmentResolver.ResolveRuntimeEnvironment();
+                return resolved == RuntimeEnvironment.Unknown
+                    ? Get<RuntimeEnvironment?>() ?? RuntimeEnvironment.Production
+                    : resolved;
+            }
+        } 
         
         /// <summary>
         ///   Gets the resource locator for the token issuer endpoint.  

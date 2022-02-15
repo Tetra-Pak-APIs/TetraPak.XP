@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TetraPak.XP.Logging;
 
-namespace TetraPak.XP.Web.Debugging
+namespace TetraPak.XP.Web.Http.Debugging
 {
     public abstract class AbstractTraceHttpMessageOptions
     {

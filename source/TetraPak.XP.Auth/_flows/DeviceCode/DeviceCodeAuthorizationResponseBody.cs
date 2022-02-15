@@ -7,7 +7,7 @@ namespace TetraPak.XP.Auth.DeviceCode
     ///   (see <see cref="IDeviceCodeGrantService.AcquireTokenAsync"/>).
     /// </summary>
     // ReSharper disable once ClassNeverInstantiated.Global
-    class DeviceCodeResponseBody
+    class DeviceCodeAuthorizationResponseBody
     {
         [JsonPropertyName("access_token")]
 #pragma warning disable CS8618

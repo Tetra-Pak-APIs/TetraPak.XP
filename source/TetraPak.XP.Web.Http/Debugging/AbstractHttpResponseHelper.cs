@@ -2,10 +2,10 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP.Web;
-using TetraPak.XP.Web.Debugging;
+using TetraPk.XP.Web.Http;
 
-namespace TetraPk.XP.Web.Http.Debugging
+
+namespace TetraPak.XP.Web.Http.Debugging
 {
     /// <summary>
     ///   Convenient methods for working with <see cref="GenericHttpResponse"/>s.
@@ -28,7 +28,8 @@ namespace TetraPk.XP.Web.Http.Debugging
         /// </returns>
         public static async Task<GenericHttpResponse> ToGenericHttpResponseAsync(
             this HttpResponseMessage response, 
-            string? messageId = null)
+            string? messageId = null,
+            bool contentAsString = false)
             => new()
             {
                 MessageId = messageId,
@@ -36,7 +37,8 @@ namespace TetraPk.XP.Web.Http.Debugging
                 Method = response.RequestMessage?.Method.Method!,
                 Uri = response.RequestMessage?.RequestUri,
                 Headers = response.Headers,
-                Content = await response.Content.ReadAsStreamAsync() 
+                Content = await response.Content.ReadAsStreamAsync(),
+                ContentAsString = contentAsString ? await response.Content.ReadAsStringAsync() : null
             };
 
         /// <summary>

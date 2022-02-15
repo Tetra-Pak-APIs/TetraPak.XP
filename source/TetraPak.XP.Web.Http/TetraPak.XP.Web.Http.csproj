@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
-    <RootNamespace>TetraPk.XP.Web.Http</RootNamespace>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageVersion>1.0.0-alpha.5</PackageVersion>

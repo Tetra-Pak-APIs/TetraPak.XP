@@ -4,12 +4,11 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using TetraPak.XP;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Streaming;
-using TetraPak.XP.Web.Debugging;
+using TetraPak.XP.Web.Http.Debugging;
 
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     /// <summary>
     ///   Contains convenience/extension methods to assist with logging. 
@@ -177,7 +176,8 @@ namespace TetraPk.XP.Web.Http
                 if (request.Content is null)
                     return;
                 
-                var bodyText = await request.Content.GetRawBodyStringAsync(Encoding.Default, options);
+                var bodyText = request.ContentAsString 
+                               ?? await request.Content.GetRawBodyStringAsync(Encoding.Default, options);
                 if (string.IsNullOrEmpty(bodyText))
                     return;
                 
@@ -275,7 +275,8 @@ namespace TetraPk.XP.Web.Http
                 if (response.Content is null)
                     return;
                 
-                var bodyText = await response.Content.GetRawBodyStringAsync(Encoding.Default, options);
+                var bodyText = response.ContentAsString 
+                               ?? await response.Content.GetRawBodyStringAsync(Encoding.Default, options);
                 if (string.IsNullOrEmpty(bodyText))
                     return;
                 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace TetraPak.XP.Web.Debugging
+namespace TetraPak.XP.Web.Http.Debugging
 {
     /// <summary>
     ///   An abstract representation of a HTTP request.
@@ -36,5 +36,7 @@ namespace TetraPak.XP.Web.Debugging
         ///   Gets or sets a content (a.k.a. body).
         /// </summary>
         public Stream? Content { get; set; }
+        
+        internal string? ContentAsString { get; set; }
     }
 }

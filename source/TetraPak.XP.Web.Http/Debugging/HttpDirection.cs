@@ -1,4 +1,4 @@
-﻿namespace TetraPak.XP.Web.Debugging
+﻿namespace TetraPak.XP.Web.Http.Debugging
 {
     /// <summary>
     ///   Used to reflect HTTP traffic direction.

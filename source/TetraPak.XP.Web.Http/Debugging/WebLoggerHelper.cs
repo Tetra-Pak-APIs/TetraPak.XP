@@ -7,12 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
-using TetraPak.XP;
 using TetraPak.XP.Streaming;
-using TetraPak.XP.Web.Debugging;
+using TetraPak.XP.Web.Http.Debugging;
 
 // ReSharper disable once CheckNamespace
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     partial class WebLoggerHelper // HTTP traffic
     {

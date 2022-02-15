@@ -10,9 +10,10 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
-using TetraPak.XP.Web.Debugging;
+using TetraPak.XP.Web.Http;
+using TetraPak.XP.Web.Http.Debugging;
 using TetraPk.XP.Web.Http;
-using TetraPk.XP.Web.Http.Debugging;
+using HttpStatusCode = TetraPak.XP.Microsoft.HttpStatusCode;
 
 namespace TetraPak.XP.Auth.DeviceCode
 {
@@ -21,15 +22,17 @@ namespace TetraPak.XP.Auth.DeviceCode
         const string CacheRepository = CacheRepositories.Tokens.DeviceCodeCredentials;
 
         public async Task<Outcome<DeviceCodeResponse>> AcquireTokenAsync(
-            CancellationToken? cancellationToken = null, 
+            Action<VerificationArgs> verificationUriHandler,
+            CancellationTokenSource? cancellationTokenSource = null, 
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 
             bool forceAuthorization = false)
         {
-             // todo Consider breaking up this method (it's too big) 
+            // todo Consider breaking up this method (it's too big) 
+            var messageId = GetMessageId();
+            var cts = cancellationTokenSource ?? new CancellationTokenSource();
             try
             {
-                var ct = cancellationToken ?? CancellationToken.None;
                 if (clientCredentials is null)
                 {
                     var ccOutcome = await getCredentialsAsync();
@@ -39,10 +42,9 @@ namespace TetraPak.XP.Auth.DeviceCode
                     clientCredentials = ccOutcome.Value!;
                 }
 
-                var basicAuthCredentials = ValidateBasicAuthCredentials(clientCredentials);
                 var cachedOutcome = forceAuthorization 
                         ? Outcome<DeviceCodeResponse>.Fail(new Exception("nisse")) // nisse Write proper error message
-                        : await GetCachedResponse<DeviceCodeResponse>(CacheRepository, basicAuthCredentials);
+                        : await GetCachedResponse<DeviceCodeResponse>(CacheRepository, clientCredentials);
                 if (cachedOutcome)
                 {
                     var cachedResponse = cachedOutcome.Value!;
@@ -58,6 +60,7 @@ namespace TetraPak.XP.Auth.DeviceCode
                             clientOutcome.Exception));
                 
                 using var client = clientOutcome.Value!;
+                var basicAuthCredentials = ValidateBasicAuthCredentials(clientCredentials);
                 client.DefaultRequestHeaders.Authorization = basicAuthCredentials.ToAuthenticationHeaderValue();
                 var formsValues = new Dictionary<string, string>
                 {
@@ -76,16 +79,15 @@ namespace TetraPak.XP.Auth.DeviceCode
                 {
                     Content = new FormUrlEncodedContent(keyValues)
                 };
-                var messageId = GetMessageId();
                 var sb = Log?.IsEnabled(LogRank.Trace) ?? false
-                    ? await (await request.ToGenericHttpRequestAsync()).ToStringBuilderAsync(
+                    ? await (await request.ToGenericHttpRequestAsync(contentAsString:true)).ToStringBuilderAsync(
                         new StringBuilder(), 
                         () => TraceHttpRequestOptions.Default(messageId)
                             .WithInitiator(this, HttpDirection.Out)
                             .WithDefaultHeaders(client.DefaultRequestHeaders))
                     : null;
 
-                var response = await client.SendAsync(request, ct);
+                var response = await client.SendAsync(request, cts.Token);
                 
                 if (sb is { })
                 {
@@ -95,25 +97,42 @@ namespace TetraPak.XP.Auth.DeviceCode
                 }
                 
                 if (!response.IsSuccessStatusCode)
-                    return loggedFailedOutcome(response, messageId);
-
+                    return loggedFailedOutcome(response);
+                
 #if NET5_0_OR_GREATER
-                var stream = await response.Content.ReadAsStreamAsync(ct);
+                var stream = await response.Content.ReadAsStreamAsync(cts.Token);
 #else
                 var stream = await response.Content.ReadAsStreamAsync();
 #endif
-                var responseBody =
-                    await JsonSerializer.DeserializeAsync<DeviceCodeResponseBody>(
+                var codeResponseBody =
+                    (await JsonSerializer.DeserializeAsync<DeviceCodeCodeResponseBody>(
                         stream,
-                        cancellationToken: ct);
+                        cancellationToken: cts.Token))!;
 
-                var outcome = DeviceCodeResponse.TryParse(responseBody!);
-                if (outcome)
+                var args = new VerificationArgs(codeResponseBody, cts);
+#pragma warning disable CS4014
+                Task.Run(() => verificationUriHandler(args), cts.Token);
+#pragma warning restore CS4014
+                var timeout = DateTime.Now.Add(args.ExpiresIn);
+                var interval = TimeSpan.FromSeconds(codeResponseBody.Interval);
+                var done = false;
+                while (!done && DateTime.Now < timeout && !cts.Token.IsCancellationRequested)
                 {
-                    await CacheResponseAsync(CacheRepository, basicAuthCredentials, outcome.Value!);
+                    await Task.Delay(interval, cts.Token);
+                    var authResponse = await pollAuthorizationAsync(codeResponseBody);
+                    if (!await isPendingUserCodeAsync(authResponse, cts.Token))
+                        break;
                 }
-
-                return outcome;
+                
+                
+                throw new NotImplementedException();
+                // var outcome = DeviceCodeResponse.TryParse(responseBody!);
+                // if (outcome)
+                // {
+                //     await CacheResponseAsync(CacheRepository, basicAuthCredentials, outcome.Value!);
+                // }
+                //
+                // return outcome;
             }
             catch (Exception ex)
             {
@@ -122,7 +141,68 @@ namespace TetraPak.XP.Auth.DeviceCode
                 return Outcome<DeviceCodeResponse>.Fail(ex);
             }
             
-            Outcome<DeviceCodeResponse> loggedFailedOutcome(HttpResponseMessage response, LogMessageId? messageId)
+            async Task<Outcome<DeviceCodeResponse>> pollAuthorizationAsync(DeviceCodeCodeResponseBody codeResponse)
+            {
+                var deviceCode = codeResponse.DeviceCode;
+                var clientOutcome = await GetHttpClientAsync();
+                if (!clientOutcome)
+                {
+                    var exception = new Exception(
+                        "Could not obtain a HTTP client when polling device code authorization (see inner). Retrying ...", 
+                        clientOutcome.Exception!);
+                    Log.Error(exception, messageId:messageId);
+                    return Outcome<DeviceCodeResponse>.Fail(exception);
+                }
+
+                var client = clientOutcome.Value!;
+            
+                var formsValues = new Dictionary<string, string>
+                {
+                    ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code",
+                    ["client_id"] = clientCredentials.Identity,
+                    ["device_code"] = deviceCode
+                };
+        
+                var keyValues = formsValues.Select(kvp 
+                    => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
+
+                var tokenIssuerUrl = await TetraPakConfig.GetTokenIssuerUrlAsync();
+                var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUrl)
+                {
+                    Content = new FormUrlEncodedContent(keyValues)
+                };
+                
+                var sb = Log?.IsEnabled(LogRank.Trace) ?? false
+                    ? await (await request.ToGenericHttpRequestAsync(contentAsString:true)).ToStringBuilderAsync(
+                        new StringBuilder(), 
+                        () => TraceHttpRequestOptions.Default(messageId)
+                            .WithInitiator(this, HttpDirection.Out)
+                            .WithDefaultHeaders(client.DefaultRequestHeaders))
+                    : null;
+
+                try
+                {
+                    var response = await client.SendAsync(request, cts.Token);
+                    if (sb is { })
+                    {
+                        sb.AppendLine();
+                        await (await response.ToGenericHttpResponseAsync(contentAsString:true)).ToStringBuilderAsync(sb);
+                        Log.Trace(sb.ToString(), messageId);
+                    }
+                    if (!response.IsSuccessStatusCode)
+                        return loggedFailedOutcome(response);
+                    
+                    throw new NotImplementedException();
+                }
+                catch (Exception ex)
+                {
+                    ex = new Exception("Device Code grant failure when polling for token (see inner)", ex);
+                    Log.Error(ex);
+                    return Outcome<DeviceCodeResponse>.Fail(ex);
+                }
+            }
+            
+            Outcome<DeviceCodeResponse> loggedFailedOutcome(HttpResponseMessage response)
             {
                 var ex = new HttpServerException(response); 
                 if (Log is null)
@@ -142,7 +222,30 @@ namespace TetraPak.XP.Auth.DeviceCode
                 return Outcome<DeviceCodeResponse>.Fail(ex);
             }
         }
-        
+
+        static async Task<bool> isPendingUserCodeAsync(Outcome<DeviceCodeResponse> response, CancellationToken cancellationToken)
+        {
+            if (response.Exception is not HttpServerException { StatusCode: HttpStatusCode.BadRequest } serverException) 
+                return false;
+            
+#if NET5_0_OR_GREATER
+            await using var stream = await serverException.Response!.Content.ReadAsStreamAsync(cancellationToken);
+#else                
+            using var stream = await serverException.Response!.Content.ReadAsStreamAsync();
+#endif
+            try
+            {
+                var dict = await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(stream, cancellationToken: cancellationToken);
+                return dict!.TryGetValue("detail", out var value) &&
+                       value.StartsWith("Pending", StringComparison.InvariantCultureIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
         Task<Outcome<Credentials>> getCredentialsAsync()
         {
             if (string.IsNullOrWhiteSpace(TetraPakConfig.ClientId))
@@ -161,11 +264,6 @@ namespace TetraPak.XP.Auth.DeviceCode
             IHttpContextAccessor? httpContextAccessor = null)
         : base(tetraPakConfig, httpClientProvider, cache, log, httpContextAccessor)
         {
-            // _tetraPakConfig = tetraPakConfig; obsolete
-            // _httpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
-            // _httpContextAccessor = httpContextAccessor;
-            // _log = log;
-            // _cache = cache;
         }
     }
 }
