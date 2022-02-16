@@ -10,16 +10,8 @@ namespace TetraPak.XP.Auth.DeviceCode
     // ReSharper disable once UnusedType.Global
     class DeviceCodeCodeResponseBody
     {
-/*
-        {
-            "device_code": "J9U2Cjtq10Mi1sUPwUEckOLZ6YNdijbyg2a9Vor061",
-            "user_code": "G47B-RNGY",
-            "verification_uri": "https://ssodev.tetrapak.com/as/user_authz.oauth2",
-            "verification_uri_complete": "https://ssodev.tetrapak.com/as/user_authz.oauth2?user_code=G47B-RNGY",
-            "expires_in": 600,
-            "interval": 5
-        }
-*/
+        double _interval;
+        const double DefaultInterval = 5d;
         
         [JsonPropertyName("device_code")]
         public string DeviceCode { get; set; }
@@ -37,6 +29,10 @@ namespace TetraPak.XP.Auth.DeviceCode
         public double ExpiresIn { get; set; }
 
         [JsonPropertyName("interval")]
-        public double Interval { get; set; }
+        public double Interval
+        {
+            get => _interval == 0d ? DefaultInterval : _interval;
+            set => _interval = value;
+        }
     }
 }

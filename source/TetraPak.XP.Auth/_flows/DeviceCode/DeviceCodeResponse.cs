@@ -5,6 +5,8 @@ namespace TetraPak.XP.Auth.DeviceCode
 {
     public class DeviceCodeResponse : GrantResponse
     {
+        internal bool IsPendingVerification { get; private set; }
+
         internal static Outcome<DeviceCodeResponse> TryParse(DeviceCodeAuthorizationResponseBody body)
         {
             var accessToken = string.IsNullOrWhiteSpace(body.TokenType)
@@ -32,12 +34,23 @@ namespace TetraPak.XP.Auth.DeviceCode
                     new FormatException($"Failed while parsing expires_in: {body.ExpiresIn}"));
 
             return Outcome<DeviceCodeResponse>.Success(
+#if NET5_0_OR_GREATER                
                 new DeviceCodeResponse(actorToken, expiresIn, scope));
+#else
+                new DeviceCodeResponse(actorToken!, expiresIn, scope));
+#endif
+        }
+
+        internal static DeviceCodeResponse ForPendingCodeVerification(bool value) => new() { IsPendingVerification = value };
+
+        DeviceCodeResponse() : base(null!, TimeSpan.Zero, null)
+        {
         }
         
         DeviceCodeResponse(ActorToken accessToken, TimeSpan expiresIn, MultiStringValue? scope)
         : base(accessToken, expiresIn, scope)
         {
         }
+
     }
 }

@@ -67,7 +67,7 @@ namespace TetraPak.XP
         /// <returns>
         ///   An <see cref="Outcome{T}"/> to indicate failure.
         /// </returns>
-        public static Outcome<T> Fail(Exception exception, T value) => new(false, null!, exception, default!);
+        public static Outcome<T> Fail(Exception exception, T value) => new(false, null!, exception, value);
 
         /// <summary>
         ///   Creates a <see cref="Outcome{T}"/> that equals <c>false</c> when cast to a

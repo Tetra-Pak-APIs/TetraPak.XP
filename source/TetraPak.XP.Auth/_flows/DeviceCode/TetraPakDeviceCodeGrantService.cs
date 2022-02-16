@@ -13,7 +13,6 @@ using TetraPak.XP.Logging;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
 using TetraPk.XP.Web.Http;
-using HttpStatusCode = TetraPak.XP.Microsoft.HttpStatusCode;
 
 namespace TetraPak.XP.Auth.DeviceCode
 {
@@ -97,7 +96,7 @@ namespace TetraPak.XP.Auth.DeviceCode
                 }
                 
                 if (!response.IsSuccessStatusCode)
-                    return loggedFailedOutcome(response);
+                    return loggedFailedOutcome(response, false);
                 
 #if NET5_0_OR_GREATER
                 var stream = await response.Content.ReadAsStreamAsync(cts.Token);
@@ -115,24 +114,19 @@ namespace TetraPak.XP.Auth.DeviceCode
 #pragma warning restore CS4014
                 var timeout = DateTime.Now.Add(args.ExpiresIn);
                 var interval = TimeSpan.FromSeconds(codeResponseBody.Interval);
-                var done = false;
-                while (!done && DateTime.Now < timeout && !cts.Token.IsCancellationRequested)
+                while (DateTime.Now < timeout && !cts.Token.IsCancellationRequested)
                 {
                     await Task.Delay(interval, cts.Token);
-                    var authResponse = await pollAuthorizationAsync(codeResponseBody);
-                    if (!await isPendingUserCodeAsync(authResponse, cts.Token))
-                        break;
+                    var codeVerificationOutcome = await pollCodeVerificationAsync(codeResponseBody);
+                    if (codeVerificationOutcome.Value?.IsPendingVerification ?? false)
+                        continue;
+                    
+                    return codeVerificationOutcome;
                 }
-                
-                
-                throw new NotImplementedException();
-                // var outcome = DeviceCodeResponse.TryParse(responseBody!);
-                // if (outcome)
-                // {
-                //     await CacheResponseAsync(CacheRepository, basicAuthCredentials, outcome.Value!);
-                // }
-                //
-                // return outcome;
+
+                return cts.Token.IsCancellationRequested
+                    ? Outcome<DeviceCodeResponse>.Fail(new Exception("Device Code Grant request was cancelled"))
+                    : Outcome<DeviceCodeResponse>.Fail(new Exception("Device Code Grant request timed out"));
             }
             catch (Exception ex)
             {
@@ -141,7 +135,7 @@ namespace TetraPak.XP.Auth.DeviceCode
                 return Outcome<DeviceCodeResponse>.Fail(ex);
             }
             
-            async Task<Outcome<DeviceCodeResponse>> pollAuthorizationAsync(DeviceCodeCodeResponseBody codeResponse)
+            async Task<Outcome<DeviceCodeResponse>> pollCodeVerificationAsync(DeviceCodeCodeResponseBody codeResponse)
             {
                 var deviceCode = codeResponse.DeviceCode;
                 var clientOutcome = await GetHttpClientAsync();
@@ -189,10 +183,26 @@ namespace TetraPak.XP.Auth.DeviceCode
                         await (await response.ToGenericHttpResponseAsync(contentAsString:true)).ToStringBuilderAsync(sb);
                         Log.Trace(sb.ToString(), messageId);
                     }
+
                     if (!response.IsSuccessStatusCode)
-                        return loggedFailedOutcome(response);
+                        return loggedFailedOutcome(response, await isPendingUserCodeAsync(response, cts.Token));
+
+#if NET5_0_OR_GREATER
+                    await using var stream = await response.Content.ReadAsStreamAsync(cts.Token);
+#else
+                    using var stream = await response.Content.ReadAsStreamAsync();
+#endif
+                    var body = await JsonSerializer.DeserializeAsync<DeviceCodeAuthorizationResponseBody>(
+                        stream, 
+                        cancellationToken: cts.Token);
+
+                    var parseOutcome = DeviceCodeResponse.TryParse(body!); 
+                    if (parseOutcome)
+                        return Outcome<DeviceCodeResponse>.Success(parseOutcome.Value!);
                     
-                    throw new NotImplementedException();
+                    Log.Error(parseOutcome.Exception!);
+                    return Outcome<DeviceCodeResponse>.Fail(parseOutcome.Exception!);
+
                 }
                 catch (Exception ex)
                 {
@@ -202,36 +212,70 @@ namespace TetraPak.XP.Auth.DeviceCode
                 }
             }
             
-            Outcome<DeviceCodeResponse> loggedFailedOutcome(HttpResponseMessage response)
+            Outcome<DeviceCodeResponse> loggedFailedOutcome(HttpResponseMessage response, bool isPendingUserCodeAsync)
             {
-                var ex = new HttpServerException(response); 
-                if (Log is null)
-                    return Outcome<DeviceCodeResponse>.Fail(ex);
+                var outcome = Outcome<DeviceCodeResponse>.Fail(
+                    new HttpServerException(response), 
+                    DeviceCodeResponse.ForPendingCodeVerification(isPendingUserCodeAsync)); 
+                if (Log is null)    
+                    return outcome;
 
-                // var messageId = _tetraPakConfig.AmbientData.GetMessageId(true);
                 var message = new StringBuilder();
+                if (isPendingUserCodeAsync)
+                {
+                    if (!Log?.IsEnabled(LogRank.Trace) ?? true)
+                        return outcome;
+                    
+                    Log.Trace("Device Code is pending user code verification ...");
+                    return outcome;
+                }
+
                 message.AppendLine("Client credentials failure (state dump to follow if DEBUG log level is enabled)");
-                if (Log.IsEnabled(LogRank.Debug))
+                if (Log?.IsEnabled(LogRank.Debug) ?? false)
                 {
                     var dump = new StateDump().WithStackTrace();
                     dump.AddAsync(TetraPakConfig, "AuthConfig");
                     dump.AddAsync(clientCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
-                Log.Error(ex, message.ToString(), messageId);
-                return Outcome<DeviceCodeResponse>.Fail(ex);
+                Log.Error(outcome.Exception!, message.ToString(), messageId);
+                return Outcome<DeviceCodeResponse>.Fail(outcome.Exception!);
             }
         }
 
-        static async Task<bool> isPendingUserCodeAsync(Outcome<DeviceCodeResponse> response, CancellationToken cancellationToken)
+//         static async Task<bool> isPendingUserCodeAsync(Outcome<DeviceCodeResponse> response, CancellationToken cancellationToken) obsolete
+//         {
+//             if (response.Exception is not HttpServerException { StatusCode: HttpStatusCode.BadRequest } serverException) 
+//                 return false;
+//
+//             // return await isPendingUserCodeAsync(serverException.Response!, cancellationToken);
+//             
+// #if NET5_0_OR_GREATER
+//             await using var stream = await serverException.Response!.Content.ReadAsStreamAsync(cancellationToken);
+// #else                
+//             using var stream = await serverException.Response!.Content.ReadAsStreamAsync();
+// #endif
+//             try
+//             {
+//                 var dict = await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(stream, cancellationToken: cancellationToken);
+//                 return dict!.TryGetValue("detail", out var value) &&
+//                        value.StartsWith("Pending", StringComparison.InvariantCultureIgnoreCase);
+//             }
+//             catch
+//             {
+//                 return false;
+//             }
+//         }
+        
+        static async Task<bool> isPendingUserCodeAsync(HttpResponseMessage response, CancellationToken cancellationToken)
         {
-            if (response.Exception is not HttpServerException { StatusCode: HttpStatusCode.BadRequest } serverException) 
+            if (response.StatusCode != System.Net.HttpStatusCode.BadRequest) 
                 return false;
             
 #if NET5_0_OR_GREATER
-            await using var stream = await serverException.Response!.Content.ReadAsStreamAsync(cancellationToken);
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 #else                
-            using var stream = await serverException.Response!.Content.ReadAsStreamAsync();
+            using var stream = await response.Content.ReadAsStreamAsync();
 #endif
             try
             {
