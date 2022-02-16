@@ -10,7 +10,7 @@ namespace TetraPak.XP.Configuration
         DynamicEntity IDynamicEntityFactory.DeserializeEntity(string? key, ref Utf8JsonReader reader)
         {
             var entity = JsonSerializer.Deserialize<DynamicEntity>(ref reader)!;
-            var section = new ConfigurationSection(XpServices.Get<ILog>()) { Key = key! };
+            var section = new ConfigurationSection { Key = key! };
             return section.WithValuesFrom(entity);
         }
     }

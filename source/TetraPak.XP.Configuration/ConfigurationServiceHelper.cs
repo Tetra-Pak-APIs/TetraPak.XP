@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.DependencyInjection;
-using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Configuration
 {
@@ -41,10 +40,13 @@ namespace TetraPak.XP.Configuration
             collection.AddSingleton<IConfiguration>(p =>
             {
                 var environmentResolver = p.GetRequiredService<IRuntimeEnvironmentResolver>();
-                var log = p.GetService<ILog>();
-                var configurationLoader = new ConfigurationLoader(environmentResolver, log);
+                var configurationLoader = new ConfigurationLoader(environmentResolver);
                 var configuration = configurationLoader.LoadFromAsync(folder).Result;
+#if NET5_0_OR_GREATER
+                return configuration;
+#else
                 return configuration!;
+#endif
             });
             
             return collection;

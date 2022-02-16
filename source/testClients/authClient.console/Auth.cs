@@ -8,9 +8,11 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.ClientCredentials;
 using TetraPak.XP.Auth.DeviceCode;
 using TetraPak.XP.Auth.OIDC;
+using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;
+using IConfiguration = TetraPak.XP.Configuration.IConfiguration;
 
 namespace authClient.console
 {
@@ -139,12 +141,18 @@ namespace authClient.console
             _log.Information(sb.ToString());
         }
 
-        public Auth(ILog log)
+        public Auth()
         {
             var authApp = (AuthApplication)"DEV; hiJSBHQzj0v5k58j2SYTT8h54iIO8OIr; http://localhost:42444/auth";
             var collection = new ServiceCollection();
             var services = XpServices.BuildFor().Desktop().UseServiceCollection(collection)
-                .AddSingleton(_ => log)
+                .AddSingleton( p =>
+                {
+                    var rank = resolveLogRank(p, LogRank.Information);
+                    var log = new BasicLog { Rank = rank } .WithConsoleLogging();
+                    return log;
+
+                })
                 .AddSingleton(_ => authApp)
                 .AddTetraPakOidcAuthentication<DesktopLoopbackBrowser>(authApp)
                 .AddTetraPakClientCredentialsAuthentication()
@@ -152,6 +160,23 @@ namespace authClient.console
                 .BuildXpServiceProvider();
             _log = services.GetService<ILog>();
             _authenticator = services.GetRequiredService<IAuthenticator>();
+        }
+
+        static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)
+        {
+            var config = p.GetRequiredService<IConfiguration>();
+            var logLevelSection = config.GetSectionAsync(new ConfigPath(new[] { "Logging", "LogLevel" })).Result;
+            if (logLevelSection is null)
+                return useDefault;
+
+            var s = logLevelSection.GetAsync<string>("Default").Result;
+            if (string.IsNullOrEmpty(s))
+                return useDefault;
+            
+            return s.TryParseEnum(typeof(LogRank), out var obj) && obj is LogRank logRank
+                ? logRank
+                : useDefault;
+
         }
     }
 }

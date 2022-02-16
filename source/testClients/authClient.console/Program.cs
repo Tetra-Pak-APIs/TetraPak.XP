@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Logging;
 
 namespace authClient.console
 {
     class Program
     {
-        static readonly ILog s_log = new BasicLog().WithConsoleLogging();
-
         const char QuitCommand = 'q';
         const char NewCcTokenCommand = 'c';
         const char NewOidcTokenCommand = 'o';
@@ -26,7 +23,7 @@ namespace authClient.console
             Console.WriteLine("|  q = quit                                         |");
             Console.WriteLine("+---------------------------------------------------+");
 
-            var auth = new Auth(s_log);
+            var auth = new Auth();
             var command = getCommandFrom(args) ?? getCommandFromConsole();
             while (command != QuitCommand)
             {

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.DynamicEntities;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Serialization;
 #if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
@@ -32,7 +31,7 @@ namespace TetraPak.XP.Configuration
         const string RootKey = ".";
         static readonly List<ArbitraryValueParser> s_valueParsers = getDefaultValueParsers();
         ConfigPath? _configPath;
-        ILog? _log;
+        // ILog? _log;
         string _key = RootKey;
 
         /// <summary>
@@ -90,15 +89,15 @@ namespace TetraPak.XP.Configuration
         /// </summary>
         internal IConfigurationSection? ParentConfiguration { get; set; }
 
-        /// <summary>
-        ///   Gets a logger.
-        /// </summary>
-        public ILog? Log => _log ?? getParentLog();
+        // /// <summary>
+        // ///   Gets a logger.
+        // /// </summary>
+        // public ILog? Log => _log ?? getParentLog();
 
-        ILog? getParentLog() =>
-            ParentConfiguration is ConfigurationSection parentSection
-                ? parentSection.Log
-                : null;
+        // ILog? getParentLog() =>
+        //     ParentConfiguration is ConfigurationSection parentSection
+        //         ? parentSection.Log
+        //         : null;
 
         /// <summary>
         ///   Obtains a <see cref="FieldInfo"/> object for a specified field.
@@ -393,14 +392,6 @@ namespace TetraPak.XP.Configuration
             return Task.FromResult<IEnumerable<IConfigurationItem>>(children);
         }
         
-        /// <summary>
-        ///   Initializes the configuration section.
-        /// </summary>
-        public ConfigurationSection(ILog? log = null)
-        {
-            _log = log;
-        }
-
         static List<ArbitraryValueParser> getDefaultValueParsers()
         {
             // automatically support ...
@@ -450,7 +441,11 @@ namespace TetraPak.XP.Configuration
                         return true;
                     }
 
+#if NET5_0_OR_GREATER
                     if (s.TryParseConfiguredBool(out var boolValue))
+#else                        
+                    if (s!.TryParseConfiguredBool(out var boolValue))
+#endif                        
                     {
                         o = boolValue;
                         return true;
@@ -476,7 +471,11 @@ namespace TetraPak.XP.Configuration
                         return true;
                     }
 
-                    if (s!.TryParseEnum(tgtType, out o)) 
+#if NET5_0_OR_GREATER
+                    if (s.TryParseEnum(tgtType, out o))
+#else
+                    if (s!.TryParseEnum(tgtType, out o))
+#endif
                         return true;
                     
                     o = null;
@@ -498,7 +497,11 @@ namespace TetraPak.XP.Configuration
                         return true;
                     }
 
+#if NET5_0_OR_GREATER
                     if (s.TryParseConfiguredTimeSpan(out var timeSpanValue))
+#else
+                    if (s!.TryParseConfiguredTimeSpan(out var timeSpanValue))
+#endif
                     {
                         o = timeSpanValue;
                         return true;
@@ -510,6 +513,5 @@ namespace TetraPak.XP.Configuration
             }.ToList();
 
         }
-#pragma warning restore 8618
     }
 }

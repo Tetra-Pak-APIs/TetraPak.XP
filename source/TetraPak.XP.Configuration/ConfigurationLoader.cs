@@ -11,7 +11,6 @@ namespace TetraPak.XP.Configuration
     public class ConfigurationLoader  
     {
         readonly IRuntimeEnvironmentResolver _runtimeEnvironmentResolver;
-        readonly ILog? _log;
 
         public async Task<IConfigurationSection> LoadFromAsync(
             DirectoryInfo? folder = null,
@@ -112,10 +111,9 @@ namespace TetraPak.XP.Configuration
             return rootSection;
         }
 
-        public ConfigurationLoader(IRuntimeEnvironmentResolver runtimeEnvironmentResolver, ILog? log = null)
+        public ConfigurationLoader(IRuntimeEnvironmentResolver runtimeEnvironmentResolver)
         {
             _runtimeEnvironmentResolver = runtimeEnvironmentResolver;
-            _log = log;
         }
     }
 }
