@@ -330,6 +330,9 @@ namespace TetraPak.XP.Configuration
                     return useDefault;
             }
 
+            if (typeof(T).IsNumeric() && obj.GetType().IsNumeric())
+                return (T) Convert.ChangeType(obj, typeof(T));
+            
             if (obj is not string stringValue)
                 return useDefault;
             

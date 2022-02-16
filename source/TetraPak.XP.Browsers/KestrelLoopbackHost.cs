@@ -113,7 +113,7 @@ namespace TetraPak.XP.Browsers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _log.Error(ex);
                 throw;
             }
         }

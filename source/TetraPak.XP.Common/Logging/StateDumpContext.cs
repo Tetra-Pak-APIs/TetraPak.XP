@@ -39,15 +39,7 @@ namespace TetraPak.XP.Logging
 
         public void Remove(int startIndex, int length)
         {
-            try
-            {
-                StringBuilder.Remove(startIndex, length);
-            }
-            catch (Exception e) // nisse
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            StringBuilder.Remove(startIndex, length);
         }
 
         public int Length => StringBuilder.Length;

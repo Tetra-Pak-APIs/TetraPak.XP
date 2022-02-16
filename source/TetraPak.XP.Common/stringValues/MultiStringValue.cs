@@ -507,32 +507,6 @@ namespace TetraPak.XP
 
             multiStringValue = null;
             return false;
-            // 
-            //
-            // multiStringValue = (T?) Activator.CreateInstance(typeof(T)); obsolete
-            // if (multiStringValue is null)
-            //     return false;
-            //
-            // try
-            // {
-            //     multiStringValue.Parse(stringValue);
-            // }
-            // catch (Exception ex)
-            // {
-            //     Console.WriteLine(ex);
-            //     throw;
-            // }
-            //     
-            // var parseOutcome = multiStringValue.tryParse(stringValue);
-            // if (parseOutcome)
-            // {
-            //     
-            //     multiStringValue.setInternal(stringValue, parseOutcome.Value!);
-            //     return true;
-            // }
-            //
-            // multiStringValue = null;
-            // return false;
         }
 
         internal T WithComparison<T>(StringComparison comparison) where T : MultiStringValue

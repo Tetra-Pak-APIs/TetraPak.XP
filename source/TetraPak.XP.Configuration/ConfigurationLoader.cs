@@ -11,7 +11,8 @@ namespace TetraPak.XP.Configuration
     public class ConfigurationLoader  
     {
         readonly IRuntimeEnvironmentResolver _runtimeEnvironmentResolver;
-        
+        readonly ILog? _log;
+
         public async Task<IConfigurationSection> LoadFromAsync(
             DirectoryInfo? folder = null,
             ILog? log = null,
@@ -20,7 +21,7 @@ namespace TetraPak.XP.Configuration
             folder ??= new DirectoryInfo(Environment.CurrentDirectory);
             var file = new FileInfo(Path.Combine(folder.FullName, "appsettings.json"));
             log.Trace($"Loads configuration from {file.FullName}");
-            var config = await LoadFromAsync(file);
+            var config = await LoadFromAsync(file, log);
             environment ??= _runtimeEnvironmentResolver.ResolveRuntimeEnvironment();
             return environment == RuntimeEnvironment.Production
                 ? config
@@ -42,7 +43,7 @@ namespace TetraPak.XP.Configuration
             if (!file.Exists)
                 return configuration;
             
-            var overloadConfig = await LoadFromAsync(file);
+            var overloadConfig = await LoadFromAsync(file, log);
             return await configuration.OverloadAsync(overloadConfig);
         }
 
@@ -52,7 +53,7 @@ namespace TetraPak.XP.Configuration
             RuntimeEnvironment? environment = null)
         {
             if (File.Exists(path))
-                return LoadFromAsync(new FileInfo(path));
+                return LoadFromAsync(new FileInfo(path), log);
 
             if (Directory.Exists(path))
                 return LoadFromAsync(new DirectoryInfo(path), log, environment);
@@ -60,7 +61,7 @@ namespace TetraPak.XP.Configuration
             throw new DirectoryNotFoundException($"Path not found: {path}");
         }
 
-        public static async Task<IConfigurationSection> LoadFromAsync(FileInfo file)
+        public static async Task<IConfigurationSection> LoadFromAsync(FileInfo file, ILog? log)
         {
             if (!file.Exists)
                 throw new FileNotFoundException($"Could not find configuration file: {file.FullName}");
@@ -75,9 +76,9 @@ namespace TetraPak.XP.Configuration
                 var configSection = await JsonSerializer.DeserializeAsync<ConfigurationSection>(stream); 
                 return buildGraph(configSection!);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e);
+                log.Error(ex);
                 throw;
             }
         }
@@ -114,6 +115,7 @@ namespace TetraPak.XP.Configuration
         public ConfigurationLoader(IRuntimeEnvironmentResolver runtimeEnvironmentResolver, ILog? log = null)
         {
             _runtimeEnvironmentResolver = runtimeEnvironmentResolver;
+            _log = log;
         }
     }
 }

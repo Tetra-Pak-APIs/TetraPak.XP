@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using TetraPak.XP.Logging;
 #if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
@@ -12,19 +13,17 @@ namespace TetraPak.XP.Serialization
     {
         public static event DeserializationHandler? Deserialize;
 
+        public static bool TryDeserializeStringValue(
+            this Type targetType,
+            string s, 
 #if NET5_0_OR_GREATER
-        public static bool TryDeserializeStringValue(
-            this Type targetType,
-            string s, 
-            [NotNullWhen(true)] out object? result)
+            [NotNullWhen(true)] out object? result,
 #else
-        public static bool TryDeserializeStringValue(
-            this Type targetType,
-            string s, 
-            out object? result)
+            out object? result,
 #endif
+            ILog? log = null)
         {
-            if (tryIocDeserialize(s, out result))
+            if (tryIocDeserialize(s, out result, log))
                 return true;
 
             if (tryDeserializeNumeric(s, targetType, out result))
@@ -51,9 +50,9 @@ namespace TetraPak.XP.Serialization
         }
         
         #if NET5_0_OR_GREATER        
-        static bool tryIocDeserialize(string serialized, [NotNullWhen(true)] out object? deserialized)
+        static bool tryIocDeserialize(string serialized, [NotNullWhen(true)] out object? deserialized, ILog? log)
 #else
-        static bool tryIocDeserialize(string serialized, out object? deserialized)
+        static bool tryIocDeserialize(string serialized, out object? deserialized, ILog? log)
 #endif
         {
             deserialized = default;
@@ -73,16 +72,19 @@ namespace TetraPak.XP.Serialization
                 }
                 catch (Exception ex)
                 {
-                    // todo log error
-                    Console.WriteLine(ex);
+                    log.Error(ex);
                     throw;
                 }
             }
 
             return false;
         }
-        
-         static bool tryDeserializeNumeric(string s, Type targetType, /*[NotNullWhen(true)]*/ out object? result)
+
+#if NET5_0_OR_GREATER        
+        static bool tryDeserializeNumeric(string s, Type targetType, [NotNullWhen(true)] out object? result)
+#else        
+        static bool tryDeserializeNumeric(string s, Type targetType, out object? result)
+#endif
         {
             switch (Type.GetTypeCode(targetType))
             {

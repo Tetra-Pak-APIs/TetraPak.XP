@@ -20,18 +20,6 @@ namespace TetraPak.XP.Configuration
         
         public ILog? Log { get; }
 
-        // public object? Value obsolete
-        // {
-        //     get => Section?.Value ?? string.Empty;
-        //     set
-        //     {
-        //         if (Section is null)
-        //             return;
-        //             
-        //         Section.Value = value;
-        //     }
-        // }
-
         public int Count => Section?.Count ?? 0;
 
         public TValue? Get<TValue>(TValue? useDefault = default, [CallerMemberName] string? caller = null)
