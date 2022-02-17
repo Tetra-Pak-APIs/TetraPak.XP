@@ -47,12 +47,12 @@ namespace TetraPak.XP.Auth
         public bool IsCaching => Config.IsCaching;
         
         /// <inheritdoc />
-        public abstract Task<Outcome<AuthResult>> GetAccessTokenAsync(
+        public abstract Task<Outcome<Grant>> GetAccessTokenAsync(
             bool allowCached = true, 
             CancellationTokenSource? cancellationTokenSource = null);
         
         /// <inheritdoc />
-        public abstract Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync(
+        public abstract Task<Outcome<Grant>> GetAccessTokenSilentlyAsync(
             CancellationTokenSource? cancellationTokenSource = null);
 
         /// <summary>

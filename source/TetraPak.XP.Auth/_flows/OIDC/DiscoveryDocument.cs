@@ -169,7 +169,7 @@ namespace TetraPak.XP.Auth.OIDC
         /// <summary>
         ///   Attempts downloading a discovery document and assign it as the <see cref="Current"/> one. 
         /// </summary>
-        /// <param name="authResult">
+        /// <param name="grant">
         ///   An authorization.
         /// </param>
         /// <param name="cache">
@@ -190,18 +190,18 @@ namespace TetraPak.XP.Auth.OIDC
         ///   cache, allowing a future fallback as per above.
         /// </remarks>
         internal static async Task<Outcome<DiscoveryDocument>> TryDownloadAndSetCurrentAsync(
-            AuthResult authResult, 
+            Grant grant, 
             ITimeLimitedRepositories? cache,
             bool force = false)
         {
             if (!force && Current is {})
                 return Outcome<DiscoveryDocument>.Success(Current);
             
-            var idToken = authResult.IdToken;
+            var idToken = grant.IdToken;
             DiscoveryDocument? disco = null;
             if (!string.IsNullOrEmpty(idToken))
             {
-                var downloadOutcome = await DownloadAsync(authResult.IdToken!, true, cache);
+                var downloadOutcome = await DownloadAsync(grant.IdToken!, true, cache);
                 if (downloadOutcome)
                 {
                     disco = downloadOutcome.Value!;

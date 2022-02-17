@@ -6,7 +6,6 @@ using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.OIDC;
-using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 
@@ -15,7 +14,7 @@ namespace TetraPak.XP.Auth
     /// <summary>
     ///   Represents the result of an authorization operation.
     /// </summary>
-    public class AuthResult
+    public class Grant
     {
         UserInformation _userInformation;
         UserInfoLoader _userInfoLoader;
@@ -161,7 +160,7 @@ namespace TetraPak.XP.Auth
             }
         }
 
-        internal AuthResult(AuthConfig config, params TokenInfo[] tokens)
+        internal Grant(AuthConfig config, params TokenInfo[] tokens)
         {
             _authConfig = config;
             Tokens = tokens;

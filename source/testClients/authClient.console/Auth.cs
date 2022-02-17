@@ -118,7 +118,7 @@ namespace authClient.console
             _log.Information(sb.ToString());
         }
 
-        void writeToLog(Outcome<AuthResult> outcome)
+        void writeToLog(Outcome<Grant> outcome)
         {
             if (!outcome)
             {

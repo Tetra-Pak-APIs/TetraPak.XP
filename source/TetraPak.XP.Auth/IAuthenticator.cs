@@ -23,7 +23,7 @@ namespace TetraPak.XP.Auth
         ///   A <seealso cref="Outcome{T}"/> indicating success while also carrying
         ///   details for the authentication result, including access token.
         /// </returns>
-        Task<Outcome<AuthResult>> GetAccessTokenAsync(bool allowCached = true, CancellationTokenSource? cancellationTokenSource = null);
+        Task<Outcome<Grant>> GetAccessTokenAsync(bool allowCached = true, CancellationTokenSource? cancellationTokenSource = null);
 
         /// <summary>
         ///   Attempts to acquire an access token "silently", automatically
@@ -36,6 +36,6 @@ namespace TetraPak.XP.Auth
         ///   A <seealso cref="Outcome{T}"/> indicating success while also carrying
         ///   details for the authentication result, including access token.
         /// </returns>
-        Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync(CancellationTokenSource? cancellationTokenSource = null);
+        Task<Outcome<Grant>> GetAccessTokenSilentlyAsync(CancellationTokenSource? cancellationTokenSource = null);
     }
 }

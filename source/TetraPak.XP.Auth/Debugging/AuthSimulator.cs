@@ -32,15 +32,15 @@ namespace TetraPak.XP.Auth.Debugging
 
         public static TimeSpan IdTokenLongevity { get; set; }
 
-        public static async Task<Outcome<AuthResult>> TryGetSimulatedAccessTokenAsync(AuthConfig config, string cacheKey)
+        public static async Task<Outcome<Grant>> TryGetSimulatedAccessTokenAsync(AuthConfig config, string cacheKey)
         {
             if (!IsSimulating)
-                return Outcome<AuthResult>.Fail(new Exception("Not simulating"));
+                return Outcome<Grant>.Fail(new Exception("Not simulating"));
 
             return await GetAccessTokenAsync(config, cacheKey);
         }
 
-        public static async Task<Outcome<AuthResult>> GetAccessTokenAsync(AuthConfig config, string cacheKey)
+        public static async Task<Outcome<Grant>> GetAccessTokenAsync(AuthConfig config, string cacheKey)
         {
             throw new NotImplementedException(); // nisse
             // var accessToken = new TokenInfo(new RandomString(), TokenRole.AccessToken, DateTime.Now.Add(AccessTokenLongevity), null);
@@ -52,7 +52,7 @@ namespace TetraPak.XP.Auth.Debugging
             // return await config.CacheAsync(new AuthResult(null!, null!, accessToken, refreshToken, idToken), cacheKey);
         }
 
-        public static async Task<Outcome<AuthResult>> TryGetSimulatedRenewedAccessTokenAsync(string refreshToken, AuthConfig config, string cacheKey)
+        public static async Task<Outcome<Grant>> TryGetSimulatedRenewedAccessTokenAsync(string refreshToken, AuthConfig config, string cacheKey)
         {
             throw new NotImplementedException(); // nisse
             // var canBeRefreshed = await config.TryGetFromRefreshTokenAsync(refreshToken); 
@@ -96,30 +96,30 @@ namespace TetraPak.XP.Auth.Debugging
 
     static class AuthConfigExtensions
     {
-        static readonly Dictionary<string,AuthResult> s_authResults = new Dictionary<string, AuthResult>();
+        static readonly Dictionary<string,Grant> s_authResults = new Dictionary<string, Grant>();
 
-        public static async Task<Outcome<AuthResult>> CacheAsync(this AuthConfig config, AuthResult authResult, string cacheKey)
+        public static async Task<Outcome<Grant>> CacheAsync(this AuthConfig config, Grant grant, string cacheKey)
         {
             if (config.IsCaching)
             {
                 // await config.TokenCache.AddAsync(cacheKey, authResult, true);
-                await config.TokenCache.AttemptCreateOrUpdateAsync(authResult, cacheKey);
+                await config.TokenCache.AttemptCreateOrUpdateAsync(grant, cacheKey);
             }
 
-            var refreshToken = authResult.Tokens?.FirstOrDefault(i => i.Role == TokenRole.RefreshToken);
+            var refreshToken = grant.Tokens?.FirstOrDefault(i => i.Role == TokenRole.RefreshToken);
             if (refreshToken != null)
-                s_authResults.Add(refreshToken.TokenValue, authResult);
+                s_authResults.Add(refreshToken.TokenValue, grant);
             
-            return Outcome<AuthResult>.Success(authResult);
+            return Outcome<Grant>.Success(grant);
         }
         
-        public static Task<Outcome<AuthResult>> TryGetFromRefreshTokenAsync(this AuthConfig config, string refreshToken)
+        public static Task<Outcome<Grant>> TryGetFromRefreshTokenAsync(this AuthConfig config, string refreshToken)
         {
             if (!s_authResults.TryGetValue(refreshToken, out var authResult))
-                return Task.FromResult(Outcome<AuthResult>.Fail(new Exception("No refresh token")));
+                return Task.FromResult(Outcome<Grant>.Fail(new Exception("No refresh token")));
             
             s_authResults.Remove(refreshToken);
-            return Task.FromResult(Outcome<AuthResult>.Success(authResult));
+            return Task.FromResult(Outcome<Grant>.Success(authResult));
         }
     }
 }

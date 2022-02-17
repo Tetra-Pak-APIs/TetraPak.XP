@@ -8,7 +8,7 @@ namespace authClient.viewModels
 {
     public class UserInfoVM : ViewModel
     {
-        readonly AuthResult _authResult;
+        readonly Grant _grant;
         ObservableCollection<UserInformationItemVM> _items;
 
         public ObservableCollection<UserInformationItemVM> Items
@@ -19,7 +19,7 @@ namespace authClient.viewModels
 
         async void loadUserInfoAsync()
         {
-            var result = await _authResult.TryGetUserInformationAsync();
+            var result = await _grant.TryGetUserInformationAsync();
             if (!result)
                 return;
 
@@ -40,9 +40,9 @@ namespace authClient.viewModels
         {
         }
 
-        public UserInfoVM(IServiceProvider services, AuthResult authResult, ILog log) : base(services, log)
+        public UserInfoVM(IServiceProvider services, Grant grant, ILog log) : base(services, log)
         {
-            _authResult = authResult;
+            _grant = grant;
             loadUserInfoAsync();
             Name = "USER INFORMATION";
         }

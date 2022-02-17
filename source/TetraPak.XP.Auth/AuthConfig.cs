@@ -302,11 +302,11 @@ namespace TetraPak.XP.Auth
 
     public static class AuthConfigHelper
     {
-        public static async Task<Outcome<AuthResult>> GetCachedTokenAsync(this AuthConfig config, string cacheKey)
+        public static async Task<Outcome<Grant>> GetCachedTokenAsync(this AuthConfig config, string cacheKey)
         {
             return config.IsCaching && config.TokenCache is {} 
-                ? await config.TokenCache.ReadAsync<AuthResult>() 
-                : Outcome<AuthResult>.Fail(new Exception());
+                ? await config.TokenCache.ReadAsync<Grant>() 
+                : Outcome<Grant>.Fail(new Exception());
         }
         
     }

@@ -23,7 +23,7 @@ namespace authClient.viewModels
     {
         AuthConfig _config;
         string? _message;
-        AuthResult _authorization;
+        Grant _authorization;
         bool _isUsingCustomAuth;
         bool _isInternalValueChange;
         RuntimeEnvironment _environment;
@@ -74,7 +74,7 @@ namespace authClient.viewModels
         [ValidatedValue(PlaceholderValue = "Please specify the Token Issuer (URL)", IsRequired = true)]
         public AbsoluteUriVM TokenIssuerUrl { get; private set; }
 
-        public AuthResult Authorization
+        public Grant Authorization
         {
             get => _authorization;
             set
@@ -229,7 +229,7 @@ namespace authClient.viewModels
             }
         }
 
-        void setTokensResult(Outcome<AuthResult> authResult)
+        void setTokensResult(Outcome<Grant> authResult)
         {
             TokensResult.Clear();
             foreach (var tokenInfo in authResult.Value!.Tokens!)
@@ -265,7 +265,7 @@ namespace authClient.viewModels
             }
         }
 
-        void setFailureResult(Outcome<AuthResult>? authResult)
+        void setFailureResult(Outcome<Grant>? authResult)
         {
             Message = authResult?.Message;
         }
@@ -392,7 +392,7 @@ namespace authClient.viewModels
 
         async Task initializeTokensFromCache(ITokenCache tokenCache)
         {
-            var cacheOutcome = await tokenCache.ReadAsync<AuthResult>(); 
+            var cacheOutcome = await tokenCache.ReadAsync<Grant>(); 
             if (cacheOutcome)
             {
                 Authorization = cacheOutcome.Value!;

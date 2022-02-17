@@ -25,7 +25,7 @@ namespace authClient.console
             writeToLog(await _authenticator.GetAccessTokenSilentlyAsync());
         }
 
-        void writeToLog(Outcome<AuthResult> outcome)
+        void writeToLog(Outcome<Grant> outcome)
         {
             if (!outcome)
             {

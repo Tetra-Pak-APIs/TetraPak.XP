@@ -37,7 +37,7 @@ namespace TetraPak.XP.Auth
         internal static event EventHandler<AuthResultEventArgs>? Authorized;
 
         /// <inheritdoc />
-        public override async Task<Outcome<AuthResult>> GetAccessTokenAsync(
+        public override async Task<Outcome<Grant>> GetAccessTokenAsync(
             bool allowCached = true, 
             CancellationTokenSource? cancellationTokenSource = null)
         {
@@ -63,12 +63,12 @@ namespace TetraPak.XP.Auth
             {
                 LogError(ex, ex.Message);
                 LogDebug("---- END - Tetra Pak Code Grant Flow ----");
-                return Outcome<AuthResult>.Fail("Could not acquire an access token", ex);
+                return Outcome<Grant>.Fail("Could not acquire an access token", ex);
             }
         }
 
         /// <inheritdoc />
-        public override async Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync(
+        public override async Task<Outcome<Grant>> GetAccessTokenSilentlyAsync(
             CancellationTokenSource? cancellationTokenSource = null)
         {
             if (!IsCaching)
@@ -97,7 +97,7 @@ namespace TetraPak.XP.Auth
 
             // access token has expired, try renew from refresh token if available ...
             LogDebug("---- START - Tetra Pak Refresh Token Flow ----");
-            Outcome<AuthResult> result;
+            Outcome<Grant> result;
             try
             {
                 result = await acquireRenewedAccessTokenAsync(cachedOutcome.Value.RefreshToken!);
@@ -105,7 +105,7 @@ namespace TetraPak.XP.Auth
             catch (Exception ex)
             {
                 LogError(ex, ex.Message);
-                return Outcome<AuthResult>.Fail("Could not renew access token", ex);
+                return Outcome<Grant>.Fail("Could not renew access token", ex);
             }
             finally
             {
@@ -115,7 +115,7 @@ namespace TetraPak.XP.Auth
             return result ? result : await GetAccessTokenAsync();
         }
 
-        Outcome<AuthResult> onAuthorizationDone(Outcome<AuthResult> authResult)
+        Outcome<Grant> onAuthorizationDone(Outcome<Grant> authResult)
         {
             if (authResult)
             {
@@ -124,7 +124,7 @@ namespace TetraPak.XP.Auth
             return authResult;
         }
 
-        async Task<Outcome<AuthResult>> acquireTokenViaWebUIAsync()
+        async Task<Outcome<Grant>> acquireTokenViaWebUIAsync()
         {
             LogDebug("[GET AUTH CODE BEGIN]");
             LogDebug($"Listens for callbacks on {Config.RedirectUri} ...");
@@ -139,21 +139,21 @@ namespace TetraPak.XP.Auth
             var target = new Uri(authorizationUri);
             var outcome = await Config.Browser.GetLoopbackAsync(target, loopbackHostUri, loopbackFilter, CancellationToken.None); // todo support timeout
             if (!outcome)
-                return Outcome<AuthResult>.Fail(new AuthenticationException("Authority never returned authorization code"));
+                return Outcome<Grant>.Fail(new AuthenticationException("Authority never returned authorization code"));
 
             var callback = outcome.Value!;
             if (!callback.Query.TryGetValue("code", out var authCode))
-                return Outcome<AuthResult>.Fail(new AuthenticationException("No authorization code found in authority callback"));
+                return Outcome<Grant>.Fail(new AuthenticationException("No authorization code found in authority callback"));
             
             if (!callback.Query.TryGetValue("state", out var inState))
-                return Outcome<AuthResult>.Fail(new AuthenticationException("No state found in authority callback"));
+                return Outcome<Grant>.Fail(new AuthenticationException("No state found in authority callback"));
             
             // check the PKCE and get the access code ...
             // var authCode = callbackOutcome.Value!.TryGetQueryValue("code").Value; // todo Possible null value here
             // var inState = callbackOutcome.Value!.TryGetQueryValue("state").Value;
             LogDebug("[GET AUTH CODE END]");
             if (authState.IsUsed && inState != authState.State)
-                return Outcome<AuthResult>.Fail(
+                return Outcome<Grant>.Fail(
                     new WebException($"Returned state was invalid: \"{inState}\". Expected state: \"{authState.State}\""));
             
             LogDebug("[GET ACCESS CODE BEGIN]");
@@ -170,7 +170,7 @@ namespace TetraPak.XP.Auth
             }
         }
 
-        async Task<Outcome<AuthResult>> getAccessCode(string authCode, AuthState authState)
+        async Task<Outcome<Grant>> getAccessCode(string authCode, AuthState authState)
         {
             var body = buildTokenRequestBody(authCode, authState);
             var uri = Config.TokenIssuer.AbsoluteUri;
@@ -204,15 +204,15 @@ namespace TetraPak.XP.Auth
             {
                 var response = (HttpWebResponse)webException.Response;
                 var serverError = new HttpServerException((HttpStatusCode) (int) response.StatusCode, HttpServerException.DefaultMessage((HttpStatusCode)response.StatusCode));
-                return Outcome<AuthResult>.Fail(serverError);
+                return Outcome<Grant>.Fail(serverError);
             }
             catch (Exception ex)
             {
-                return Outcome<AuthResult>.Fail(HttpServerException.InternalServerError($"Unexpected Server error: {ex}"));
+                return Outcome<Grant>.Fail(HttpServerException.InternalServerError($"Unexpected Server error: {ex}"));
             }
         }
 
-        async Task<Outcome<AuthResult>> acquireRenewedAccessTokenAsync(string refreshToken)
+        async Task<Outcome<Grant>> acquireRenewedAccessTokenAsync(string refreshToken)
         {
             var body = makeRefreshTokenBody(refreshToken, Config.IsPkceUsed);
             var uri = Config.TokenIssuer;
@@ -243,7 +243,7 @@ namespace TetraPak.XP.Auth
             catch (Exception ex)
             {
                 LogDebug($"Failed request");
-                return Outcome<AuthResult>.Fail("Could not get a valid access token.", ex);
+                return Outcome<Grant>.Fail("Could not get a valid access token.", ex);
             }
         }
 
@@ -268,11 +268,11 @@ namespace TetraPak.XP.Auth
                 : Outcome<string>.Fail(validateOutcome.Message, validateOutcome.Exception!);
         }
 
-        async Task<Outcome<AuthResult>> buildAuthResultAsync(string responseText)
+        async Task<Outcome<Grant>> buildAuthResultAsync(string responseText)
         {
             var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(responseText);
             if (!dict.TryGetValue("access_token", out var accessToken))
-                return Outcome<AuthResult>.Fail(new Exception("Could not get a valid access token."));
+                return Outcome<Grant>.Fail(new Exception("Could not get a valid access token."));
 
             var tokens = new List<TokenInfo>();
             var expires = dict.TryGetValue("expires_in", out var exp) && int.TryParse(exp, out var seconds)
@@ -287,21 +287,21 @@ namespace TetraPak.XP.Auth
             }
 
             if (!dict.TryGetValue("id_token", out var idToken)) 
-                return await cacheAuthResultAsync(Outcome<AuthResult>.Success(new AuthResult(Config, tokens.ToArray())));
+                return await cacheAuthResultAsync(Outcome<Grant>.Success(new Grant(Config, tokens.ToArray())));
             
             tokens.Add(new TokenInfo(idToken, TokenRole.IdToken, null, validateIdTokenAsync));
-            return await cacheAuthResultAsync(Outcome<AuthResult>.Success(new AuthResult(Config, tokens.ToArray())));
+            return await cacheAuthResultAsync(Outcome<Grant>.Success(new Grant(Config, tokens.ToArray())));
         }
         
-        async Task<Outcome<AuthResult>> tryGetCachedAuthResultAsync()
+        async Task<Outcome<Grant>> tryGetCachedAuthResultAsync()
         {
             if (!IsCaching)
-                return Outcome<AuthResult>.Fail(new Exception("Caching is turned off"));
+                return Outcome<Grant>.Fail(new Exception("Caching is turned off"));
 
             return await Config.GetCachedTokenAsync(CacheKey);
         }
 
-        async Task<Outcome<AuthResult>> cacheAuthResultAsync(Outcome<AuthResult> authResult)
+        async Task<Outcome<Grant>> cacheAuthResultAsync(Outcome<Grant> authResult)
         {
             if (!IsCaching)
                 return authResult;
@@ -374,9 +374,9 @@ namespace TetraPak.XP.Auth
         /// <summary>
         ///   Gets the authorization result.
         /// </summary>
-        public Outcome<AuthResult> Result { get; }
+        public Outcome<Grant> Result { get; }
 
-        internal AuthResultEventArgs(Outcome<AuthResult> result)
+        internal AuthResultEventArgs(Outcome<Grant> result)
         {
             Result = result;
         }
