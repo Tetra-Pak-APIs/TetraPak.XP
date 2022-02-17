@@ -21,19 +21,13 @@ namespace TetraPak.XP.Auth.ClientCredentials
     /// </summary>
     public sealed class TetraPakClientCredentialsGrantService : GrantServiceBase, IClientCredentialsGrantService
     {
-        // readonly ITetraPakConfiguration _tpConfig; obsolete
-        // readonly IHttpClientProvider _httpClientProvider;
-        // readonly ITimeLimitedRepositories? _cache;
-        // readonly IHttpContextAccessor? _httpContextAccessor;
-        // readonly ILog? _log;
-
         const string CacheRepository = CacheRepositories.Tokens.ClientCredentials;
 
         // HttpContext? HttpContext => HttpContextAccessor?.HttpContext; obsolete
 
         /// <inheritdoc />
         public async Task<Outcome<ClientCredentialsResponse>> AcquireTokenAsync(
-            CancellationToken? cancellationToken = null,
+            CancellationTokenSource? cancellationTokenSource = null,
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 
             bool forceAuthorization = false)
@@ -41,7 +35,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
             // todo Consider breaking up this method (it's too big) 
             try
             {
-                var ct = cancellationToken ?? CancellationToken.None;
+                var ct = cancellationTokenSource?.Token ?? CancellationToken.None;
                 if (clientCredentials is null)
                 {
                     var ccOutcome = await getCredentialsAsync();
@@ -126,6 +120,11 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 }
 
                 return outcome;
+            }
+            catch (TaskCanceledException ex)
+            {
+                Log.Warning(ex.Message);
+                return Outcome<ClientCredentialsResponse>.Fail(ex);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace TetraPak.XP
 {
@@ -82,6 +83,22 @@ namespace TetraPak.XP
         ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
         /// </returns>
         public new static Outcome<T> Fail(Exception exception) => new(false, null!, exception, default!);
+        
+        /// <summary>
+        ///   Creates and returns a 'Failed' <see cref="Outcome{T}"/> due to a operation being canceled.
+        ///   The method simple invokes <see cref="Fail(System.Exception)"/> with a
+        ///   <see cref="TaskCanceledException"/>.
+        /// </summary>
+        /// <param name="message">
+        ///   (optional; default=<see cref="Outcome.DefaultCanceledMessage"/>)<br/>
+        ///   A message to be used with the <see cref="TaskCanceledException"/>.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Outcome{T}"/> that represents a <c>true</c> value when
+        ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
+        /// </returns>
+        public new static Outcome<T> Canceled(string? message = null) 
+            => Fail(new TaskCanceledException(message ?? DefaultCanceledMessage));
         
         public new Outcome<T> WithValue(string key, object? value, bool overwrite = false)
         {

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
-using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.Caching;
 using TetraPak.XP.DependencyInjection;
@@ -38,7 +37,9 @@ namespace TetraPak.XP.Auth
         internal static event EventHandler<AuthResultEventArgs>? Authorized;
 
         /// <inheritdoc />
-        public override async Task<Outcome<AuthResult>> GetAccessTokenAsync(bool allowCached = true)
+        public override async Task<Outcome<AuthResult>> GetAccessTokenAsync(
+            bool allowCached = true, 
+            CancellationTokenSource? cancellationTokenSource = null)
         {
             if (allowCached)
             {
@@ -56,7 +57,7 @@ namespace TetraPak.XP.Auth
             try
             {
                 LogDebug("---- START - Tetra Pak Code Grant Flow ----");
-                return await acquireTokenAsyncUsingNativeWebUI();
+                return await acquireTokenViaWebUIAsync();
             }
             catch (Exception ex)
             {
@@ -67,14 +68,16 @@ namespace TetraPak.XP.Auth
         }
 
         /// <inheritdoc />
-        public override async Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync()
+        public override async Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync(
+            CancellationTokenSource? cancellationTokenSource = null)
         {
             if (!IsCaching)
-                return await GetAccessTokenAsync();
+                return await GetAccessTokenAsync(false, cancellationTokenSource);
 
-            var cachedOutcome = await Config.GetCachedTokenAsync(CacheKey); 
+            var ct = cancellationTokenSource?.Token ?? CancellationToken.None;
+            var cachedOutcome = await Config.GetCachedTokenAsync(CacheKey);
             if (!cachedOutcome)
-                return await GetAccessTokenAsync();
+                return await GetAccessTokenAsync(false, cancellationTokenSource);
 
             if (cachedOutcome.Value!.AccessToken is {})
             {
@@ -121,26 +124,10 @@ namespace TetraPak.XP.Auth
             return authResult;
         }
 
-        async Task<Outcome<AuthResult>> acquireTokenAsyncUsingNativeWebUI()
+        async Task<Outcome<AuthResult>> acquireTokenViaWebUIAsync()
         {
             LogDebug("[GET AUTH CODE BEGIN]");
             LogDebug($"Listens for callbacks on {Config.RedirectUri} ...");
-            
-            // var authAppDelegate = Authorization.GetAuthorizingAppDelegate(); obsolete
-            // if (authAppDelegate is null)
-            // {
-            //     LogDebug("Authorization fails: Could not get an authorization app delegate");
-            //     return Outcome<AuthResult>.Fail(
-            //         new InvalidOperationException($"Cannot obtain a {typeof(IAuthorizingAppDelegate)}."));
-            // }
-            
-            // if (XpServices.GetRequired<IAuthCallbackHandler>() is not TetraPakAuthCallbackHandler tpAuthResultHandler)
-            // {
-            //     var error = new Exception("Unexpected error! Callback handler was of unexpected type"); 
-            //     LogError(error, null!);
-            //     return Outcome<AuthResult>.Fail(error);
-            // }
-            // tpAuthResultHandler.NotifyUriCallback(onUriCallback);
             
             // make the call for auth code and await callback from redirect ...
             var authState = new AuthState(Config.IsStateUsed, Config.IsPkceUsed, Config.ClientId);
@@ -160,11 +147,6 @@ namespace TetraPak.XP.Auth
             
             if (!callback.Query.TryGetValue("state", out var inState))
                 return Outcome<AuthResult>.Fail(new AuthenticationException("No state found in authority callback"));
-            
-            // await authAppDelegate.OpenInDefaultBrowserAsync(new Uri(authorizationUri), Config.RedirectUri); obsolete
-            // var callbackOutcome = await _authCodeTcs.Task.ConfigureAwait(false);
-            
-            // LogDebug($"Callback notified with value: {callbackOutcome.Value}");
             
             // check the PKCE and get the access code ...
             // var authCode = callbackOutcome.Value!.TryGetQueryValue("code").Value; // todo Possible null value here
@@ -186,17 +168,6 @@ namespace TetraPak.XP.Auth
 
                 return Task.FromResult(LoopbackFilterOutcome.Accept);
             }
-            
-            // void onUriCallback(Uri uri, out bool isHandled) obsolete
-            // {
-            //     if (!uri.Scheme.Equals(Config.RedirectUri!.Scheme) || !uri.Authority.Equals(Config.RedirectUri.Authority))
-            //     {
-            //         isHandled = false;
-            //         return;
-            //     }
-            //     isHandled = true;
-            //     _authCodeTcs.SetResult(Outcome<Uri>.Success(uri));
-            // }
         }
 
         async Task<Outcome<AuthResult>> getAccessCode(string authCode, AuthState authState)

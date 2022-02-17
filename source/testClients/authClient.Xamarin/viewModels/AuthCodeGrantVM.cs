@@ -341,7 +341,6 @@ namespace authClient.viewModels
             TokenIssuerUrl.Value = config.TokenIssuer?.AbsoluteUri!;
             RedirectUrl.Value = config.RedirectUri?.AbsoluteUri!;
             ClientId.Value = config.ClientId;
-            //ClientSecret.Value = config.ClientSecret; obsolete (we no longer support client secret in native clients)
             Scope = buildScopeFrom(config);
             IsStateUsed = config.IsStateUsed;
             IsPkceUsed = config.IsPkceUsed;
@@ -399,12 +398,6 @@ namespace authClient.viewModels
                 Authorization = cacheOutcome.Value!;
                 setTokensResult(cacheOutcome);
             }
-            // var authResult = await tokenCache. TryGetAsync();
-            // if (authResult)
-            // {
-            //     Authorization = authResult.Value;
-            //     setTokensResult(authResult);
-            // }
         }
 
         public AuthCodeGrantVM(AuthApplication application, IServiceProvider services) 

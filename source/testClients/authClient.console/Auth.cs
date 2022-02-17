@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
@@ -20,28 +21,39 @@ namespace authClient.console
     {
         readonly IAuthenticator _authenticator;
         readonly ILog? _log;
+        
 
-        public async Task NewTokenAsync(GrantType grantType)
+        public void NewTokenAsync(GrantType grantType, CancellationTokenSource cancellationTokenSource)
         {
-            switch (grantType)
+            Task.Run(async () =>
             {
-                case GrantType.CC:
-                    var cc = XpServices.GetRequired<IClientCredentialsGrantService>();
-                    writeToLog(await cc.AcquireTokenAsync());
-                    break;
+                switch (grantType)
+                {
+                    case GrantType.CC:
+                        var cc = XpServices.GetRequired<IClientCredentialsGrantService>();
+                        Console.WriteLine();
+                        Console.WriteLine("Client Credentials grant requested ...");
+                        writeToLog(await cc.AcquireTokenAsync(cancellationTokenSource));
+                        break;
                 
-                case GrantType.DC:
-                    var dc = XpServices.GetRequired<IDeviceCodeGrantService>();
-                    writeToLog(await dc.AcquireTokenAsync(askUserToVerifyCode));
-                    break;
+                    case GrantType.DC:
+                        var dc = XpServices.GetRequired<IDeviceCodeGrantService>();
+                        Console.WriteLine();
+                        Console.WriteLine("Device Code grant requested ...");
+                        writeToLog(await dc.AcquireTokenAsync(askUserToVerifyCode, cancellationTokenSource));
+                        break;
                 
-                case GrantType.OIDC:
-                    writeToLog(await _authenticator.GetAccessTokenAsync(false)); // todo Rewrite OIDC to be a service instead (like with CC, above)
-                    break;
+                    case GrantType.OIDC:
+                        Console.WriteLine();
+                        Console.WriteLine("OIDC grant requested ...");
+                        writeToLog(await _authenticator.GetAccessTokenAsync(false, cancellationTokenSource)); // todo Rewrite OIDC to be a service instead (like with CC, above)
+                        break;
                 
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(grantType), grantType, null);
-            }
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(grantType), grantType, null);
+                }
+            });
+            
         }
 
         static void askUserToVerifyCode(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
@@ -81,6 +93,9 @@ namespace authClient.console
         {
             if (!outcome)
             {
+                if (outcome.Exception is TaskCanceledException)
+                    return; // already logged as an ERROR
+                
                 if (!string.IsNullOrWhiteSpace(outcome.Message))
                 {
                     _log.Warning(outcome.Message);

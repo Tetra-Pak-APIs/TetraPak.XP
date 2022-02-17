@@ -25,6 +25,7 @@ namespace TetraPak.XP.iOS
 
         public Task OpenInDefaultBrowserAsync(Uri uri) => OpenInDefaultBrowserAsync(uri, null);
 
+        // todo Consider scrapping iOS browser implementation and just use Xamarin.Essentials `Browser` api (with BrowserLaunchMode.SystemPreferred) instead   
         public Task OpenInDefaultBrowserAsync(Uri uri, Uri redirectUri)
         {
             if (redirectUri != null)

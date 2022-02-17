@@ -14,9 +14,9 @@ namespace TetraPak.XP.Auth.ClientCredentials
         /// <summary>
         ///   Requests a token using the OAuth Client Credentials grant.   
         /// </summary>
-        /// <param name="cancellationToken">
+        /// <param name="cancellationTokenSource">
         ///   (optional)<br/>
-        ///   A cancellation token.
+        ///   Allows canceling the grant request.
         /// </param>
         /// <param name="clientCredentials">
         ///   (optional)<br/>
@@ -36,7 +36,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
         ///   when successful; otherwise an <see cref="Outcome"/>.
         /// </returns>
         Task<Outcome<ClientCredentialsResponse>> AcquireTokenAsync(
-            CancellationToken? cancellationToken = null,
+            CancellationTokenSource? cancellationTokenSource = null,
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 
             bool forceAuthorization = false);

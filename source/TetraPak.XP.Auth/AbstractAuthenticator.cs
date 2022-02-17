@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Auth
@@ -47,10 +47,13 @@ namespace TetraPak.XP.Auth
         public bool IsCaching => Config.IsCaching;
         
         /// <inheritdoc />
-        public abstract Task<Outcome<AuthResult>> GetAccessTokenAsync(bool allowCached = true);
+        public abstract Task<Outcome<AuthResult>> GetAccessTokenAsync(
+            bool allowCached = true, 
+            CancellationTokenSource? cancellationTokenSource = null);
         
         /// <inheritdoc />
-        public abstract Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync();
+        public abstract Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync(
+            CancellationTokenSource? cancellationTokenSource = null);
 
         /// <summary>
         ///   Initializes the authenticator.

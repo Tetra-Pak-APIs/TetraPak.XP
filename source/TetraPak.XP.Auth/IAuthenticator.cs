@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace TetraPak.XP.Auth
 {
@@ -15,20 +16,26 @@ namespace TetraPak.XP.Auth
         ///     Can be used to override global cache setting
         ///     value for this particular operation.
         /// </param>
+        /// <param name="cancellationTokenSource">
+        ///   Allows canceling the grant request.
+        /// </param>
         /// <returns>
         ///   A <seealso cref="Outcome{T}"/> indicating success while also carrying
         ///   details for the authentication result, including access token.
         /// </returns>
-        Task<Outcome<AuthResult>> GetAccessTokenAsync(bool allowCached = true);
+        Task<Outcome<AuthResult>> GetAccessTokenAsync(bool allowCached = true, CancellationTokenSource? cancellationTokenSource = null);
 
         /// <summary>
         ///   Attempts to acquire an access token "silently", automatically
         ///   using any persisted refresh token in the process.
         /// </summary>
+        /// <param name="cancellationTokenSource">
+        ///   Allows canceling the grant request.
+        /// </param>
         /// <returns>
         ///   A <seealso cref="Outcome{T}"/> indicating success while also carrying
         ///   details for the authentication result, including access token.
         /// </returns>
-        Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync();
+        Task<Outcome<AuthResult>> GetAccessTokenSilentlyAsync(CancellationTokenSource? cancellationTokenSource = null);
     }
 }

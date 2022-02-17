@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace TetraPak.XP
 {
@@ -12,6 +13,8 @@ namespace TetraPak.XP
     {
         readonly string? _message;
         
+        public static string DefaultCanceledMessage { get; set; } = "Operation was canceled";
+
         /// <summary>
         ///   The internal dictionary of arbitrary data. 
         /// </summary>
@@ -128,6 +131,21 @@ namespace TetraPak.XP
         {
             return new Outcome(false, null!, exception);
         }
+
+        /// <summary>
+        ///   Creates and returns a 'Failed' <see cref="Outcome"/> due to a operation being canceled.
+        ///   The method simple invokes <see cref="Fail(System.Exception)"/> with a
+        ///   <see cref="TaskCanceledException"/>.
+        /// </summary>
+        /// <param name="message">
+        ///   (optional; default=<see cref="DefaultCanceledMessage"/>)<br/>
+        ///   A message to be used with the <see cref="TaskCanceledException"/>.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="Outcome"/> that represents a <c>true</c> value when
+        ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
+        /// </returns>
+        public static Outcome Canceled(string? message = null) => Fail(new TaskCanceledException(message ?? DefaultCanceledMessage));
 
         /// <summary>
         ///   Overrides base implementation to reflect evaluated state ("success" / "fail").

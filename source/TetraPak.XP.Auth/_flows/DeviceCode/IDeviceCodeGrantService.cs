@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Auth.ClientCredentials;
 
 namespace TetraPak.XP.Auth.DeviceCode
 {
@@ -15,9 +14,12 @@ namespace TetraPak.XP.Auth.DeviceCode
         /// <summary>
         ///   Requests a token using the OAuth Device Code grant.   
         /// </summary>
+        /// <param name="verificationUriHandler">
+        ///   A handler to be called back with the requested device code and verification URL.
+        /// </param>
         /// <param name="cancellationTokenSource">
         ///   (optional)<br/>
-        ///   Allows cancelling the request.
+        ///   Allows canceling the grant request.
         /// </param>
         /// <param name="clientCredentials">
         ///   (optional)<br/>

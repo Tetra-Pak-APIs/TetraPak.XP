@@ -41,23 +41,23 @@ namespace TetraPak.XP.Auth.DeviceCode
                     clientCredentials = ccOutcome.Value!;
                 }
 
-                var cachedOutcome = forceAuthorization 
-                        ? Outcome<DeviceCodeResponse>.Fail(new Exception("nisse")) // nisse Write proper error message
-                        : await GetCachedResponse<DeviceCodeResponse>(CacheRepository, clientCredentials);
+                var cachedOutcome = forceAuthorization
+                    ? Outcome<DeviceCodeResponse>.Fail(new Exception("nisse")) // nisse Write proper error message
+                    : await GetCachedResponse<DeviceCodeResponse>(CacheRepository, clientCredentials);
                 if (cachedOutcome)
                 {
                     var cachedResponse = cachedOutcome.Value!;
                     if (cachedResponse.ExpiresIn.Subtract(TimeSpan.FromSeconds(2)) > TimeSpan.Zero)
                         return cachedOutcome;
                 }
-                
+
                 var clientOutcome = await GetHttpClientAsync();
                 if (!clientOutcome)
                     return Outcome<DeviceCodeResponse>.Fail(
                         new HttpServerConfigurationException(
-                            "Client credentials service failed to obtain a HTTP client (see inner exception)", 
+                            "Client credentials service failed to obtain a HTTP client (see inner exception)",
                             clientOutcome.Exception));
-                
+
                 using var client = clientOutcome.Value!;
                 var basicAuthCredentials = ValidateBasicAuthCredentials(clientCredentials);
                 client.DefaultRequestHeaders.Authorization = basicAuthCredentials.ToAuthenticationHeaderValue();
@@ -70,7 +70,7 @@ namespace TetraPak.XP.Auth.DeviceCode
                     formsValues.Add("scope", scope.Items.ConcatCollection(" "));
                 }
 
-                var keyValues = formsValues.Select(kvp 
+                var keyValues = formsValues.Select(kvp
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
                 var deviceCodeIssuerUrl = await TetraPakConfig.GetDeviceCodeIssuerUrlAsync();
@@ -79,25 +79,30 @@ namespace TetraPak.XP.Auth.DeviceCode
                     Content = new FormUrlEncodedContent(keyValues)
                 };
                 var sb = Log?.IsEnabled(LogRank.Trace) ?? false
-                    ? await (await request.ToGenericHttpRequestAsync(contentAsString:true)).ToStringBuilderAsync(
-                        new StringBuilder(), 
+                    ? await (await request.ToGenericHttpRequestAsync(contentAsString: true)).ToStringBuilderAsync(
+                        new StringBuilder(),
                         () => TraceHttpRequestOptions.Default(messageId)
                             .WithInitiator(this, HttpDirection.Out)
                             .WithDefaultHeaders(client.DefaultRequestHeaders))
                     : null;
 
                 var response = await client.SendAsync(request, cts.Token);
-                
+
                 if (sb is { })
                 {
                     sb.AppendLine();
+                    if (cts.IsCancellationRequested)
+                    {
+                        sb.AppendLine("<<< OPERATION WAS CANCELED >>>");
+                    }
+
                     await (await response.ToGenericHttpResponseAsync()).ToStringBuilderAsync(sb);
                     Log.Trace(sb.ToString(), messageId);
                 }
-                
+
                 if (!response.IsSuccessStatusCode)
-                    return loggedFailedOutcome(response, false);
-                
+                    return loggedFailedOutcome(response, false, cts.Token);
+
 #if NET5_0_OR_GREATER
                 var stream = await response.Content.ReadAsStreamAsync(cts.Token);
 #else
@@ -117,16 +122,24 @@ namespace TetraPak.XP.Auth.DeviceCode
                 while (DateTime.Now < timeout && !cts.Token.IsCancellationRequested)
                 {
                     await Task.Delay(interval, cts.Token);
+                    if (cts.IsCancellationRequested)
+                        return Outcome<DeviceCodeResponse>.Fail(new Exception());
+
                     var codeVerificationOutcome = await pollCodeVerificationAsync(codeResponseBody);
                     if (codeVerificationOutcome.Value?.IsPendingVerification ?? false)
                         continue;
-                    
+
                     return codeVerificationOutcome;
                 }
 
                 return cts.Token.IsCancellationRequested
                     ? Outcome<DeviceCodeResponse>.Fail(new Exception("Device Code Grant request was cancelled"))
                     : Outcome<DeviceCodeResponse>.Fail(new Exception("Device Code Grant request timed out"));
+            }
+            catch (TaskCanceledException ex)
+            {
+                Log.Warning(ex.Message);
+                return Outcome<DeviceCodeResponse>.Fail(ex);
             }
             catch (Exception ex)
             {
@@ -180,12 +193,16 @@ namespace TetraPak.XP.Auth.DeviceCode
                     if (sb is { })
                     {
                         sb.AppendLine();
+                        if (cts.IsCancellationRequested)
+                        {
+                            sb.AppendLine("<<< OPERATION WAS CANCELED >>>");
+                        }
                         await (await response.ToGenericHttpResponseAsync(contentAsString:true)).ToStringBuilderAsync(sb);
                         Log.Trace(sb.ToString(), messageId);
                     }
 
                     if (!response.IsSuccessStatusCode)
-                        return loggedFailedOutcome(response, await isPendingUserCodeAsync(response, cts.Token));
+                        return loggedFailedOutcome(response, await isPendingUserCodeAsync(response, cts.Token), cts.Token);
 
 #if NET5_0_OR_GREATER
                     await using var stream = await response.Content.ReadAsStreamAsync(cts.Token);
@@ -212,8 +229,14 @@ namespace TetraPak.XP.Auth.DeviceCode
                 }
             }
             
-            Outcome<DeviceCodeResponse> loggedFailedOutcome(HttpResponseMessage response, bool isPendingUserCodeAsync)
+            Outcome<DeviceCodeResponse> loggedFailedOutcome(
+                HttpResponseMessage response,
+                bool isPendingUserCodeAsync, 
+                CancellationToken cancellationToken)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    return Outcome<DeviceCodeResponse>.Canceled();
+                    
                 var outcome = Outcome<DeviceCodeResponse>.Fail(
                     new HttpServerException(response), 
                     DeviceCodeResponse.ForPendingCodeVerification(isPendingUserCodeAsync)); 

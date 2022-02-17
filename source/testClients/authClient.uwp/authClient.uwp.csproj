@@ -147,7 +147,7 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.10" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TetraPak.Auth.Xamarin.UWP\TetraPak.Auth.Xamarin.UWP.csproj">
+    <ProjectReference Include="..\..\TetraPak.XP.UWP\TetraPak.XP.UWP.csproj">
       <Project>{beb06ab9-03a8-4815-9717-004b801d8449}</Project>
       <Name>TetraPak.Auth.Xamarin.UWP</Name>
     </ProjectReference>

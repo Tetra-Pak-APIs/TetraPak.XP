@@ -64,6 +64,7 @@ namespace TetraPak.XP.Android
         Task IAuthorizingAppDelegate.OpenInDefaultBrowserAsync(Uri uri)
             => ((IAuthorizingAppDelegate)this).OpenInDefaultBrowserAsync(uri, null!);
 
+        // todo Consider scrapping Android browser implementation and just use Xamarin.Essentials `Browser` api (with BrowserLaunchMode.SystemPreferred) instead   
         Task IAuthorizingAppDelegate.OpenInDefaultBrowserAsync(Uri uri, Uri redirectUri)
         {
             if (redirectUri != null)
@@ -83,7 +84,7 @@ namespace TetraPak.XP.Android
             }
             catch (ActivityNotFoundException)
             {
-                browser.SetPackage(null);   
+                browser.SetPackage(null);
                 AppActivity.StartActivity(Intent.CreateChooser(browser, "Select Browser"));
             }
             return Task.CompletedTask;
