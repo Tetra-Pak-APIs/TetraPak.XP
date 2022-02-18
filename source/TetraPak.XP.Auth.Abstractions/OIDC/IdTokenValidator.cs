@@ -2,10 +2,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Tokens;
-using TetraPak.XP.Auth.Abstractions;
+using JsonWebKeySet = TetraPak.XP.Auth.Abstractions.OIDC.JsonWebKeySet;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     /// <summary>
     ///   Used to validate a JWT (id) token.
@@ -17,23 +16,23 @@ namespace TetraPak.XP.Auth.OIDC
         /// </summary>
         public DiscoveryPolicy DiscoveryPolicy { get; set; }
         
-        public async Task<Outcome<ClaimsPrincipal>> ValidateAsync(ActorToken idToken, JwtTokenValidationOptions options = null)
+        public async Task<Outcome<ClaimsPrincipal>> ValidateAsync(ActorToken idToken, JwtTokenValidationOptions? options = null)
         {
             try
             {
                 var downloadOutcome = await DiscoveryDocument.DownloadAsync(idToken.StringValue);
                 if (!downloadOutcome)
-                    return Outcome<ClaimsPrincipal>.Fail(downloadOutcome.Message, downloadOutcome.Exception);
+                    return Outcome<ClaimsPrincipal>.Fail(downloadOutcome.Exception!);
 
                 var jwksOutcome = await JsonWebKeySet.DownloadAsync(downloadOutcome.Value!.JwksUri);
                 if (!jwksOutcome)
-                    return Outcome<ClaimsPrincipal>.Fail(jwksOutcome.Message, jwksOutcome.Exception);
+                    return Outcome<ClaimsPrincipal>.Fail(jwksOutcome.Exception!);
 
                 options ??= new JwtTokenValidationOptions();
                 var parameters = options.ToTokenValidationParameters(
                     new JwtSecurityToken(idToken), 
                     downloadOutcome.Value, 
-                    jwksOutcome.Value);
+                    jwksOutcome.Value!);
                 var handler = new JwtSecurityTokenHandler();
                 handler.InboundClaimTypeMap.Clear();
                 var user = handler.ValidateToken(idToken, parameters, out _);
@@ -41,15 +40,15 @@ namespace TetraPak.XP.Auth.OIDC
             }
             catch (Exception ex)
             {
-                return Outcome<ClaimsPrincipal>.Fail(ex.Message, ex);
+                return Outcome<ClaimsPrincipal>.Fail(ex);
             }
         }
 
-        DiscoveryEndpoint getDiscoveryEndpoint(SecurityToken jwtSecurityToken)
-        {
-            var disco = DiscoveryEndpoint.ParseUrl(jwtSecurityToken.Issuer);
-            return validate(disco, jwtSecurityToken.Issuer);
-        }
+        // DiscoveryEndpoint getDiscoveryEndpoint(SecurityToken jwtSecurityToken) obsolete
+        // {
+        //     var disco = DiscoveryEndpoint.ParseUrl(jwtSecurityToken.Issuer);
+        //     return validate(disco, jwtSecurityToken.Issuer);
+        // }
 
         DiscoveryEndpoint validate(DiscoveryEndpoint discoveryEndpoint, string issuer)
         {

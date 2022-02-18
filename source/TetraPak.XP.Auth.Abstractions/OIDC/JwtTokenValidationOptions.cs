@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.IdentityModel.Tokens;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     public class JwtTokenValidationOptions
     {

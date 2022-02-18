@@ -13,6 +13,11 @@
             public const string Identity = "IdTokens";
 
             /// <summary>
+            ///   Identifies the cache repository used for auth code issued tokens. 
+            /// </summary>
+            public const string AuthCode = "AuthCodeTokens";
+
+            /// <summary>
             ///   Identifies the cache repository used for tokens acquired from token exchange grants. 
             /// </summary>
             public const string TokenExchange = "TxTokens";

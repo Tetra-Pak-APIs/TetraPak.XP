@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 
@@ -47,7 +48,7 @@ namespace TetraPak.XP.Auth
         ///   Adds one or more scope identifiers to the <see cref="AuthConfig.Scope"/> value
         ///   and then returns the <see cref="AuthConfig"/>.
         /// </summary>
-        public static AuthConfig WithScope(this AuthConfig self, AuthScope scope)
+        public static AuthConfig WithScope(this AuthConfig self, GrantScope scope)
         {
             self.Scope = scope;
             return self;
@@ -76,7 +77,7 @@ namespace TetraPak.XP.Auth
                 if (!list.Any(i => i.Equals(scope, StringComparison.InvariantCultureIgnoreCase)))
                     list.Add(scope);
             }
-            self.Scope = new AuthScope(list.ToArray());
+            self.Scope = new GrantScope(list.ToArray());
             return self;
         }
 
@@ -85,7 +86,7 @@ namespace TetraPak.XP.Auth
         ///   Adds one or more scope types (not already supported) to the <see cref="AuthConfig.Scope"/> value
         ///   and then returns the <see cref="AuthConfig"/>.
         /// </summary>
-        public static AuthConfig AddScope(this AuthConfig self, AuthScope scope) => self.AddScope(scope.Items);
+        public static AuthConfig AddScope(this AuthConfig self, GrantScope scope) => self.AddScope(scope.Items);
 
         /// <summary>
         ///   (fluent api)<br/>
@@ -102,7 +103,7 @@ namespace TetraPak.XP.Auth
                     ((List<string>)list).RemoveAt(index);
             }
 
-            return self.WithScope(new AuthScope(list.ToArray()));
+            return self.WithScope(new GrantScope(list.ToArray()));
         }
 
         /// <summary>
@@ -110,7 +111,7 @@ namespace TetraPak.XP.Auth
         ///   Removes one or more scope types from the <see cref="AuthConfig.Scope"/> value
         ///   and then returns the <see cref="AuthConfig"/>.
         /// </summary>
-        public static AuthConfig RemoveScope(this AuthConfig self, AuthScope scope) => self.RemoveScope(scope.Items);
+        public static AuthConfig RemoveScope(this AuthConfig self, GrantScope scope) => self.RemoveScope(scope.Items);
 
         /// <summary>
         ///   (fluent api)<br/>

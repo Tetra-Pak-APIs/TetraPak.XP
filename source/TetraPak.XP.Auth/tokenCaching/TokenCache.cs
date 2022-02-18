@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Caching;
@@ -26,13 +27,15 @@ namespace TetraPak.XP.Auth
             DateTime? spawnTimeUtc = null)
         {
             key = ensureTokensSubRepository(key);
+            repository ??= DefaultTokenCacheRepository;
             return _secureCache.CreateAsync(value, key, repository, customLifeSpan, spawnTimeUtc);
         }
 
-        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repositoryName)
+        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repository, CancellationToken? cancellationToken = null)
         {
             key = ensureTokensSubRepository(key);
-            return _secureCache.ReadAsync<T>(key, repositoryName);
+            repository ??= DefaultTokenCacheRepository;
+            return _secureCache.ReadAsync<T>(key, repository, cancellationToken);
         }
 
         public override Task UpdateAsync(
@@ -70,7 +73,7 @@ namespace TetraPak.XP.Auth
                 0 => DefaultTokenCacheRepository,
                 1 => path == DefaultTokenCacheRepository ? key : new DynamicPath(DefaultTokenCacheRepository, key),
                 _ => path[0] != DefaultTokenCacheRepository
-                    ? new DynamicPath(path.Items!.WithInserted(0, DefaultTokenCacheRepository).ToArray())
+                    ? new DynamicPath(path.Items.WithInserted(0, DefaultTokenCacheRepository).ToArray())
                     : key
             };
         }

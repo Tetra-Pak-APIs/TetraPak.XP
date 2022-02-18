@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.Auth.AuthCode
 {
@@ -14,26 +14,13 @@ namespace TetraPak.XP.Auth.AuthCode
         /// <summary>
         ///   Requests a token using the OAuth Device Code grant.   
         /// </summary>
-        /// <param name="cancellationTokenSource">
-        ///   (optional)<br/>
-        ///   Allows canceling the grant request.
-        /// </param>
-        /// <param name="scope">
-        ///   (optional)<br/>
-        ///   Scope to be requested for the authorization.
-        /// </param>
-        /// <param name="forceAuthorization">
-        ///   (optional; default=<c>false</c>)<br/>
-        ///   Specifies whether to force a new client credentials authorization
-        ///   (overriding/replacing any cached authorization). 
+        /// <param name="options">
+        ///   Specifies the details for how to perform the grant request.
         /// </param>
         /// <returns>
         ///   An <see cref="Exception"/> instance indicating success/failure, and the requested token
         ///   when successful; otherwise an <see cref="Outcome"/>.
         /// </returns>
-        Task<Outcome<Grant>> AcquireTokenAsync(
-            CancellationTokenSource? cancellationTokenSource = null,
-            MultiStringValue? scope = null, 
-            bool forceAuthorization = false);
+        Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options);
     }
 }

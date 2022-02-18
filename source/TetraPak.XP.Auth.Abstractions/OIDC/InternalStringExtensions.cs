@@ -1,6 +1,6 @@
 ﻿using TetraPak.Auth.Xamarin.common;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     static class InternalStringExtensions
     {

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;

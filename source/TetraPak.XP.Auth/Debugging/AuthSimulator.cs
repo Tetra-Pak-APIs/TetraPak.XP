@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 
 namespace TetraPak.XP.Auth.Debugging
@@ -52,7 +53,7 @@ namespace TetraPak.XP.Auth.Debugging
             // return await config.CacheAsync(new AuthResult(null!, null!, accessToken, refreshToken, idToken), cacheKey);
         }
 
-        public static async Task<Outcome<Grant>> TryGetSimulatedRenewedAccessTokenAsync(string refreshToken, AuthConfig config, string cacheKey)
+        public static async Task<Outcome<Grant>> TryGetSimulatedRenewedAccessTokenAsync(string refreshToken, IServiceAuthConfig config, string cacheKey)
         {
             throw new NotImplementedException(); // nisse
             // var canBeRefreshed = await config.TryGetFromRefreshTokenAsync(refreshToken); 

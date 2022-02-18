@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 
@@ -12,11 +13,27 @@ namespace TetraPak.XP.Auth
         string? _authDomain;
         string? _tokenIssuerUrl;
         readonly IRuntimeEnvironmentResolver _environmentResolver;
+        bool? _isCaching;
+        readonly ITimeLimitedRepositories? _cache;
+        readonly ITokenCache? _tokenCache;
         const string SectionKey = "TetraPak";
         
         public GrantType GrantType => Section?.Get<GrantType>() ?? GrantType.None;
         public string? ClientId => Section?.Get<string?>();
         public string? ClientSecret => Section?.Get<string?>();
+        
+        public bool IsCaching
+        {
+            get => _isCaching ?? Section?.Get<bool>() ?? false;
+            set => setIsCaching(value);
+        }
+        
+        async void setIsCaching(bool? value)
+        {
+            _isCaching = value;
+            if (IsCaching && ClientId is {})
+                await _tokenCache?.DeleteAsync(ClientId)!;
+        }
 
         /// <summary>
         ///   Gets the current runtime environment (DEV, TEST, PROD ...).
@@ -71,6 +88,7 @@ namespace TetraPak.XP.Auth
                     RuntimeEnvironment.Migration => "https://api-mig.tetrapak.com",
                     RuntimeEnvironment.Development => "https://api-dev.tetrapak.com",
                     RuntimeEnvironment.Sandbox => "https://api-sb.tetrapak.com",
+                    RuntimeEnvironment.Unknown => throw new NotSupportedException($"Runtime environment is unresolved"),
                     _ => throw new NotSupportedException($"Unsupported runtime environment: {Environment}")
                 };
             }
@@ -92,7 +110,7 @@ namespace TetraPak.XP.Auth
             throw new System.NotImplementedException();
         }
 
-        public Task<Outcome<MultiStringValue>> GetScopeAsync(AuthContext authContext, MultiStringValue? useDefault = null,
+        public Task<Outcome<GrantScope>> GetScopeAsync(AuthContext authContext, MultiStringValue? useDefault = null,
             CancellationToken? cancellationToken = null)
         {
             throw new System.NotImplementedException();
@@ -110,14 +128,29 @@ namespace TetraPak.XP.Auth
             throw new System.NotImplementedException();
         }
         
-        public TetraPakConfig(IConfigurationSectionExtended section, ILog? log) 
+        public TetraPakConfig(
+            IConfigurationSectionExtended section, 
+            IRuntimeEnvironmentResolver environmentResolver,
+            ITimeLimitedRepositories? cache = null,
+            ITokenCache? tokenCache = null,
+            ILog? log = null) 
         : base(section, log)
         {
+            _cache = cache;
+            _tokenCache = tokenCache;
+            _environmentResolver = environmentResolver;
         }
 
-        public TetraPakConfig(IConfiguration? configuration, IRuntimeEnvironmentResolver environmentResolver, ILog? log = null) 
+        public TetraPakConfig(
+            IConfiguration? configuration,
+            IRuntimeEnvironmentResolver environmentResolver,
+            ITimeLimitedRepositories? cache = null,
+            ITokenCache? tokenCache = null,
+            ILog? log = null) 
         : base(configuration, SectionKey, log)
         {
+            _cache = cache;
+            _tokenCache = tokenCache;
             _environmentResolver = environmentResolver;
         }
     }

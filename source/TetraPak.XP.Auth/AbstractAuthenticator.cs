@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Auth
@@ -23,7 +24,7 @@ namespace TetraPak.XP.Auth
         /// <summary>
         ///   Gets a default cache key (the client Id).
         /// </summary>
-        protected string CacheKey => $"{Config.Authority.Host}::{Config.ClientId}";
+        protected string CacheKey => $"{Config.Authority!.Host}::{Config.ClientId}";
 
         /// <summary>
         ///   Logs a message of <see cref="LogRank.Information"/>.

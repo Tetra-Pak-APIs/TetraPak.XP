@@ -26,29 +26,23 @@ namespace TetraPak.XP.Auth.ClientCredentials
         // HttpContext? HttpContext => HttpContextAccessor?.HttpContext; obsolete
 
         /// <inheritdoc />
-        public async Task<Outcome<Grant>> AcquireTokenAsync(
-            CancellationTokenSource? cancellationTokenSource = null,
-            Credentials? clientCredentials = null,
-            MultiStringValue? scope = null, 
-            bool forceAuthorization = false)
+        public async Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options)
         {
-            // todo Consider breaking up this method (it's too big) 
+            // todo Consider breaking up this method (it's too big)
+            // todo Honor the GrantOptions.Flags value (silent/forced request etc.)
+            var messageId = GetMessageId();
+            var appCredentialsOutcome = await GetAppCredentialsAsync();
+            if (!appCredentialsOutcome)
+                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+            
+            var appCredentials = appCredentialsOutcome.Value!;
+            var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
-                var ct = cancellationTokenSource?.Token ?? CancellationToken.None;
-                if (clientCredentials is null)
-                {
-                    var ccOutcome = await getCredentialsAsync();
-                    if (!ccOutcome)
-                        return Outcome<Grant>.Fail(ccOutcome.Exception!);
-
-                    clientCredentials = ccOutcome.Value!;
-                }
-
-                var basicAuthCredentials = ValidateBasicAuthCredentials(clientCredentials);
-                var cachedOutcome = forceAuthorization 
-                        ? Outcome<Grant>.Fail(new Exception("nisse")) // nisse Write proper error message
-                        : await GetCachedResponse(CacheRepository, basicAuthCredentials);
+                var basicAuthCredentials = ValidateBasicAuthCredentials(appCredentials);
+                var cachedOutcome = IsCachingGrants(options)
+                    ? await GetCachedResponseAsync(CacheRepository, appCredentials)
+                    : Outcome<Grant>.Fail("Cached grant not allowed");
                 if (cachedOutcome)
                 {
                     var cachedGrant = cachedOutcome.Value!;
@@ -69,9 +63,9 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 {
                     ["grant_type"] = "client_credentials"
                 };
-                if (scope is { })
+                if (options.Scope is { })
                 {
-                    formsValues.Add("scope", scope.Items.ConcatCollection(" "));
+                    formsValues.Add("scope", options.Scope.Items.ConcatCollection(" "));
                 }
 
                 var keyValues = formsValues.Select(kvp 
@@ -82,7 +76,6 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 {
                     Content = new FormUrlEncodedContent(keyValues)
                 };
-                var messageId = GetMessageId();
                 var sb = Log?.IsEnabled(LogRank.Trace) ?? false
                     ? await (await request.ToGenericHttpRequestAsync()).ToStringBuilderAsync(
                         new StringBuilder(), 
@@ -91,7 +84,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
                             .WithDefaultHeaders(client.DefaultRequestHeaders))
                     : null;
 
-                var response = await client.SendAsync(request, ct);
+                var response = await client.SendAsync(request, cts.Token);
                 
                 if (sb is { })
                 {
@@ -101,17 +94,17 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 }
                 
                 if (!response.IsSuccessStatusCode)
-                    return loggedFailedOutcome(response, messageId);
+                    return loggedFailedOutcome(response);
 
 #if NET5_0_OR_GREATER
-                var stream = await response.Content.ReadAsStreamAsync(ct);
+                var stream = await response.Content.ReadAsStreamAsync(cts.Token);
 #else
                 var stream = await response.Content.ReadAsStreamAsync();
 #endif
                 var responseBody =
                     await JsonSerializer.DeserializeAsync<ClientCredentialsResponseBody>(
                         stream,
-                        cancellationToken: ct);
+                        cancellationToken: cts.Token);
 
                 var outcome = ClientCredentialsResponse.TryParse(responseBody!);
                 if (outcome)
@@ -135,7 +128,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 return Outcome<Grant>.Fail(ex);
             }
             
-            Outcome<Grant> loggedFailedOutcome(HttpResponseMessage response, LogMessageId? messageId)
+            Outcome<Grant> loggedFailedOutcome(HttpResponseMessage response)
             {
                 var ex = new HttpServerException(response); 
                 if (Log is null)
@@ -148,7 +141,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 {
                     var dump = new StateDump().WithStackTrace();
                     dump.AddAsync(TetraPakConfig, "AuthConfig");
-                    dump.AddAsync(clientCredentials, "Credentials");
+                    dump.AddAsync(appCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
                 Log.Error(ex, message.ToString(), messageId);
@@ -156,24 +149,6 @@ namespace TetraPak.XP.Auth.ClientCredentials
             }
         }
         
-        /// <summary>
-        ///   This virtual asynchronous method is automatically invoked when <see cref="AcquireTokenAsync"/>
-        ///   needs client credentials. 
-        /// </summary>
-        /// <returns>
-        ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
-        ///   a <see cref="Credentials"/> or, on failure, an <see cref="Exception"/>.
-        /// </returns>
-        Task<Outcome<Credentials>> getCredentialsAsync()
-        {
-            if (string.IsNullOrWhiteSpace(TetraPakConfig.ClientId))
-                return Task.FromResult(Outcome<Credentials>.Fail(
-                    new HttpServerConfigurationException("Client credentials have not been provisioned")));
-
-            return Task.FromResult(Outcome<Credentials>.Success(
-                new BasicAuthCredentials(TetraPakConfig.ClientId!, TetraPakConfig.ClientSecret!)));
-        }
-
         // /// <summary>
         // ///   Invoked from <see cref="AcquireTokenAsync"/> when to try fetching a cached auth response.  obsolete
         // /// </summary>
@@ -261,16 +236,20 @@ namespace TetraPak.XP.Auth.ClientCredentials
         /// <param name="httpClientProvider">
         ///   A HttpClient factory.
         /// </param>
+        /// <param name="cache">
+        ///   (optional)<br/>
+        ///   A cache to reduce traffic and improve performance
+        /// </param>
+        /// <param name="tokenCache">
+        ///   (optional)<br/>
+        ///   A specialized (secure) token cache to reduce traffic and improve performance
+        /// </param>
         /// <param name="log">
         ///   (optional)<br/>
         ///   A logger provider.   
         /// </param>
         /// <param name="httpContextAccessor">
         ///   Provides access to the current request/response <see cref="HttpContext"/>. 
-        /// </param>
-        /// <param name="cache">
-        ///   (optional)<br/>
-        ///   A cache to reduce traffic and improve performance
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   Any parameter was <c>null</c>.
@@ -279,9 +258,10 @@ namespace TetraPak.XP.Auth.ClientCredentials
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             ITimeLimitedRepositories? cache = null,
+            ITokenCache? tokenCache = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, cache, log, httpContextAccessor)
+        : base(tetraPakConfig, httpClientProvider, cache, tokenCache, log, httpContextAccessor)
         {
         }
     }

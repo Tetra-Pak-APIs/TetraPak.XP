@@ -27,20 +27,21 @@ namespace authClient.console
         {
             Task.Run(async () =>
             {
+                var options = GrantOptions.Forced(cancellationTokenSource);
                 switch (grantType)
                 {
                     case GrantType.CC:
                         var cc = XpServices.GetRequired<IClientCredentialsGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("Client Credentials grant requested ...");
-                        writeToLog(await cc.AcquireTokenAsync(cancellationTokenSource));
+                        writeToLog(await cc.AcquireTokenAsync(options));
                         break;
                 
                     case GrantType.DC:
                         var dc = XpServices.GetRequired<IDeviceCodeGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("Device Code grant requested ...");
-                        writeToLog(await dc.AcquireTokenAsync(askUserToVerifyCode, cancellationTokenSource));
+                        writeToLog(await dc.AcquireTokenAsync(options, requestUSerCodeVerification));
                         break;
                 
                     case GrantType.OIDC:
@@ -56,7 +57,7 @@ namespace authClient.console
             
         }
 
-        static void askUserToVerifyCode(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
+        static void requestUSerCodeVerification(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
 
         public async Task SilentTokenAsync()
         {

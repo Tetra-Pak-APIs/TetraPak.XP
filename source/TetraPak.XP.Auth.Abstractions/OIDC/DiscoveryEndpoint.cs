@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
-using TetraPak.Auth.Xamarin.common;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     /// <summary>
     /// Represents a URL to a discovery endpoint - parsed to separate the URL and authority
@@ -43,7 +42,7 @@ namespace TetraPak.XP.Auth.OIDC
         {
             var parseOutcome = TryParseUrl(input);
             if (parseOutcome)
-                return parseOutcome.Value;
+                return parseOutcome.Value!;
 
             throw parseOutcome.Exception!;
         }
@@ -54,13 +53,13 @@ namespace TetraPak.XP.Auth.OIDC
             if (success == false)
             {
                 var msg = $"Malformed URL: {input}";
-                return Outcome<DiscoveryEndpoint>.Fail(msg, new FormatException(msg));
+                return Outcome<DiscoveryEndpoint>.Fail(new FormatException(msg));
             }
 
-            if (!IsValidScheme(uri))
+            if (!IsValidScheme(uri!))
             {
                 var msg = $"Invalid scheme in URL: {input}";
-                return Outcome<DiscoveryEndpoint>.Fail(msg, new InvalidOperationException(msg));
+                return Outcome<DiscoveryEndpoint>.Fail(new InvalidOperationException(msg));
             }
 
             var url = input.RemoveTrailingSlash();
@@ -69,15 +68,10 @@ namespace TetraPak.XP.Auth.OIDC
                 : url;
             url = url.EndsWith(WellKnownEndpoint, StringComparison.OrdinalIgnoreCase)
                 ? url
-                : $"{url.EnsureEndsWith("/")}{WellKnownEndpoint}";
+                : $"{url.EnsurePostfix("/")}{WellKnownEndpoint}";
 
 
             return Outcome<DiscoveryEndpoint>.Success(new DiscoveryEndpoint(authority, url));
-            /* obsolete
-            return url.EndsWith(WellKnownEndpoint, StringComparison.OrdinalIgnoreCase)
-                ?  new DiscoveryEndpoint(url.Substring(0, url.Length - WellKnownEndpoint.Length - 1), url)
-                : new DiscoveryEndpoint(url, $"{url.EnsureEndsWith("/")}{WellKnownEndpoint}");
-            */
         }
 
         public static Outcome<DiscoveryEndpoint> TryResolveUrl(string input)
@@ -96,7 +90,7 @@ namespace TetraPak.XP.Auth.OIDC
             }
             catch (Exception ex)
             {
-                return Outcome<DiscoveryEndpoint>.Fail($"Cannot resolve discovery endpoint from: \"{input}\"", ex);
+                return Outcome<DiscoveryEndpoint>.Fail( new Exception($"Cannot resolve discovery endpoint from: \"{input}\"", ex));
             }
         }
 

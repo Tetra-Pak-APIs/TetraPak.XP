@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.ClientCredentials;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
+using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 using TetraPk.XP.Web.Http;
 
@@ -13,6 +15,11 @@ namespace TetraPak.XP.Auth
 {
     public abstract class GrantServiceBase
     {
+        // /// <summary>
+        // ///   Gets a default cache key (the client Id).
+        // /// </summary>
+        // protected string TokenCacheKey => $"{TetraPakConfig.Authority!.Host}::{TetraPakConfig.ClientId}"; obsolete
+        
         protected ITetraPakConfiguration TetraPakConfig { get; }
         
         IHttpClientProvider HttpClientProvider { get; }
@@ -21,7 +28,11 @@ namespace TetraPak.XP.Auth
         
         protected ILog? Log  { get; }
 
-        readonly ITimeLimitedRepositories? _cache;
+        protected bool IsCachingGrants(GrantOptions options) => TetraPakConfig.IsCaching && options.IsCachingAllowed && TokenCache is {};
+
+        protected ITimeLimitedRepositories? Cache { get; }  
+        
+        protected ITokenCache? TokenCache { get; }
 
         HttpContext? HttpContext => HttpContextAccessor?.HttpContext;
         
@@ -31,6 +42,23 @@ namespace TetraPak.XP.Auth
         protected LogMessageId? GetMessageId() => HttpContext?.Request.GetMessageId(TetraPakConfig);
 
         protected Task<Outcome<HttpClient>> GetHttpClientAsync() => HttpClientProvider.GetHttpClientAsync();
+        
+        /// <summary>
+        ///   Gets the configures application credentials (the client id and, if applicable, client secret). 
+        /// </summary>
+        /// <returns>
+        ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
+        ///   a <see cref="Credentials"/> or, on failure, an <see cref="Exception"/>.
+        /// </returns>
+        protected Task<Outcome<Credentials>> GetAppCredentialsAsync()
+        {
+            if (string.IsNullOrWhiteSpace(TetraPakConfig.ClientId))
+                return Task.FromResult(Outcome<Credentials>.Fail(
+                    new ConfigurationException("Client credentials have not been provisioned")));
+
+            return Task.FromResult(Outcome<Credentials>.Success(
+                new BasicAuthCredentials(TetraPakConfig.ClientId!, TetraPakConfig.ClientSecret!)));
+        }
 
         /// <summary>
         ///   Caches <see cref="Credentials"/>.  
@@ -50,16 +78,16 @@ namespace TetraPak.XP.Auth
         protected async Task CacheResponseAsync<T>(string cacheRepositoryName, Credentials credentials, T response)
         where T : GrantResponse
         {
-            if (_cache is null) 
+            if (Cache is null) 
                 return;
 
-            await _cache.CreateOrUpdateAsync(
+            await Cache.CreateOrUpdateAsync(
                 response,
                 credentials.Identity,
                 cacheRepositoryName,
                 response.ExpiresIn);
         }
-        
+
         /// <summary>
         ///   Retrieves cached <see cref="Credentials"/>.  
         /// </summary>
@@ -67,20 +95,28 @@ namespace TetraPak.XP.Auth
         ///   The name of the repository caching the response.
         /// </param>
         /// <param name="credentials">
-        ///     The credentials used to acquire the response.
+        ///   The credentials used to acquire the response.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///  (optional)<br/>
+        ///   Allows canceling the request.
         /// </param>
         /// <returns>
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="ClientCredentialsResponse"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        protected async Task<Outcome<Grant>> GetCachedResponse(string cacheRepositoryName, Credentials credentials)
+        protected async Task<Outcome<Grant>> GetCachedResponseAsync(
+            string cacheRepositoryName, 
+            Credentials credentials,
+            CancellationToken? cancellationToken = null)
         {
-            if (_cache is null)
-                return Outcome<Grant>.Fail(new Exception("No cached token"));
-
-            var cachedOutcome = await _cache.ReadAsync<Grant>(
+            if (TokenCache is null)
+                return Outcome<Grant>.Fail("No token cache is available");
+                
+            var cachedOutcome = await TokenCache.ReadAsync<Grant>(
                 credentials.Identity,
-                cacheRepositoryName);
+                cacheRepositoryName, 
+                cancellationToken);
 
             if (!cachedOutcome)
                 return cachedOutcome;
@@ -139,6 +175,7 @@ namespace TetraPak.XP.Auth
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             ITimeLimitedRepositories? cache = null,
+            ITokenCache? tokenCache = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
         {
@@ -146,8 +183,9 @@ namespace TetraPak.XP.Auth
             HttpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
             HttpContextAccessor = httpContextAccessor;
             Log = log;
-            _cache = cache;
-            
+            Cache = cache;
+            TokenCache = tokenCache;
         }
+
     }
 }

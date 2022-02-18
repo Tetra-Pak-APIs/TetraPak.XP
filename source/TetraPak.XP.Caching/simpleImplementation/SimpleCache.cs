@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
@@ -105,9 +106,12 @@ namespace TetraPak.XP.Caching
         }
 
         /// <inheritdoc />
-        public virtual async Task<Outcome<T>> ReadAsync<T>(string key, string? repositoryName)
+        public virtual async Task<Outcome<T>> ReadAsync<T>(
+            string key, 
+            string? repository, 
+            CancellationToken? cancellationToken = null)
         {
-            var path = makeItemPath(key, repositoryName);
+            var path = makeItemPath(key, repository);
             ITimeLimitedRepositoryEntry? entry = null;
             foreach (var @delegate in _delegates)
             {
@@ -124,14 +128,14 @@ namespace TetraPak.XP.Caching
                     {
                         simpleCacheEntry.SourceDelegate = @delegate;
                     }
-                    purgeIfNeeded(repositoryName, @delegate);
+                    purgeIfNeeded(repository, @delegate);
                 }
 
                 var validatedOutcome = await @delegate.GetValidItemAsync<T>(entry);
                 if (!validatedOutcome)
                     continue;
                 
-                purgeIfNeeded(repositoryName, @delegate);
+                purgeIfNeeded(repository, @delegate);
                 return Outcome<T>.Success(validatedOutcome.Value.Value).WithValue(CacheHelper.TagRemainingLifespan, remainingTime);
             }
             
@@ -180,6 +184,9 @@ namespace TetraPak.XP.Caching
         /// <inheritdoc />
         public virtual async Task DeleteAsync(string key, string? repository = null)
         {
+            repository ??= DefaultRepository
+                           ?? throw new ArgumentNullException(nameof(repository),
+                               $"{nameof(repository)} cannot be unassigned unless {DefaultRepository} is assigned");
             var path = new RepositoryPath(repository, key);
             foreach (var @delegate in _delegates)
             {

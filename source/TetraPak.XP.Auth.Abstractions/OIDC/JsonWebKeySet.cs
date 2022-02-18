@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     public class JsonWebKeySet
     {

@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.Auth
 {

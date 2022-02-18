@@ -11,6 +11,7 @@ using System.Web;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.Caching;
 using TetraPak.XP.DependencyInjection;
@@ -29,12 +30,8 @@ namespace TetraPak.XP.Auth
     /// <summary>
     ///   A custom (Tetra Pak) implementation of the <see cref="IAuthenticator"/> contract.
     /// </summary>
-    internal class TetraPakAuthenticator : AbstractAuthenticator
+    class TetraPakAuthenticator : AbstractAuthenticator
     {
-        // readonly AuthConfig _config;
-        // readonly TaskCompletionSource<Outcome<Uri>> _authCodeTcs = new(); obsolete
-        // readonly TokenCache _tokenCache;
-
         internal static event EventHandler<AuthResultEventArgs>? Authorized;
 
         /// <inheritdoc />
@@ -53,8 +50,7 @@ namespace TetraPak.XP.Auth
             var simulatedAuth = await AuthSimulator.TryGetSimulatedAccessTokenAsync(Config, CacheKey);
             if (simulatedAuth)
                 return simulatedAuth;
-#endif   
-            
+#endif
             try
             {
                 LogDebug("---- START - Tetra Pak Code Grant Flow ----");
@@ -64,7 +60,7 @@ namespace TetraPak.XP.Auth
             {
                 LogError(ex, ex.Message);
                 LogDebug("---- END - Tetra Pak Code Grant Flow ----");
-                return Outcome<Grant>.Fail("Could not acquire an access token", ex);
+                return Outcome<Grant>.Fail(new Exception("Could not acquire an access token", ex));
             }
         }
 
@@ -90,11 +86,11 @@ namespace TetraPak.XP.Auth
             if (string.IsNullOrEmpty(cachedOutcome.Value.RefreshToken))
                 return await GetAccessTokenAsync();
             
-#if DEBUG
-            var simulatedAuth = await AuthSimulator.TryGetSimulatedRenewedAccessTokenAsync(cachedOutcome.Value!.RefreshToken!, Config, CacheKey);
-            if (simulatedAuth)
-                return simulatedAuth;
-#endif               
+// #if DEBUG  
+//             var simulatedAuth = await AuthSimulator.TryGetSimulatedRenewedAccessTokenAsync(cachedOutcome.Value!.RefreshToken!, Config, CacheKey);
+//             if (simulatedAuth)
+//                 return simulatedAuth;
+// #endif               
 
             // access token has expired, try renew from refresh token if available ...
             LogDebug("---- START - Tetra Pak Refresh Token Flow ----");
@@ -106,7 +102,7 @@ namespace TetraPak.XP.Auth
             catch (Exception ex)
             {
                 LogError(ex, ex.Message);
-                return Outcome<Grant>.Fail("Could not renew access token", ex);
+                return Outcome<Grant>.Fail(new Exception("Could not renew access token", ex));
             }
             finally
             {
@@ -244,7 +240,7 @@ namespace TetraPak.XP.Auth
             catch (Exception ex)
             {
                 LogDebug($"Failed request");
-                return Outcome<Grant>.Fail("Could not get a valid access token.", ex);
+                return Outcome<Grant>.Fail(new Exception("Could not get a valid access token.", ex));
             }
         }
 
@@ -260,13 +256,13 @@ namespace TetraPak.XP.Auth
             return sb.ToString();
         }
 
-        static async Task<Outcome<string>> validateIdTokenAsync(ActorToken idToken)
+        static async Task<Outcome<ActorToken>> validateIdTokenAsync(ActorToken idToken)
         {
             var validator = new IdTokenValidator();
             var validateOutcome = await validator.ValidateAsync(idToken);
             return validateOutcome 
-                ? Outcome<string>.Success(idToken) 
-                : Outcome<string>.Fail(validateOutcome.Message, validateOutcome.Exception!);
+                ? Outcome<ActorToken>.Success(idToken) 
+                : Outcome<ActorToken>.Fail(validateOutcome.Exception!);
         }
 
         async Task<Outcome<Grant>> buildAuthResultAsync(string responseText)
@@ -337,7 +333,7 @@ namespace TetraPak.XP.Auth
             sb.Append($"&client_id={Config.ClientId.Trim()}");
 
             if (Config.IsRequestingUserId)
-                Config.AddScope(AuthScope.OpenId);
+                Config.AddScope(GrantScope.OpenId);
                 
             if (!string.IsNullOrEmpty(Config.Scope))
                 sb.Append($"&scope={Config.Scope.UrlEncoded()}");

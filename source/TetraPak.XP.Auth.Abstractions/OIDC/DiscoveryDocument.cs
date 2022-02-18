@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     /// <summary>
@@ -33,13 +33,13 @@ namespace TetraPak.XP.Auth.OIDC
         ///   Get the token issuer host base URL. 
         /// </summary>
         [JsonPropertyName("issuer")]
-        public string Issuer { get; set; }
+        public string? Issuer { get; set; }
 
         /// <summary>
         ///   Endpoint that validates all authorization requests.
         /// </summary>
         [JsonPropertyName("authorization_endpoint")]
-        public string AuthorizationEndpoint { get; set; }        
+        public string? AuthorizationEndpoint { get; set; }        
         
         /// <summary>
         ///   URL of the token endpoint. After a client has received an authorization code,
@@ -47,13 +47,13 @@ namespace TetraPak.XP.Auth.OIDC
         ///   an access token, and a refresh token.
         /// </summary>
         [JsonPropertyName("token_endpoint")]
-        public string TokenEndpoint { get; set; }        
+        public string? TokenEndpoint { get; set; }        
          
         /// <summary>
         ///   URL of the user information endpoint. 
         /// </summary>
         [JsonPropertyName("userinfo_endpoint")]
-        public string UserInformationEndpoint { get; set; }        
+        public string? UserInformationEndpoint { get; set; }        
 
         /// <summary>
         ///   URL of the JSON Web Key Set.
@@ -62,39 +62,39 @@ namespace TetraPak.XP.Auth.OIDC
         ///   to verify the signatures of the identity tokens issued by the authorization server.
         /// </summary>
         [JsonPropertyName("jwks_uri")]
-        public string JwksUri { get; set; }
+        public string? JwksUri { get; set; }
 
         /// <summary>
         ///   Specifies the way the authorization server responds after a user successfully authenticates.
         /// </summary>
         [JsonPropertyName("response_types_supported")]
-        public IEnumerable<string> ResponseTypesSupported { get; set; }
+        public IEnumerable<string>? ResponseTypesSupported { get; set; }
         
         /// <summary>
         ///   JSON array containing a list of the supported Subject Identifier types. 
         /// </summary>
         [JsonPropertyName("subject_types_supported")]
-        public IEnumerable<string> SubjectTypesSupported { get; set; }
+        public IEnumerable<string>? SubjectTypesSupported { get; set; }
 
         /// <summary>
         ///    JSON array containing a list of the scopes that the authorization server supports. 
         /// </summary>
         [JsonPropertyName("scopes_supported")]
-        public IEnumerable<string> ScopesSupported { get; set; }
+        public IEnumerable<string>? ScopesSupported { get; set; }
 
         /// <summary>
         ///   Specifies the different ways that a client can be granted an access token and, as a result,
         ///   can be given access to specific resources. 
         /// </summary>
         [JsonPropertyName("grant_types_supported")]
-        public IEnumerable<string> GrantTypesSupported { get; set; }
+        public IEnumerable<string>? GrantTypesSupported { get; set; }
         
         /// <summary>
         ///   JSON array consisting of all the JSON Web Signature algorithms that can be used for signing
         ///   JSON Web Tokens, such as SHA1 or SHA256. 
         /// </summary>
         [JsonPropertyName("id_token_signing_alg_values_supported")]
-        public IEnumerable<string> IdTokenSigningAlgValuesSupported { get; set; }
+        public IEnumerable<string>? IdTokenSigningAlgValuesSupported { get; set; }
 
         /// <summary>
         ///   Downloads and returns the <seealso cref="DiscoveryDocument"/> found at a Url
@@ -128,7 +128,7 @@ namespace TetraPak.XP.Auth.OIDC
 
             var resolvedEndpointUrlOutcome = DiscoveryEndpoint.TryResolveUrl(input);
             if (!resolvedEndpointUrlOutcome)
-                return Outcome<DiscoveryDocument>.Fail(resolvedEndpointUrlOutcome.Message, resolvedEndpointUrlOutcome.Exception!);
+                return Outcome<DiscoveryDocument>.Fail(resolvedEndpointUrlOutcome.Exception!);
 
             using var client = new HttpClient(); // todo Improve HTTP client use here (reuse existing / use a provider)
             using var message = new HttpRequestMessage(HttpMethod.Get, resolvedEndpointUrlOutcome.Value!.Url);
@@ -151,7 +151,7 @@ namespace TetraPak.XP.Auth.OIDC
             }
             catch (Exception ex)
             {
-                return Outcome<DiscoveryDocument>.Fail($"Error downloading discovery document from {input}: {ex.Message}", ex);
+                return Outcome<DiscoveryDocument>.Fail(new Exception($"Error downloading discovery document from {input}: {ex.Message}", ex));
             }
         }
 
@@ -229,7 +229,7 @@ namespace TetraPak.XP.Auth.OIDC
             }
             catch (Exception ex)
             {
-                return Outcome<DiscoveryDocument>.Fail($"Failed while deserializing cached discovery document. {ex.Message}", ex);
+                return Outcome<DiscoveryDocument>.Fail(new Exception($"Failed while deserializing cached discovery document. {ex.Message}", ex));
             }
         }
 

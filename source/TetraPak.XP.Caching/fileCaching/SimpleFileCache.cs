@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
@@ -10,23 +11,30 @@ namespace TetraPak.XP.Caching
     {
         protected SimpleCache Implementation { get; }
 
+        /// <inheritdoc />
         public override Task CreateAsync(object value,
             string key,
-            string? repository,
+            string? repository = null,
             TimeSpan? customLifeSpan = null,
             DateTime? spawnTimeUtc = null)
             => Implementation.CreateAsync(value, key, repository, customLifeSpan, spawnTimeUtc);
 
-        public override Task<Outcome<T>> ReadAsync<T>(string key, string? repositoryName)
-            => Implementation.ReadAsync<T>(key, repositoryName);
+        /// <inheritdoc />
+        public override Task<Outcome<T>> ReadAsync<T>(
+            string key, 
+            string? repository, 
+            CancellationToken? cancellationToken = null)
+            => Implementation.ReadAsync<T>(key, repository);
 
+        /// <inheritdoc />
         public override Task UpdateAsync(object value,
             string key,
-            string? repository,
+            string? repository = null,
             TimeSpan? customLifeSpan = null,
             DateTime? spawnTimeUtc = null)
             => Implementation.UpdateAsync(value, key, repository, customLifeSpan, spawnTimeUtc);
 
+        /// <inheritdoc />
         public override Task CreateOrUpdateAsync(object value,
             string key,
             string? repository,
@@ -34,7 +42,8 @@ namespace TetraPak.XP.Caching
             DateTime? spawnTimeUtc = null)
             => Implementation.CreateOrUpdateAsync(value, key, repository, customLifeSpan, spawnTimeUtc);
 
-        public override Task DeleteAsync(string key, string? repository)
+        /// <inheritdoc />
+        public override Task DeleteAsync(string key, string? repository = null)
             => Implementation.DeleteAsync(key, repository);
 
         public SimpleFileCache(
@@ -56,7 +65,7 @@ namespace TetraPak.XP.Caching
         {
             Implementation = implementation ?? this;
             options ??= FileCacheOptions.Default(fileSystem);
-            if (!(delegates?.Any(i => i is FileCacheDelegate) ?? true))
+            if (!delegates.Any(i => i is FileCacheDelegate))
             {
                 Implementation.AddDelegates(new FileCacheDelegate(CacheNames.FileCache, options, log));
             }

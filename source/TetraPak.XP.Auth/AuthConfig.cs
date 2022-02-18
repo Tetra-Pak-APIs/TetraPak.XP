@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
@@ -104,7 +105,7 @@ namespace TetraPak.XP.Auth
         /// <summary>
         ///   Gets or sets a scope value when applicable.
         /// </summary>
-        public AuthScope Scope { get; set; }
+        public GrantScope Scope { get; set; }
 
         /// <summary>
         ///   Gets or sets a value indicating whether to use state in the auth code flow.

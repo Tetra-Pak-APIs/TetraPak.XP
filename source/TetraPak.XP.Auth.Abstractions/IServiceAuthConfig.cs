@@ -72,7 +72,7 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   (optional)<br/>
         ///   Cancellation token for cancellation the operation.
         /// </param>
-        Task<Outcome<MultiStringValue>> GetScopeAsync(
+        Task<Outcome<GrantScope>> GetScopeAsync(
             AuthContext authContext,
             MultiStringValue? useDefault = null,
             CancellationToken? cancellationToken = null);

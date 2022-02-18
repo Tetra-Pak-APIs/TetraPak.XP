@@ -9,6 +9,7 @@ using authClient.views;
 using TetraPak.XP;
 using Xamarin.Forms;
 using TetraPak.XP.Auth;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
@@ -146,7 +147,7 @@ namespace authClient.viewModels
         {
             if (IsRequestingUserId)
             {
-                var openIdScopeType = Scope.FirstOrDefault(i => i.Name.Equals(AuthScope.OpenId, StringComparison.InvariantCultureIgnoreCase));
+                var openIdScopeType = Scope.FirstOrDefault(i => i.Name.Equals(GrantScope.OpenId, StringComparison.InvariantCultureIgnoreCase));
                 if (openIdScopeType is { })
                     openIdScopeType.IsSelected = true;
                 
@@ -356,7 +357,7 @@ namespace authClient.viewModels
 
         IEnumerable<ScopeTypeVM> buildScopeFrom(AuthConfig config)
         {
-            var scopeTypes = AuthScope.Supported?.Any() ?? false ? AuthScope.Supported : AuthScope.Wellknown;
+            var scopeTypes = GrantScope.Supported?.Any() ?? false ? GrantScope.Supported : GrantScope.Wellknown;
             var list = new List<ScopeTypeVM>();
             foreach (var scopeType in scopeTypes)
             {
@@ -379,7 +380,7 @@ namespace authClient.viewModels
                         _config.RemoveScope(scopeType);
                     }
                     
-                    if (!scopeType.Equals(AuthScope.OpenId, StringComparison.InvariantCultureIgnoreCase))
+                    if (!scopeType.Equals(GrantScope.OpenId, StringComparison.InvariantCultureIgnoreCase))
                         return;
                     
                     _ignoreUpdatingScope = true;

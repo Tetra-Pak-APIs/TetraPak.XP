@@ -5,31 +5,22 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Auth.OIDC;
+using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.Auth.Abstractions
 {
     /// <summary>
     ///   Represents the result of an authorization operation.
     /// </summary>
-    public class Grant
+    public class Grant // todo make Grant serializable
     {
         readonly Dictionary<string, object> _tags = new();
 
         // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
         public static TimeSpan SubtractFromExpires { get; set; } = TimeSpan.FromSeconds(2); // todo make configurable?
         
-        // UserInformation _userInformation; obsolete
-        // UserInfoLoader _userInfoLoader;
-        // readonly AuthConfig _authConfig;
-
-        // ILog? Log => _authConfig.Log; obsolete
-
-        // ITimeLimitedRepositories? Cache => _authConfig.Cache;
-
         /// <summary>
         ///   A collection of tokens (represented as <see cref="TokenInfo"/> objects) returned from the issuer.
         /// </summary>
@@ -193,7 +184,7 @@ namespace TetraPak.XP.Auth
     /// <summary>
     ///   Carries an individual token and its meta data.
     /// </summary>
-    public class TokenInfo
+    public class TokenInfo // todo make TokenInfo serializable
     {
         readonly TokenValidationDelegate? _tokenValidationDelegate;
         bool _isValidatedByDelegate;
@@ -348,7 +339,7 @@ namespace TetraPak.XP.Auth
     //     public const string Domain = "domain";
     // }
 
-    delegate Task<Outcome<string>> TokenValidationDelegate(ActorToken token);
+    delegate Task<Outcome<ActorToken>> TokenValidationDelegate(ActorToken token);
 
     public static class GrantHelper
     {
@@ -458,9 +449,9 @@ namespace TetraPak.XP.Auth
             }
             catch (Exception ex)
             {
-                const string Message = "Failed while retrieving user information from API";
-                log?.Error(ex, Message);
-                return Outcome<UserInformation>.Fail(Message, ex);
+                var message = $"Failed while retrieving user information from API. {ex.Message}";
+                log?.Error(ex, message);
+                return Outcome<UserInformation>.Fail(new Exception(message, ex));
             }
             finally
             {
@@ -468,5 +459,4 @@ namespace TetraPak.XP.Auth
             }
         }
     }
-
 }

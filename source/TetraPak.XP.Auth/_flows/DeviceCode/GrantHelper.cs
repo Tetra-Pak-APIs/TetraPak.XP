@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.Auth.DeviceCode
 {
-    static class GrantHelper
+    static class DeviceCodeGrantHelper
     {
         const string KeyPendingCodeVerification = "__pendingVerificaion";
         

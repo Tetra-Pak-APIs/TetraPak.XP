@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     /// <summary>
     /// Authority validation strategy.

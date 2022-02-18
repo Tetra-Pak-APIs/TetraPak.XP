@@ -43,18 +43,15 @@ namespace TetraPak.XP
         ///   <see cref="bool"/> value.
         /// </summary>
         /// <param name="message">
-        ///   A message to be carried by the <see cref="Outcome{T}"/> object
+        ///   A message to be carried by the <see cref="Outcome"/> object.
+        ///   The message is simply passed as a message for the <see cref="Exception"/>
         ///   (useful for error handling).
-        /// </param>
-        /// <param name="exception">
-        ///   An <see cref="Exception"/> to be carried by the <see cref="Outcome{T}"/> object
-        ///   (for error handling).
         /// </param>
         /// <returns>
         ///   A <see cref="Outcome{T}"/> that represents a <c>true</c> value when
         ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
         /// </returns>
-        public new static Outcome<T> Fail(string message, Exception exception) => new(false, message, exception, default!);
+        public new static Outcome<T> Fail(string message) => new(false, null!, new Exception(message), default!);
 
         /// <summary>
         ///   Creates and returns a failed outcome that carries an <see cref="Exception"/> as well as a value.
@@ -83,7 +80,7 @@ namespace TetraPak.XP
         ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
         /// </returns>
         public new static Outcome<T> Fail(Exception exception) => new(false, null!, exception, default!);
-        
+
         /// <summary>
         ///   Creates and returns a 'Failed' <see cref="Outcome{T}"/> due to a operation being canceled.
         ///   The method simple invokes <see cref="Fail(System.Exception)"/> with a

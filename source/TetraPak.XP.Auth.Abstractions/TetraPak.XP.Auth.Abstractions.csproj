@@ -19,6 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TetraPak.XP.Caching.Abstractions\TetraPak.XP.Caching.Abstractions.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.Caching\TetraPak.XP.Caching.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Configuration\TetraPak.XP.Configuration.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Web.Abstractions\TetraPak.XP.Web.Abstractions.csproj" />

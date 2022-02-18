@@ -1,4 +1,6 @@
 ﻿using System;
+using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DependencyInjection;

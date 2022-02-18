@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
     public struct AuthorityValidationResult
     {

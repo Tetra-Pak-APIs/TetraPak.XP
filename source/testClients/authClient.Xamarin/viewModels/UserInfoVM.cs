@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TetraPak.XP.Auth;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 

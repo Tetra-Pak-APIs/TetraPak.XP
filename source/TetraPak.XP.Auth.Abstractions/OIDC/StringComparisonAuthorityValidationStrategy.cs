@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TetraPak.XP.Auth.OIDC
+namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
 /// <summary>
     /// Implementation of <see cref="IAuthorityValidationStrategy"/> based on <see cref="StringComparison"/>.
