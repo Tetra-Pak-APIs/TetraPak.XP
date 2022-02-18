@@ -63,60 +63,60 @@ namespace authClient.console
             writeToLog(await _authenticator.GetAccessTokenSilentlyAsync());
         }
         
-        void writeToLog(Outcome<ClientCredentialsResponse> outcome)
-        {
-            if (!outcome)
-            {
-                if (!string.IsNullOrWhiteSpace(outcome.Message))
-                {
-                    _log.Warning(outcome.Message);
-                }
-                else if (outcome.Exception is { })
-                {
-                    _log.Warning(outcome.Exception.Message);
-                }
-                else
-                {
-                    _log.Warning("Client Credentials authorization failed with no message");
-                }
-                return;
-            }
-
-            var sb = new StringBuilder();
-            sb.AppendLine("SUCCESS!");
-            sb.Append("  access_token=");
-            sb.AppendLine(outcome.Value!.AccessToken);
-            _log.Information(sb.ToString());
-        }
-        
-        void writeToLog(Outcome<DeviceCodeResponse> outcome)
-        {
-            if (!outcome)
-            {
-                if (outcome.Exception is TaskCanceledException)
-                    return; // already logged as an ERROR
-                
-                if (!string.IsNullOrWhiteSpace(outcome.Message))
-                {
-                    _log.Warning(outcome.Message);
-                }
-                else if (outcome.Exception is { })
-                {
-                    _log.Warning(outcome.Exception.Message);
-                }
-                else
-                {
-                    _log.Warning("Device code grant failed with no message");
-                }
-                return;
-            }
-
-            var sb = new StringBuilder();
-            sb.AppendLine("SUCCESS!");
-            sb.Append("  access_token=");
-            sb.AppendLine(outcome.Value!.AccessToken);
-            _log.Information(sb.ToString());
-        }
+        // void writeToLog(Outcome<ClientCredentialsResponse> outcome)
+        // {
+        //     if (!outcome)
+        //     {
+        //         if (!string.IsNullOrWhiteSpace(outcome.Message))
+        //         {
+        //             _log.Warning(outcome.Message);
+        //         }
+        //         else if (outcome.Exception is { })
+        //         {
+        //             _log.Warning(outcome.Exception.Message);
+        //         }
+        //         else
+        //         {
+        //             _log.Warning("Client Credentials authorization failed with no message");
+        //         }
+        //         return;
+        //     }
+        //
+        //     var sb = new StringBuilder();
+        //     sb.AppendLine("SUCCESS!");
+        //     sb.Append("  access_token=");
+        //     sb.AppendLine(outcome.Value!.AccessToken);
+        //     _log.Information(sb.ToString());
+        // }
+        //
+        // void writeToLog(Outcome<DeviceCodeResponse> outcome)
+        // {
+        //     if (!outcome)
+        //     {
+        //         if (outcome.Exception is TaskCanceledException)
+        //             return; // already logged as an ERROR
+        //         
+        //         if (!string.IsNullOrWhiteSpace(outcome.Message))
+        //         {
+        //             _log.Warning(outcome.Message);
+        //         }
+        //         else if (outcome.Exception is { })
+        //         {
+        //             _log.Warning(outcome.Exception.Message);
+        //         }
+        //         else
+        //         {
+        //             _log.Warning("Device code grant failed with no message");
+        //         }
+        //         return;
+        //     }
+        //
+        //     var sb = new StringBuilder();
+        //     sb.AppendLine("SUCCESS!");
+        //     sb.Append("  access_token=");
+        //     sb.AppendLine(outcome.Value!.AccessToken);
+        //     _log.Information(sb.ToString());
+        // }
 
         void writeToLog(Outcome<Grant> outcome)
         {
@@ -139,20 +139,13 @@ namespace authClient.console
 
             var sb = new StringBuilder();
             sb.AppendLine("SUCCESS!");
-            sb.Append("  access_token=");
-            sb.AppendLine(outcome.Value!.AccessToken);
-            if (!string.IsNullOrWhiteSpace(outcome.Value.IdToken))
+            var grant = outcome.Value!;
+            foreach (var token in grant.Tokens!)
             {
-                sb.Append("  id_token=");
-                sb.AppendLine(outcome.Value.IdToken);
-                
-                
+                sb.Append($"  {token.Role}={token.Token}");
             }
-            if (!string.IsNullOrWhiteSpace(outcome.Value.RefreshToken))
-            {
-                sb.Append("  refresh_token=");
-                sb.AppendLine(outcome.Value.RefreshToken);
-            }
+
+            sb.AppendLine($"Scope={grant.Scope}");
             _log.Information(sb.ToString());
         }
 

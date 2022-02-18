@@ -5,14 +5,6 @@ namespace TetraPak.XP.Auth.ClientCredentials
 {
     public class ClientCredentialsResponse : GrantResponse
     {
-        // public ActorToken AccessToken { get; } obsolete
-        // 
-        // public TimeSpan ExpiresIn { get; }
-        //
-        // public MultiStringValue Scope { get; }
-
-        // public ClientCredentialsResponse Clone(TimeSpan expiresIn) => new(AccessToken, expiresIn, Scope);
-
         internal static Outcome<ClientCredentialsResponse> TryParse(ClientCredentialsResponseBody body)
         {
             var accessToken = string.IsNullOrWhiteSpace(body.TokenType)
@@ -44,11 +36,8 @@ namespace TetraPak.XP.Auth.ClientCredentials
         }
         
         ClientCredentialsResponse(ActorToken accessToken, TimeSpan expiresIn, MultiStringValue? scope)
-        : base(accessToken, expiresIn, scope)
+        : base(accessToken, expiresIn, scope, null)
         {
-            // AccessToken = accessToken; obsolete
-            // ExpiresIn = expiresIn; 
-            // Scope = scope ?? MultiStringValue.Empty;
         }
     }
 }

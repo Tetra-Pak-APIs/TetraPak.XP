@@ -17,8 +17,8 @@ namespace authClient.viewModels
         string _name;
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public INavigation? Navigation => Services?.GetService<INavigation>() ?? null;
-        public IServiceProvider? Services { get; }
+        public INavigation? Navigation => Services.GetService<INavigation>() ?? null;
+        public IServiceProvider Services { get; }
 
         /// <summary>
         ///   Useful for page/view/region captions etc.

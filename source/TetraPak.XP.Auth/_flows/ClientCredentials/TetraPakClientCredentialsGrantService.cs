@@ -26,7 +26,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
         // HttpContext? HttpContext => HttpContextAccessor?.HttpContext; obsolete
 
         /// <inheritdoc />
-        public async Task<Outcome<ClientCredentialsResponse>> AcquireTokenAsync(
+        public async Task<Outcome<Grant>> AcquireTokenAsync(
             CancellationTokenSource? cancellationTokenSource = null,
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 
@@ -40,25 +40,25 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 {
                     var ccOutcome = await getCredentialsAsync();
                     if (!ccOutcome)
-                        return Outcome<ClientCredentialsResponse>.Fail(ccOutcome.Exception!);
+                        return Outcome<Grant>.Fail(ccOutcome.Exception!);
 
                     clientCredentials = ccOutcome.Value!;
                 }
 
                 var basicAuthCredentials = ValidateBasicAuthCredentials(clientCredentials);
                 var cachedOutcome = forceAuthorization 
-                        ? Outcome<ClientCredentialsResponse>.Fail(new Exception("nisse")) // nisse Write proper error message
-                        : await GetCachedResponse<ClientCredentialsResponse>(CacheRepository, basicAuthCredentials);
+                        ? Outcome<Grant>.Fail(new Exception("nisse")) // nisse Write proper error message
+                        : await GetCachedResponse(CacheRepository, basicAuthCredentials);
                 if (cachedOutcome)
                 {
-                    var cachedResponse = cachedOutcome.Value!;
-                    if (cachedResponse.ExpiresIn.Subtract(TimeSpan.FromSeconds(2)) > TimeSpan.Zero)
+                    var cachedGrant = cachedOutcome.Value!;
+                    if (cachedGrant.Expires <= DateTime.UtcNow)
                         return cachedOutcome;
                 }
                 
                 var clientOutcome = await GetHttpClientAsync();
                 if (!clientOutcome)
-                    return Outcome<ClientCredentialsResponse>.Fail(
+                    return Outcome<Grant>.Fail(
                         new HttpServerConfigurationException(
                             "Client credentials service failed to obtain a HTTP client (see inner exception)", 
                             clientOutcome.Exception));
@@ -119,25 +119,27 @@ namespace TetraPak.XP.Auth.ClientCredentials
                     await CacheResponseAsync(CacheRepository, basicAuthCredentials, outcome.Value!);
                 }
 
-                return outcome;
+                var g = outcome.Value!;
+                return Outcome<Grant>.Success(
+                    new Grant().ForClientCredentials(g.AccessToken, DateTime.UtcNow.Add(g.ExpiresIn))); // todo consider subtracting a bit from the 'expires' timespan
             }
             catch (TaskCanceledException ex)
             {
                 Log.Warning(ex.Message);
-                return Outcome<ClientCredentialsResponse>.Fail(ex);
+                return Outcome<Grant>.Fail(ex);
             }
             catch (Exception ex)
             {
                 ex = new Exception($"Failed to acquire token using client credentials. {ex.Message}", ex);
                 Log.Error(ex);
-                return Outcome<ClientCredentialsResponse>.Fail(ex);
+                return Outcome<Grant>.Fail(ex);
             }
             
-            Outcome<ClientCredentialsResponse> loggedFailedOutcome(HttpResponseMessage response, LogMessageId? messageId)
+            Outcome<Grant> loggedFailedOutcome(HttpResponseMessage response, LogMessageId? messageId)
             {
                 var ex = new HttpServerException(response); 
                 if (Log is null)
-                    return Outcome<ClientCredentialsResponse>.Fail(ex);
+                    return Outcome<Grant>.Fail(ex);
 
                 // var messageId = _tetraPakConfig.AmbientData.GetMessageId(true);
                 var message = new StringBuilder();
@@ -150,7 +152,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
                     message.AppendLine(dump.ToString());
                 }
                 Log.Error(ex, message.ToString(), messageId);
-                return Outcome<ClientCredentialsResponse>.Fail(ex);
+                return Outcome<Grant>.Fail(ex);
             }
         }
         
@@ -281,11 +283,6 @@ namespace TetraPak.XP.Auth.ClientCredentials
             IHttpContextAccessor? httpContextAccessor = null)
         : base(tetraPakConfig, httpClientProvider, cache, log, httpContextAccessor)
         {
-            // _tpConfig = tetraPakConfig; obsolete
-            // _httpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
-            // _httpContextAccessor = httpContextAccessor;
-            // _log = log;
-            // _cache = cache;
         }
     }
 }

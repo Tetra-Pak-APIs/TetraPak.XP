@@ -44,18 +44,12 @@ namespace authClient.console
                 return;
             }
 
-            var sb = new StringBuilder("SUCCESS! ");
-            sb.Append("access_token=");
-            sb.Append(outcome.Value!.AccessToken);
-            if (!string.IsNullOrWhiteSpace(outcome.Value.IdToken))
+            var sb = new StringBuilder();
+            sb.AppendLine("SUCCESS!");
+            var grant = outcome.Value!;
+            foreach (var token in grant.Tokens!)
             {
-                sb.Append("id_token=");
-                sb.Append(outcome.Value.IdToken);
-            }
-            if (!string.IsNullOrWhiteSpace(outcome.Value.RefreshToken))
-            {
-                sb.Append("refresh_token=");
-                sb.Append(outcome.Value.RefreshToken);
+                sb.Append($"  {token.Role}={token.Token}");
             }
             _log.Information(sb.ToString());
         }

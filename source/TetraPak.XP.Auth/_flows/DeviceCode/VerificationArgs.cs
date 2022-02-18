@@ -23,11 +23,11 @@ namespace TetraPak.XP.Auth.DeviceCode
                 _cancellationTokenSource.Cancel();
         }
 
-        internal VerificationArgs(DeviceCodeCodeResponseBody responseBody, CancellationTokenSource cancellationTokenSource)
+        internal VerificationArgs(DeviceCodeAuthCodeResponseBody authCodeResponseBody, CancellationTokenSource cancellationTokenSource)
         {
-            VerificationUri = new Uri(responseBody.VerificationUri);
-            UserCode = responseBody.UserCode;
-            ExpiresIn = TimeSpan.FromSeconds(responseBody.ExpiresIn);
+            VerificationUri = new Uri(authCodeResponseBody.VerificationUri);
+            UserCode = authCodeResponseBody.UserCode;
+            ExpiresIn = TimeSpan.FromSeconds(authCodeResponseBody.ExpiresIn);
             _cancellationTokenSource = cancellationTokenSource;
         }
     }

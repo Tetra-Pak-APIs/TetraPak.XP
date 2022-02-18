@@ -35,7 +35,7 @@ namespace TetraPak.XP.Auth.ClientCredentials
         ///   An <see cref="Exception"/> instance indicating success/failure, and the requested token
         ///   when successful; otherwise an <see cref="Outcome"/>.
         /// </returns>
-        Task<Outcome<ClientCredentialsResponse>> AcquireTokenAsync(
+        Task<Outcome<Grant>> AcquireTokenAsync(
             CancellationTokenSource? cancellationTokenSource = null,
             Credentials? clientCredentials = null,
             MultiStringValue? scope = null, 

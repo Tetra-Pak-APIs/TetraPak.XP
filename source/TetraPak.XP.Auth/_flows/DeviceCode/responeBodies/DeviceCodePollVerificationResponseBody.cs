@@ -7,17 +7,17 @@ namespace TetraPak.XP.Auth.DeviceCode
     ///   (see <see cref="IDeviceCodeGrantService.AcquireTokenAsync"/>).
     /// </summary>
     // ReSharper disable once ClassNeverInstantiated.Global
-    class DeviceCodeAuthorizationResponseBody
+    class DeviceCodePollVerificationResponseBody
     {
+        internal const string KeyExpiresIn = "expires_in";
+        
         [JsonPropertyName("access_token")]
-#pragma warning disable CS8618
         public string AccessToken { get; set; }
-#pragma warning restore CS8618
 
         [JsonPropertyName("token_type")]
         public string? TokenType { get; set; }
 
-        [JsonPropertyName("expires_in")]
+        [JsonPropertyName(KeyExpiresIn)]
         public string? ExpiresIn { get; set; }
 
         [JsonPropertyName("refresh_token")]
@@ -25,5 +25,10 @@ namespace TetraPak.XP.Auth.DeviceCode
 
         [JsonPropertyName("scope")]
         public string? Scope { get; set; }
+
+        public DeviceCodePollVerificationResponseBody()
+        {
+            AccessToken = null!;
+        }
     }
 }

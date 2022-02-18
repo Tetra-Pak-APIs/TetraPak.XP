@@ -38,7 +38,7 @@ namespace TetraPak.XP.Auth.DeviceCode
         ///   An <see cref="Exception"/> instance indicating success/failure, and the requested token
         ///   when successful; otherwise an <see cref="Outcome"/>.
         /// </returns>
-        Task<Outcome<DeviceCodeResponse>> AcquireTokenAsync(
+        Task<Outcome<Grant>> AcquireTokenAsync(
             Action<VerificationArgs> verificationUriHandler,
             CancellationTokenSource? cancellationTokenSource = null,
             Credentials? clientCredentials = null,

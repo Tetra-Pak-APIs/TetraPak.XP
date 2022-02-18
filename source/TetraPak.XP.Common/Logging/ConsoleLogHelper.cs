@@ -14,7 +14,7 @@ namespace TetraPak.XP.Logging
         /// </summary>
         public static ILog WithConsoleLogging(this ILog log)
         {
-            log.Logged += writeToConsole;
+            log.Logged += writeToConsole!;
             return log;
         }
 
@@ -27,6 +27,8 @@ namespace TetraPak.XP.Logging
                 LogRank.Information => ConsoleColor.White,
                 LogRank.Warning => ConsoleColor.Yellow,
                 LogRank.Error => ConsoleColor.Red,
+                LogRank.Any => ConsoleColor.DarkYellow,
+                LogRank.None => throw new ArgumentOutOfRangeException(nameof(args.Rank), args.Rank, null),
                 _ => throw new ArgumentOutOfRangeException(nameof(args.Rank), args.Rank, null)
             };
             Console.WriteLine(args.Format());

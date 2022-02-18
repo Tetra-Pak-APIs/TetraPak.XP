@@ -279,11 +279,15 @@ namespace TetraPak.XP.Logging
                 ? $"{Prefix} [{rank.ToAbbreviatedString()}] {message}"
                 : $"{Prefix} <{messageId}> [{rank.ToAbbreviatedString()}] {message}";
 
-            if (rank > LogRank.Debug || exception is null)
-                return formatted;
-
             var sb = new StringBuilder(formatted);
+            if (rank > LogRank.Debug || exception is null)
+                return sb.ToString();
+
             sb.AppendLine(exception.ToString());
+            if (exception.InnerException is { })
+            {
+                sb.AppendLine(exception.InnerException.ToString());
+            }
             return sb.ToString();
         }
 

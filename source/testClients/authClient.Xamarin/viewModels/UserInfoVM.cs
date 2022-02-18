@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TetraPak.XP.Auth;
+using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 
 namespace authClient.viewModels
@@ -10,6 +11,7 @@ namespace authClient.viewModels
     {
         readonly Grant _grant;
         ObservableCollection<UserInformationItemVM> _items;
+        readonly ITimeLimitedRepositories? _cache;
 
         public ObservableCollection<UserInformationItemVM> Items
         {
@@ -19,7 +21,7 @@ namespace authClient.viewModels
 
         async void loadUserInfoAsync()
         {
-            var result = await _grant.TryGetUserInformationAsync();
+            var result = await _grant.TryGetUserInformationAsync(_cache, Log);
             if (!result)
                 return;
 
@@ -40,9 +42,11 @@ namespace authClient.viewModels
         {
         }
 
-        public UserInfoVM(IServiceProvider services, Grant grant, ILog log) : base(services, log)
+        public UserInfoVM(IServiceProvider services, Grant grant, ITimeLimitedRepositories? cache, ILog? log) 
+        : base(services, log)
         {
             _grant = grant;
+            _cache = cache;
             loadUserInfoAsync();
             Name = "USER INFORMATION";
         }

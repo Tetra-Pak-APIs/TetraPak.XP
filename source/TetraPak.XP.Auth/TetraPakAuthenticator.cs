@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.Caching;
 using TetraPak.XP.DependencyInjection;
@@ -259,7 +260,7 @@ namespace TetraPak.XP.Auth
             return sb.ToString();
         }
 
-        static async Task<Outcome<string>> validateIdTokenAsync(string idToken)
+        static async Task<Outcome<string>> validateIdTokenAsync(ActorToken idToken)
         {
             var validator = new IdTokenValidator();
             var validateOutcome = await validator.ValidateAsync(idToken);
@@ -287,10 +288,10 @@ namespace TetraPak.XP.Auth
             }
 
             if (!dict.TryGetValue("id_token", out var idToken)) 
-                return await cacheAuthResultAsync(Outcome<Grant>.Success(new Grant(Config, tokens.ToArray())));
+                return await cacheAuthResultAsync(Outcome<Grant>.Success(new Grant(/*Config, obsolete */tokens.ToArray())));
             
             tokens.Add(new TokenInfo(idToken, TokenRole.IdToken, null, validateIdTokenAsync));
-            return await cacheAuthResultAsync(Outcome<Grant>.Success(new Grant(Config, tokens.ToArray())));
+            return await cacheAuthResultAsync(Outcome<Grant>.Success(new Grant(/*Config, obsolete*/ tokens.ToArray())));
         }
         
         async Task<Outcome<Grant>> tryGetCachedAuthResultAsync()

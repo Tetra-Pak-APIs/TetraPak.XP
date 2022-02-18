@@ -10,6 +10,7 @@ using TetraPak.XP;
 using Xamarin.Forms;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Caching;
+using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web;
 using Xamarin.Forms.Internals;
@@ -31,6 +32,7 @@ namespace authClient.viewModels
         bool _isUserInfoAvailable;
         IEnumerable<ScopeTypeVM> _scope;
         bool _ignoreUpdatingScope;
+        readonly ITimeLimitedRepositories _cache;
 
         IAuthenticator Authenticator => TetraPak.XP.Auth.Authorization.GetAuthenticator(_config);
 
@@ -243,7 +245,7 @@ namespace authClient.viewModels
                         ((TokenVM) vm).IsTokenValid = await tokenInfo.IsValidAsync();
                     }) 
                     : null;
-                TokensResult.AddToken(res.tokenCaption, tokenInfo.TokenValue, commandCaption, icon, command, res.isUnvalidated);
+                TokensResult.AddToken(res.tokenCaption, tokenInfo.Token, commandCaption, icon, command, res.isUnvalidated);
             }
         }
 
@@ -329,7 +331,7 @@ namespace authClient.viewModels
         async Task onViewUserInfo()
         {
             var navigation = Services.GetService<INavigation>();
-            await navigation.PushAsync(new UserInfoPage(new UserInfoVM(Services, _authorization, Log)));
+            await navigation.PushAsync(new UserInfoPage(new UserInfoVM(Services, _authorization, _cache, Log)));
         }
 
         void initializeValues(AuthConfig config)
@@ -405,6 +407,7 @@ namespace authClient.viewModels
         {
             _environment = application.Environment;
             _config = AuthConfig.Default(application, services.GetRequiredService<ILoopbackBrowser>());
+            _cache = services.GetService<ITimeLimitedRepositories>();
             TokensResult = Services.GetService<TokensResultVM>();
             AuthorizeCommand = new Command(async () => await onAuthorize(false));
             AuthorizeSilentlyCommand = new Command(async () => await onAuthorize(true), () => IsCaching);

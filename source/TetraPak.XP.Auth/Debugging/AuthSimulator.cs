@@ -108,7 +108,7 @@ namespace TetraPak.XP.Auth.Debugging
 
             var refreshToken = grant.Tokens?.FirstOrDefault(i => i.Role == TokenRole.RefreshToken);
             if (refreshToken != null)
-                s_authResults.Add(refreshToken.TokenValue, grant);
+                s_authResults.Add(refreshToken.Token, grant);
             
             return Outcome<Grant>.Success(grant);
         }

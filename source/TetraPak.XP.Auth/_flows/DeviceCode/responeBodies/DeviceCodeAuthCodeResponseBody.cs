@@ -8,7 +8,7 @@ namespace TetraPak.XP.Auth.DeviceCode
     ///   (see <see cref="IDeviceCodeGrantService.AcquireTokenAsync"/>).
     /// </summary>
     // ReSharper disable once UnusedType.Global
-    class DeviceCodeCodeResponseBody
+    class DeviceCodeAuthCodeResponseBody
     {
         double _interval;
         const double DefaultInterval = 5d;

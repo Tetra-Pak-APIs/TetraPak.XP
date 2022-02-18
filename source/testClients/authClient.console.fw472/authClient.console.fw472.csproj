@@ -250,6 +250,10 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\..\TetraPak.XP.Auth.Abstractions\TetraPak.XP.Auth.Abstractions.csproj">
+        <Project>{e9b9a305-6911-420b-b3c2-c1d466a3c5ee}</Project>
+        <Name>TetraPak.XP.Auth.Abstractions</Name>
+      </ProjectReference>
       <ProjectReference Include="..\..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj">
         <Project>{2bc4f89a-2a51-4daa-a616-fdf763d9aadf}</Project>
         <Name>TetraPak.XP.Auth</Name>

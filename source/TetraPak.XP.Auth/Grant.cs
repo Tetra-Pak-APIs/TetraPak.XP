@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
@@ -16,13 +17,18 @@ namespace TetraPak.XP.Auth
     /// </summary>
     public class Grant
     {
-        UserInformation _userInformation;
-        UserInfoLoader _userInfoLoader;
-        readonly AuthConfig _authConfig;
+        readonly Dictionary<string, object> _tags = new();
 
-        ILog? Log => _authConfig.Log;
+        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
+        public static TimeSpan SubtractFromExpires { get; set; } = TimeSpan.FromSeconds(2); // todo make configurable?
+        
+        // UserInformation _userInformation; obsolete
+        // UserInfoLoader _userInfoLoader;
+        // readonly AuthConfig _authConfig;
 
-        ITimeLimitedRepositories? Cache => _authConfig.Cache;
+        // ILog? Log => _authConfig.Log; obsolete
+
+        // ITimeLimitedRepositories? Cache => _authConfig.Cache;
 
         /// <summary>
         ///   A collection of tokens (represented as <see cref="TokenInfo"/> objects) returned from the issuer.
@@ -32,137 +38,154 @@ namespace TetraPak.XP.Auth
         /// <summary>
         ///   Gets the access token when successful.
         /// </summary>
-        public string? AccessToken => Tokens?.FirstOrDefault(i => i.Role == TokenRole.AccessToken)?.TokenValue;
+        public ActorToken? AccessToken => Tokens?.FirstOrDefault(i => i.Role == TokenRole.AccessToken)?.Token;
 
         /// <summary>
         ///   Gets an optional refresh token when successful.
         /// </summary>
-        public string? RefreshToken => Tokens?.FirstOrDefault(i => i.Role == TokenRole.RefreshToken)?.TokenValue;
+        public ActorToken? RefreshToken => Tokens?.FirstOrDefault(i => i.Role == TokenRole.RefreshToken)?.Token;
 
         /// <summary>
         ///   Gets an optional identity token when successful.
         /// </summary>
-        public string? IdToken => Tokens?.FirstOrDefault(i => i.Role == TokenRole.IdToken)?.TokenValue;
+        public ActorToken? IdToken => Tokens?.FirstOrDefault(i => i.Role == TokenRole.IdToken)?.Token;
 
         /// <summary>
         ///   Gets any provided expiration time when successful.
         /// </summary>
         public DateTime? Expires => Tokens?.FirstOrDefault(i => i.Role == TokenRole.AccessToken)?.Expires;
 
-        /// <summary>
-        ///   Indicates whether the authorization is (still) valid.
-        /// </summary>
-        [Obsolete("The IsValid property should no longer be used. Please use the TokenInfo.IsValidAsync() method instead")]
-        public bool IsValid
+        public MultiStringValue? Scope { get; set; }
+        
+        internal T? GetValue<T>(string key, T? useDefault) 
+            =>
+            _tags.TryGetValue(key, out var obj) && obj is T tv ? tv : useDefault;
+
+        internal void SetValue(string key, object value) => _tags[key] = value;
+
+        internal void SetFlag(string key) => _tags[key] = true;
+
+        internal bool IsFlagSet(string key) => GetValue(key, false);
+
+        internal Grant Clone(TimeSpan remainingLifeSpan) 
         {
-            get
+            var tokens = new List<TokenInfo>();
+            if (!(Tokens?.Any() ?? false))
+                return new Grant(Array.Empty<TokenInfo>());
+                
+            foreach (var token in Tokens)
             {
-                var accessToken = Tokens?.FirstOrDefault(i => i.Role == TokenRole.AccessToken);
-                if (accessToken is null)
-                    return false;
-
-                return !accessToken.Expires.HasValue || accessToken.Expires.Value > DateTime.Now;
-            }
-        }
-
-        /// <summary>
-        ///   Attempts obtaining user information.
-        /// </summary>
-        /// <returns></returns>
-        /// <remarks>
-        /// </remarks>
-        public async Task<Outcome<UserInformation>> TryGetUserInformationAsync()
-        {
-            Log?.Debug("[GET USER INFORMATION BEGIN]");
-
-            if (AccessToken is null)
-            {
-                var error = new Exception("Cannot get user information without a valid access token");
-                Log?.Warning(error.Message);
-                return Outcome<UserInformation>.Fail(error);
-            }
-
-            if (_userInformation != null)
-            {
-                Log?.Debug("User information was cached");
-                return Outcome<UserInformation>.Success(_userInformation);
-            }
-
-            try
-            {
-                Log?.Debug("Retrieves user information from API ...");
-                var discoDoc = DiscoveryDocument.Current;
-                if (discoDoc is null)
+                if (token.Role == TokenRole.AccessToken)
                 {
-                    var gotDiscoDoc = await DiscoveryDocument.TryDownloadAndSetCurrentAsync(this, Cache);
-                    if (!gotDiscoDoc)
-                    {
-                        var error = new Exception("Failed to retrieve the discovery document. Cannot resolve user information endpoint");
-                        Log?.Debug($"ERROR: {error.Message}");
-                        return Outcome<UserInformation>.Fail(error);
-                    }
-
-                    discoDoc = gotDiscoDoc.Value;
+                    tokens.Add(token.Clone(DateTime.UtcNow.Add(remainingLifeSpan.Subtract(SubtractFromExpires))));
+                    continue;
                 }
-            
-                _userInfoLoader ??= new UserInfoLoader(AccessToken, discoDoc, Log);
-                _userInformation = await _userInfoLoader.AwaitDownloadedAsync();
-                Log?.Debug("Successfully received user information from API");
-                return Outcome<UserInformation>.Success(_userInformation);
+                tokens.Add(token.Clone(null));
             }
-            catch (Exception ex)
-            {
-                const string Message = "Failed while retrieving user information from API";
-                Log?.Error(ex, Message);
-                return Outcome<UserInformation>.Fail(Message, ex);
-            }
-            finally
-            {
-                Log?.Debug("[GET USER INFORMATION END]");
-            }
-        }
 
-        public async Task<Outcome<string[]>> TeyGetUserInfoTypes()
-        {
-            if (AccessToken is null)
-            {
-                var error = new Exception("Cannot get user information without a valid access token");
-                Log?.Warning(error.Message);
-                return Outcome<string[]>.Fail(error);
-            }
-        
-            try
-            {
-                if (_userInformation is { }) 
-                    return Outcome<string[]>.Success(_userInformation.Types);
-        
-                var discoDoc = DiscoveryDocument.Current;
-                if (discoDoc is null)
-                {
-                    var gotDiscoDoc = await DiscoveryDocument.TryDownloadAndSetCurrentAsync(this, Cache);
-                    if (!gotDiscoDoc)
-                    {
-                        var error = new Exception("Failed to retrieve the discovery document. Cannot resolve user information endpoint");
-                        Log?.Debug($"ERROR: {error.Message}");
-                        return Outcome<string[]>.Fail(error);
-                    }
-                    discoDoc = gotDiscoDoc.Value;
-                }
-                _userInfoLoader ??= new UserInfoLoader(AccessToken, discoDoc, Log);
-                _userInformation = await _userInfoLoader.AwaitDownloadedAsync();
-        
-                return Outcome<string[]>.Success(_userInformation.Types);
-            }
-            catch (Exception ex)
-            {
-                Log?.Error(ex);
-                return Outcome<string[]>.Fail(ex.Message, ex);
-            }
+            return new Grant(tokens.ToArray());
         }
+        
+        public bool IsExpired => Expires <= DateTime.UtcNow;
 
-        internal Grant(AuthConfig config, params TokenInfo[] tokens)
-        {
-            _authConfig = config;
+
+        //     /// <summary>
+    //     ///   Attempts obtaining user information.
+    //     /// </summary>
+    //     /// <returns></returns>
+    //     /// <remarks>
+    //     /// </remarks>
+    //     public async Task<Outcome<UserInformation>> TryGetUserInformationAsync() obsolete
+    //     {
+    //         Log?.Debug("[GET USER INFORMATION BEGIN]");
+    //
+    //         if (AccessToken is null)
+    //         {
+    //             var error = new Exception("Cannot get user information without a valid access token");
+    //             Log?.Warning(error.Message);
+    //             return Outcome<UserInformation>.Fail(error);
+    //         }
+    //
+    //         if (_userInformation != null)
+    //         {
+    //             Log?.Debug("User information was cached");
+    //             return Outcome<UserInformation>.Success(_userInformation);
+    //         }
+    //
+    //         try
+    //         {
+    //             Log?.Debug("Retrieves user information from API ...");
+    //             var discoDoc = DiscoveryDocument.Current;
+    //             if (discoDoc is null)
+    //             {
+    //                 var gotDiscoDoc = await DiscoveryDocument.TryDownloadAndSetCurrentAsync(this, Cache);
+    //                 if (!gotDiscoDoc)
+    //                 {
+    //                     var error = new Exception("Failed to retrieve the discovery document. Cannot resolve user information endpoint");
+    //                     Log?.Debug($"ERROR: {error.Message}");
+    //                     return Outcome<UserInformation>.Fail(error);
+    //                 }
+    //
+    //                 discoDoc = gotDiscoDoc.Value;
+    //             }
+    //         
+    //             _userInfoLoader ??= new UserInfoLoader(AccessToken, discoDoc, Log);
+    //             _userInformation = await _userInfoLoader.AwaitDownloadedAsync();
+    //             Log?.Debug("Successfully received user information from API");
+    //             return Outcome<UserInformation>.Success(_userInformation);
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             const string Message = "Failed while retrieving user information from API";
+    //             Log?.Error(ex, Message);
+    //             return Outcome<UserInformation>.Fail(Message, ex);
+    //         }
+    //         finally
+    //         {
+    //             Log?.Debug("[GET USER INFORMATION END]");
+    //         }
+    //     }
+    //
+    //     public async Task<Outcome<string[]>> TeyGetUserInfoTypes()
+    //     {
+    //         if (AccessToken is null)
+    //         {
+    //             var error = new Exception("Cannot get user information without a valid access token");
+    //             Log?.Warning(error.Message);
+    //             return Outcome<string[]>.Fail(error);
+    //         }
+    //     
+    //         try
+    //         {
+    //             if (_userInformation is { }) 
+    //                 return Outcome<string[]>.Success(_userInformation.Types);
+    //     
+    //             var discoDoc = DiscoveryDocument.Current;
+    //             if (discoDoc is null)
+    //             {
+    //                 var gotDiscoDoc = await DiscoveryDocument.TryDownloadAndSetCurrentAsync(this, Cache);
+    //                 if (!gotDiscoDoc)
+    //                 {
+    //                     var error = new Exception("Failed to retrieve the discovery document. Cannot resolve user information endpoint");
+    //                     Log?.Debug($"ERROR: {error.Message}");
+    //                     return Outcome<string[]>.Fail(error);
+    //                 }
+    //                 discoDoc = gotDiscoDoc.Value;
+    //             }
+    //             _userInfoLoader ??= new UserInfoLoader(AccessToken, discoDoc, Log);
+    //             _userInformation = await _userInfoLoader.AwaitDownloadedAsync();
+    //     
+    //             return Outcome<string[]>.Success(_userInformation.Types);
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Log?.Error(ex);
+    //             return Outcome<string[]>.Fail(ex.Message, ex);
+    //         }
+    //     }
+    //
+        internal Grant(params TokenInfo[] tokens)
+        { 
             Tokens = tokens;
         }
     }
@@ -172,13 +195,13 @@ namespace TetraPak.XP.Auth
     /// </summary>
     public class TokenInfo
     {
-        readonly ValidateTokenDelegate _validateTokenDelegate;
+        readonly TokenValidationDelegate? _tokenValidationDelegate;
         bool _isValidatedByDelegate;
 
         /// <summary>
         ///   Gets the actual token as a <see cref="string"/> value.
         /// </summary>
-        public string TokenValue { get; }
+        public ActorToken Token { get; }
 
         /// <summary>
         ///   Gets the token role (see <see cref="TokenRole"/>).
@@ -189,11 +212,13 @@ namespace TetraPak.XP.Auth
         ///   Gets a expiration date/time, if available.
         /// </summary>
         public DateTime? Expires { get; }
+        
+        internal TokenInfo Clone(DateTime? expires) => new(Token, Role, expires);
 
         /// <summary>
         ///   Gets a value that indicates whether the token can be validated (other than just by its longevity).
         /// </summary>
-        public bool IsValidatable => _validateTokenDelegate != null;
+        public bool IsValidatable => _tokenValidationDelegate != null;
 
         /// <summary>
         ///   Validates the token and returns a value to indicate whether it is valid at this point. 
@@ -203,57 +228,62 @@ namespace TetraPak.XP.Auth
             if (isTokenExpired())
                 return false;
 
-            if (_validateTokenDelegate is null || _isValidatedByDelegate)
+            if (_tokenValidationDelegate is null || _isValidatedByDelegate)
                 return true;
 
-            var isValid = await _validateTokenDelegate(TokenValue);
+            var isValid = await _tokenValidationDelegate(Token);
             _isValidatedByDelegate = true;
             return isValid;
         }
 
         bool isTokenExpired() => Expires.HasValue && Expires.Value <= DateTime.Now;
 
-        internal TokenInfo(string tokenValue, TokenRole role, DateTime? expires = null, ValidateTokenDelegate validateTokenDelegate = null)
+        internal TokenInfo(
+            ActorToken token, 
+            TokenRole role, 
+            DateTime? expires = null, 
+            TokenValidationDelegate? tokenValidationDelegate = null)
         {
-            TokenValue = tokenValue;
+            Token = token ?? throw new ArgumentNullException(nameof(token));
             Role = role;
             Expires = expires;
-            _validateTokenDelegate = validateTokenDelegate;
+            _tokenValidationDelegate = tokenValidationDelegate;
         }
     }
 
     class UserInfoLoader
     {
-        readonly TaskCompletionSource<UserInformation> _tcs;
-        readonly string _accessToken;
-        readonly ILog _log;
-
+        readonly TaskCompletionSource<Outcome<UserInformation>> _tcs;
+        readonly ActorToken? _accessToken;
+        readonly ILog? _log;
+    
         void downloadAsync(Uri userInfoUri)
         {
+            if (_accessToken is null)
+                _tcs.SetResult(Outcome<UserInformation>.Fail(new Exception("No access token was provided")));
+            
             Task.Run(async () =>
             {
                 var request = (HttpWebRequest)WebRequest.Create(userInfoUri);
                 request.Method = "GET";
                 request.Accept = "*/*";
                 request.Headers.Add($"Authorization: Bearer {_accessToken}");
-
-                _log?.DebugWebRequest(request, null);
-
+    
+                _log.DebugWebRequest(request, null);
+    
                 try
                 {
                     var response = await request.GetResponseAsync();
                     var responseStream = response.GetResponseStream()
                                          ?? throw new Exception("Unexpected error: No response when requesting token.");
 
-                    using (var r = new StreamReader(responseStream))
-                    {
-                        var text = await r.ReadToEndAsync();
-
-                        _log?.DebugWebResponse(response as HttpWebResponse, text);
-
-                        var dictionary = JsonSerializer.Deserialize<IDictionary<string, object>>(text);
-                        _tcs.SetResult(new UserInformation(dictionary));
-                    }
+                    using var r = new StreamReader(responseStream);
+                    var text = await r.ReadToEndAsync();
+    
+                    _log?.DebugWebResponse(response as HttpWebResponse, text);
+    
+                    var dictionary = JsonSerializer.Deserialize<IDictionary<string, object>>(text)!;
+                    _tcs.SetResult(Outcome<UserInformation>.Success(new UserInformation(dictionary)));
                 }
                 catch (Exception ex)
                 {
@@ -266,14 +296,14 @@ namespace TetraPak.XP.Auth
                 }
             });
         }
-
-        public Task<UserInformation> AwaitDownloadedAsync() => _tcs.Task;
-
-        public UserInfoLoader(string accessToken, DiscoveryDocument discoDoc, ILog log)
+    
+        public Task<Outcome<UserInformation>> AwaitDownloadedAsync() => _tcs.Task;
+    
+        public UserInfoLoader(ActorToken? accessToken, DiscoveryDocument discoDoc, ILog? log)
         {
             _accessToken = accessToken;
             _log = log;
-            _tcs = new TaskCompletionSource<UserInformation>();
+            _tcs = new TaskCompletionSource<Outcome<UserInformation>>();
             downloadAsync(new Uri(discoDoc.UserInformationEndpoint));
         }
     }
@@ -281,43 +311,162 @@ namespace TetraPak.XP.Auth
     public class UserInformation
     {
         readonly IDictionary<string, object> _dictionary;
-
+    
         public string[] Types => _dictionary.Keys.ToArray();
-
-        public bool TryGet<T>(string type, out T value)
+    
+        public bool TryGet<T>(string type, out T? value)
         {
             if (!_dictionary.TryGetValue(type, out var obj))
             {
                 value = default;
                 return false;
             }
-
-            if (!(obj is T typedValue)) 
+    
+            if (obj is not T typedValue) 
                 throw new NotImplementedException();
             
             value = typedValue;
             return true;
-
+    
             // todo Cast from Json Token to requested value.
             // todo Also replace Json Token with converted value to avoid converting twice
         }
-
+    
         public UserInformation(IDictionary<string, object> dictionary)
         {
             _dictionary = dictionary;
         }
     }
 
-    public static class UserInfoTypes
-    {
-        public const string Subject = "sub";
-        public const string UserId = Subject;
-        public const string Name = "name";
-        public const string FamilyName = "family_name";
-        public const string Email = "email";
-        public const string Domain = "domain";
-    }
+    // public static class UserInfoTypes obsolete
+    // {
+    //     public const string Subject = "sub";
+    //     public const string UserId = Subject;
+    //     public const string Name = "name";
+    //     public const string FamilyName = "family_name";
+    //     public const string Email = "email";
+    //     public const string Domain = "domain";
+    // }
 
-    delegate Task<Outcome<string>> ValidateTokenDelegate(string token);
+    delegate Task<Outcome<string>> TokenValidationDelegate(ActorToken token);
+
+    public static class GrantHelper
+    {
+        internal static Grant ForAuthCode(this Grant self,
+            ActorToken accessToken, 
+            DateTime expires,
+            ActorToken? refreshToken, 
+            ActorToken? idToken)
+        {
+            var tokens = new List<TokenInfo>(new []
+            {
+                new TokenInfo(accessToken, TokenRole.AccessToken, expires)
+            });
+            if (refreshToken is { })
+            {
+                tokens.Add(new TokenInfo(refreshToken, TokenRole.RefreshToken));
+            }
+            if (idToken is {})
+            {
+                tokens.Add(new TokenInfo(idToken, TokenRole.IdToken));
+            }
+            return new Grant(tokens.ToArray());
+        }
+        
+        internal static Grant ForClientCredentials(this Grant self, ActorToken accessToken, DateTime expires)
+        {
+            return new Grant(new TokenInfo(accessToken, TokenRole.AccessToken, expires));
+        }
+
+        internal static Grant ForDeviceCode(this Grant self,
+            ActorToken accessToken, 
+            DateTime expires,
+            ActorToken? refreshToken, 
+            ActorToken? idToken)
+        {
+            var tokens = new List<TokenInfo>(new []
+            {
+                new TokenInfo(accessToken, TokenRole.AccessToken, expires)
+            });
+            if (refreshToken is { })
+            {
+                tokens.Add(new TokenInfo(refreshToken, TokenRole.RefreshToken));
+            }
+            if (idToken is {})
+            {
+                tokens.Add(new TokenInfo(idToken, TokenRole.IdToken));
+            }
+            return new Grant(tokens.ToArray());
+        }
+        
+        /// <summary>
+        ///   Attempts obtaining user information.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// </remarks>
+        public static async Task<Outcome<UserInformation>> TryGetUserInformationAsync(
+            this Grant grant,
+            ITimeLimitedRepositories? cache, 
+            ILog? log = null)
+        {
+            const string KeyUserInfo = "__userInfo"; 
+            
+            log?.Debug("[GET USER INFORMATION BEGIN]");
+        
+            if (grant.AccessToken is null)
+            {
+                var error = new Exception("Cannot get user information without a valid access token");
+                log?.Warning(error.Message);
+                return Outcome<UserInformation>.Fail(error);
+            }
+
+            var cachedUserInfo = grant.GetValue<UserInformation>(KeyUserInfo, null!);
+            if (cachedUserInfo != null)
+            {
+                log?.Debug("User information was cached");
+                return Outcome<UserInformation>.Success(cachedUserInfo);
+            }
+        
+            try
+            {
+                log?.Debug("Retrieves user information from API ...");
+                var discoDoc = DiscoveryDocument.Current;
+                if (discoDoc is null)
+                {
+                    var gotDiscoDoc = await DiscoveryDocument.TryDownloadAndSetCurrentAsync(grant, cache);
+                    if (!gotDiscoDoc)
+                    {
+                        var error = new Exception("Failed to retrieve the discovery document. Cannot resolve user information endpoint");
+                        log?.Debug($"ERROR: {error.Message}");
+                        return Outcome<UserInformation>.Fail(error);
+                    }
+        
+                    discoDoc = gotDiscoDoc.Value!;
+                }
+            
+                var userInfoLoader = new UserInfoLoader(grant.AccessToken, discoDoc, log);
+                var userInfoOutcome = await userInfoLoader.AwaitDownloadedAsync();
+                if (!userInfoOutcome)
+                {
+                    log?.Warning($"Failed when downloading user information. {userInfoOutcome.Message}");
+                    
+                }
+                log?.Debug("Successfully received user information from API");
+                grant.SetValue(KeyUserInfo, userInfoOutcome);
+                return Outcome<UserInformation>.Success(userInfoOutcome.Value!);
+            }
+            catch (Exception ex)
+            {
+                const string Message = "Failed while retrieving user information from API";
+                log?.Error(ex, Message);
+                return Outcome<UserInformation>.Fail(Message, ex);
+            }
+            finally
+            {
+                log?.Debug("[GET USER INFORMATION END]");
+            }
+        }
+    }
 
 }

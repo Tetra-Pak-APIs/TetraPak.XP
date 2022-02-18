@@ -73,13 +73,12 @@ namespace TetraPak.XP.Auth
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="ClientCredentialsResponse"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        protected async Task<Outcome<T>> GetCachedResponse<T>(string cacheRepositoryName, Credentials credentials)
-        where T : GrantResponse
+        protected async Task<Outcome<Grant>> GetCachedResponse(string cacheRepositoryName, Credentials credentials)
         {
             if (_cache is null)
-                return Outcome<T>.Fail(new Exception("No cached token"));
+                return Outcome<Grant>.Fail(new Exception("No cached token"));
 
-            var cachedOutcome = await _cache.ReadAsync<T>(
+            var cachedOutcome = await _cache.ReadAsync<Grant>(
                 credentials.Identity,
                 cacheRepositoryName);
 
@@ -88,7 +87,7 @@ namespace TetraPak.XP.Auth
 
             var remainingLifeSpan = cachedOutcome.GetRemainingLifespan();
             return cachedOutcome
-                ? Outcome<T>.Success(cachedOutcome.Value!.Clone<T>(remainingLifeSpan))
+                ? Outcome<Grant>.Success(cachedOutcome.Value!.Clone(remainingLifeSpan))
                 : cachedOutcome;
         }
                 

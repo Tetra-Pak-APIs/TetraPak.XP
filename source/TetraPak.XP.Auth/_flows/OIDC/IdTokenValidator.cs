@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
+using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.Auth.OIDC
 {
@@ -16,11 +17,11 @@ namespace TetraPak.XP.Auth.OIDC
         /// </summary>
         public DiscoveryPolicy DiscoveryPolicy { get; set; }
         
-        public async Task<Outcome<ClaimsPrincipal>> ValidateAsync(string idToken, JwtTokenValidationOptions options = null)
+        public async Task<Outcome<ClaimsPrincipal>> ValidateAsync(ActorToken idToken, JwtTokenValidationOptions options = null)
         {
             try
             {
-                var downloadOutcome = await DiscoveryDocument.DownloadAsync(idToken);
+                var downloadOutcome = await DiscoveryDocument.DownloadAsync(idToken.StringValue);
                 if (!downloadOutcome)
                     return Outcome<ClaimsPrincipal>.Fail(downloadOutcome.Message, downloadOutcome.Exception);
 
