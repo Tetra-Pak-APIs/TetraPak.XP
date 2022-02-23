@@ -48,6 +48,9 @@ namespace TetraPak.XP
         [JsonIgnore]
         public bool IsEmpty { get; private set; }
 
+        /// <summary>
+        ///   Constructs and returns an empty <see cref="MultiStringValue"/>.
+        /// </summary>
         public static MultiStringValue Empty => new();
 
         /// <summary>

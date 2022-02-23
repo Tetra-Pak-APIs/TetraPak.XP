@@ -21,6 +21,8 @@ namespace TetraPak.XP.Auth.Abstractions
         public const string Groups = "groups";
 
         // internal static bool IsDiscovered { get; private set; } obsolete
+
+        public new static GrantScope Empty => new(); 
         
         /// <summary>
         ///   Returns all currently supported scopes as items of an array.

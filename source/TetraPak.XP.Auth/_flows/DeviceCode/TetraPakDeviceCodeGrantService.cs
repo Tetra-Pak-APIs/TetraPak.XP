@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Caching.Abstractions;
+using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
@@ -30,13 +30,18 @@ namespace TetraPak.XP.Auth.DeviceCode
             var appCredentialsOutcome = await GetAppCredentialsAsync();
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+
+            var authContextOutcome = await TetraPakConfig.GetAuthContextAsync(GrantType.DeviceCode, options);
+            if (!authContextOutcome)
+                return Outcome<Grant>.Fail(authContextOutcome.Exception!);
+            var authContext = authContextOutcome.Value!;
             
             var appCredentials = appCredentialsOutcome.Value!;
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
                 var cachedOutcome = IsCachingGrants(options)
-                    ? await GetCachedResponseAsync(CacheRepository, appCredentials)
+                    ? await GetCachedGrantAsync(CacheRepository, appCredentials.Identity)
                     : Outcome<Grant>.Fail("Cached grant not allowed");
                 if (cachedOutcome)
                 {
@@ -67,8 +72,12 @@ namespace TetraPak.XP.Auth.DeviceCode
                 var keyValues = formsValues.Select(kvp
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var deviceCodeIssuerUrl = await TetraPakConfig.GetDeviceCodeIssuerUrlAsync();
-                var request = new HttpRequestMessage(HttpMethod.Post, deviceCodeIssuerUrl)
+                var deviceCodeIssuerUrlOutcome = await TetraPakConfig.GetDeviceCodeIssuerUrlAsync(authContext);
+                if (!deviceCodeIssuerUrlOutcome)
+                    return Outcome<Grant>.Fail(deviceCodeIssuerUrlOutcome.Exception!);
+
+                var deviceCodeIssuerUri = deviceCodeIssuerUrlOutcome.Value!;
+                var request = new HttpRequestMessage(HttpMethod.Post, deviceCodeIssuerUri)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
                 };
@@ -167,7 +176,11 @@ namespace TetraPak.XP.Auth.DeviceCode
                 var keyValues = formsValues.Select(kvp 
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var tokenIssuerUrl = await TetraPakConfig.GetTokenIssuerUrlAsync();
+                var tokenIssuerUrlOutcome = await TetraPakConfig.GetTokenIssuerUrlAsync(authContext);
+                if (!tokenIssuerUrlOutcome)
+                    return Outcome<Grant>.Fail(tokenIssuerUrlOutcome.Exception!);
+
+                var tokenIssuerUrl = tokenIssuerUrlOutcome.Value!;
                 var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUrl)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
@@ -207,12 +220,12 @@ namespace TetraPak.XP.Auth.DeviceCode
                         stream, 
                         cancellationToken: cts.Token))!;
 
-                    var parseOutcome = body.ToGrant(); 
-                    if (parseOutcome)
-                        return Outcome<Grant>.Success(parseOutcome.Value!);
+                    var grant = body.ToGrant(); 
+                    if (grant)
+                        return Outcome<Grant>.Success(grant.Value!);
                 
-                    Log.Error(parseOutcome.Exception!);
-                    return Outcome<Grant>.Fail(parseOutcome.Exception!);
+                    Log.Error(grant.Exception!);
+                    return Outcome<Grant>.Fail(grant.Exception!);
                 }
                 catch (Exception ex)
                 {
@@ -294,11 +307,11 @@ namespace TetraPak.XP.Auth.DeviceCode
         public TetraPakDeviceCodeGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
-            ITimeLimitedRepositories? cache = null,
+            IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, cache, tokenCache, log, httpContextAccessor)
+        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, log, httpContextAccessor)
         {
         }
     }

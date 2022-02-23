@@ -123,12 +123,6 @@ namespace TetraPak.XP.Configuration
             return null;
         }
 
-        public ConfigurationSectionWrapper(IConfigurationSectionExtended section, ILog? log)
-        {
-            Section = section;
-            Log = log;
-        }
-        
         public static string ValidateAssigned(string key)
         {
             if (key.IsUnassigned()) 
@@ -152,6 +146,12 @@ namespace TetraPak.XP.Configuration
                           ?? throw new ArgumentOutOfRangeException(nameof(key), 
                               $"Cannot resolve configuration section from '{key}'");
             }
+        }
+        
+        public ConfigurationSectionWrapper(IConfigurationSectionExtended section, ILog? log)
+        {
+            Section = section;
+            Log = log;
         }
     }
 }

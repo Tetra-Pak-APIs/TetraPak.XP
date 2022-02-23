@@ -8,8 +8,12 @@ namespace TetraPak.XP.Auth.Abstractions
     /// <summary>
     ///   Classes implementing this contract can provide information needed for authorization purposes. 
     /// </summary>
-    public interface IServiceAuthConfig 
+    public interface IServiceAuthConfig : IConfigurationSection
     {
+        string TokenIssuerUrl { get; }
+        
+        string DeviceCodeIssuerUrl { get; }
+        
         /// <summary>
         ///   Specifies the grant type (a.k.a. OAuth "flow") used at this configuration level.
         /// </summary>
@@ -40,11 +44,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <param name="authContext">
         ///     Details the auth context in which the (confidential) client secrets are requested.
         /// </param>
-        /// <param name="cancellationToken">
-        ///   (optional)<br/>
-        ///   Cancellation token for cancellation the operation.
-        /// </param>
-        Task<Outcome<string>> GetClientIdAsync(AuthContext authContext, CancellationToken? cancellationToken = null);
+        Task<Outcome<string>> GetClientIdAsync(AuthContext authContext);
         
         /// <summary>
         ///   Gets a client secret.
@@ -52,17 +52,21 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <param name="authContext">
         ///   Details the auth context in which the (confidential) client secrets are requested.
         /// </param>
-        /// <param name="cancellationToken">
-        ///   (optional)<br/>
-        ///   Cancellation token for cancellation the operation.
+        Task<Outcome<string>> GetClientSecretAsync(AuthContext authContext);
+        
+        /// <summary>
+        ///   Gets a redirect URI.
+        /// </summary>
+        /// <param name="authContext">
+        ///   Details the auth context in which the redirect URI is requested.
         /// </param>
-        Task<Outcome<string>> GetClientSecretAsync(AuthContext authContext, CancellationToken? cancellationToken = null);
+        Task<Outcome<Uri>> GetRedirectUriAsync(AuthContext authContext);
 
         /// <summary>
         ///   Gets a scope to be requested for authorization while, optionally, specifying a default scope.
         /// </summary>
         /// <param name="authContext">
-        ///   Details the auth context in which the (confidential) client secrets are requested.
+        ///   Details the auth context in which the grant is requested.
         /// </param>
         /// <param name="useDefault">
         ///   (optional)<br/>
@@ -78,6 +82,50 @@ namespace TetraPak.XP.Auth.Abstractions
             CancellationToken? cancellationToken = null);
 
         /// <summary>
+        ///   Gets a value specifying whether state is to be used in the ongoing authorization context. 
+        /// </summary>
+        /// <param name="authContext">
+        ///   Details the auth context in which the state is needed.
+        /// </param>
+        /// <param name="useDefault">
+        ///   (optional)<br/>
+        ///   Specifies a default value to be returned if the value cannot be resolved.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///   (optional)<br/>
+        ///   Cancellation token for cancellation the operation.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if state is to be used; otherwise <c>false</c>.
+        /// </returns>
+        Task<Outcome<bool>> IsStateUsedAsync(
+            AuthContext authContext, 
+            bool useDefault,
+            CancellationToken? cancellationToken = null);
+        
+        /// <summary>
+        ///   Gets a value specifying whether a PKCE is to be used in the ongoing authorization context. 
+        /// </summary>
+        /// <param name="authContext">
+        ///   Details the auth context in which the PKCE is needed.
+        /// </param>
+        /// <param name="useDefault">
+        ///   (optional)<br/>
+        ///   Specifies a default value to be returned if the value cannot be resolved.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///   (optional)<br/>
+        ///   Cancellation token for cancellation the operation.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if PKCE is to be used; otherwise <c>false</c>.
+        /// </returns>
+        Task<Outcome<bool>> IsPkceUsedAsync(
+            AuthContext authContext, 
+            bool useDefault,
+            CancellationToken? cancellationToken = null);
+
+        /// <summary>
         ///   Gets a "raw" configured value, as it is specified within the <see cref="IConfiguration"/> sources,
         ///   unaffected by delegates or other (internal) logic.
         /// </summary>
@@ -89,30 +137,17 @@ namespace TetraPak.XP.Auth.Abstractions
         /// </returns>
         string? GetConfiguredValue(string key);
 
-        /// <summary>
-        ///   Gets the configuration path.
-        /// </summary>
-        ConfigPath? ConfigPath { get; }
+        // /// <summary>
+        // ///   Gets the configuration path. obsolete
+        // /// </summary>
+        // ConfigPath? ConfigPath { get; }
 
-        Task<Uri> GetTokenIssuerUrlAsync();
+        Task<Outcome<Uri>> GetTokenIssuerUrlAsync(AuthContext authContext);
         
-        Task<Uri> GetDeviceCodeIssuerUrlAsync();
+        Task<Outcome<Uri>> GetAuthorityUrlAsync(AuthContext authContext);
         
-        // /// <summary>
-        // ///   Gets the <see cref="IConfiguration"/> instance used to populate the properties. obsolete
-        // /// </summary>
-        // IConfiguration Configuration { get; }
+        Task<Outcome<Uri>> GetDeviceCodeIssuerUrlAsync(AuthContext authContext);
         
-        // /// <summary>
-        // ///   Gets an <see cref="AmbientData"/> object.
-        // /// </summary>
-        // AmbientData AmbientData { get; }
-        //
-        // /// <summary>
-        // ///   Gets a declaring configuration (when this configuration is a sub configuration).
-        // /// </summary>
-        // IServiceAuthConfig? ParentConfig { get; }
-                
         /// <summary>
         ///   Examines a string and returns a value to indicate whether the value identifies
         ///   an attribute used for auth configuration. This is to ensure there is no risk of confusing
@@ -129,6 +164,5 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   "<c>ClientId</c>", "<c>ClientSecret</c>", "<c>Scope</c>".
         /// </remarks>
         bool IsAuthIdentifier(string identifier);
-        
     }
 }

@@ -31,7 +31,6 @@ namespace TetraPak.XP.Configuration
         const string RootKey = ".";
         static readonly List<ArbitraryValueParser> s_valueParsers = getDefaultValueParsers();
         ConfigPath? _configPath;
-        // ILog? _log;
         string _key = RootKey;
 
         /// <summary>

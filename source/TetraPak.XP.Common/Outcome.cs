@@ -37,7 +37,7 @@ namespace TetraPak.XP
         /// </summary>
         public Exception? Exception { get; }
 
-        public T? GetValue<T>(string key, T useDefault = default!)
+        public T GetValue<T>(string key, T useDefault = default!)
         {
             if (Data is null || !Data.TryGetValue(key, out var obj) || obj is not T tv)
                 return useDefault;

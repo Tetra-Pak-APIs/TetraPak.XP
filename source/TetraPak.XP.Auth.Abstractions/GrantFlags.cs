@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.Auth.Abstractions
 {
     [Flags]
     public enum GrantFlags

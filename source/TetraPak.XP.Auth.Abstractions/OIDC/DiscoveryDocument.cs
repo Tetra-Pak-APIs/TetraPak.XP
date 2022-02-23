@@ -140,9 +140,9 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
                         new HttpServerException(response, $"Error connecting to {input}: {response.ReasonPhrase}"));
 
                 var content = await response.Content.ReadAsStringAsync();
-                var discoDocument = JsonSerializer.Deserialize<DiscoveryDocument>(content);
+                var discoDocument = JsonSerializer.Deserialize<DiscoveryDocument>(content)!;
                 discoDocument.LastUpdated = DateTime.UtcNow;
-                Current = discoDocument;
+                SetCurrent(discoDocument);
                 if (cache is {})
                 {
                     saveToCache(cache, discoDocument);
@@ -153,6 +153,11 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
             {
                 return Outcome<DiscoveryDocument>.Fail(new Exception($"Error downloading discovery document from {input}: {ex.Message}", ex));
             }
+        }
+
+        internal static void SetCurrent(DiscoveryDocument? discoDocument)
+        {
+            
         }
 
         /// <summary>

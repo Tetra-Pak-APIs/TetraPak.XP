@@ -1,9 +1,10 @@
 ﻿using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Auth.Abstractions.OIDC;
 using Xunit;
 
 namespace TetraPak.XP.Auth.Tests
 {
-    public class AuthScopeTests
+    public class GrantScopeTests
     {
         [Fact]
         public void Empty()
@@ -16,8 +17,9 @@ namespace TetraPak.XP.Auth.Tests
         [Fact]
         public void Unsupported()
         {
-            Assert.False(GrantScope.IsScopeSupported("nope", out var unsupported));
-            Assert.Equal("nope", unsupported);
+            Assert.False(GrantScope.IsScopeSupported("openid profile nope email", out var unsupported));
+            Assert.Single(unsupported);
+            Assert.Equal("nope", unsupported[0]);
         }
 
         [Fact]
@@ -48,6 +50,21 @@ namespace TetraPak.XP.Auth.Tests
             Assert.Equal(scope, differentOrder);
             Assert.True(scope == differentOrder);
             Assert.False(differentOrder != scope);
+        }
+
+        public GrantScopeTests()
+        {
+            DiscoveryDocument.SetCurrent(new DiscoveryDocument
+            { 
+                ScopesSupported = new[]
+                {
+                    "openid",
+                    "profile",
+                    "email",
+                    "general",
+                    "groups"
+                } 
+            });
         }
     }
 }

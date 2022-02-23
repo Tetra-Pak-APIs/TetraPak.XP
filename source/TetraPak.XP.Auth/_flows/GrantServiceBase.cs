@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.ClientCredentials;
+using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Caching;
-using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 using TetraPk.XP.Web.Http;
@@ -15,23 +15,58 @@ namespace TetraPak.XP.Auth
 {
     public abstract class GrantServiceBase
     {
-        // /// <summary>
-        // ///   Gets a default cache key (the client Id).
-        // /// </summary>
-        // protected string TokenCacheKey => $"{TetraPakConfig.Authority!.Host}::{TetraPakConfig.ClientId}"; obsolete
-        
+        /// <summary>
+        ///   The Tetra Pak configuration object.
+        /// </summary>
         protected ITetraPakConfiguration TetraPakConfig { get; }
         
         IHttpClientProvider HttpClientProvider { get; }
         
         IHttpContextAccessor? HttpContextAccessor { get; }
         
+        /// <summary>
+        ///   A Refresh Grant service.
+        /// </summary>
+        protected IRefreshTokenGrantService? RefreshTokenGrantService { get; }
+        
+        /// <summary>
+        ///   A logger provider.
+        /// </summary>
         protected ILog? Log  { get; }
 
+        /// <summary>
+        ///   Examines passed state and returns a value indicating whether the current <see cref="Grant"/> request
+        ///   can be resolved from an earlier, cached, <see cref="Grant"/>.
+        /// </summary>
+        /// <param name="options">
+        ///   Specifies options for the <see cref="Grant"/> request.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if the Refresh Grant is currently available and possible; otherwise <c>false</c>.
+        /// </returns>
         protected bool IsCachingGrants(GrantOptions options) => TetraPakConfig.IsCaching && options.IsCachingAllowed && TokenCache is {};
 
-        protected ITimeLimitedRepositories? Cache { get; }  
+        /// <summary>
+        ///   Examines passed state and returns a value indicating whether the Refresh Grant flow is
+        ///   currently available. 
+        /// </summary>
+        /// <param name="refreshToken">
+        ///   An available refresh token.
+        /// </param>
+        /// <param name="options">
+        ///   Specifies options for the <see cref="Grant"/> request.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if the Refresh Grant is currently available and possible; otherwise <c>false</c>.
+        /// </returns>
+        protected bool IsRefreshingGrants(ActorToken? refreshToken, GrantOptions options)
+            => RefreshTokenGrantService is { } && options.IsRefreshAllowed && !string.IsNullOrEmpty(refreshToken);
+
+        // protected ITimeLimitedRepositories? Cache { get; }  
         
+        /// <summary>
+        ///   A (secure) cache to be used fo caching <see cref="Grant"/>s or individual tokens.
+        /// </summary>
         protected ITokenCache? TokenCache { get; }
 
         HttpContext? HttpContext => HttpContextAccessor?.HttpContext;
@@ -41,6 +76,10 @@ namespace TetraPak.XP.Auth
         /// </summary>
         protected LogMessageId? GetMessageId() => HttpContext?.Request.GetMessageId(TetraPakConfig);
 
+        /// <summary>
+        ///   Constructs and returns a <see cref="HttpClient"/>. 
+        /// </summary>
+        /// <returns></returns>
         protected Task<Outcome<HttpClient>> GetHttpClientAsync() => HttpClientProvider.GetHttpClientAsync();
         
         /// <summary>
@@ -66,26 +105,26 @@ namespace TetraPak.XP.Auth
         /// <param name="cacheRepositoryName">
         ///   The name of the repository to cache the response.
         /// </param>
-        /// <param name="credentials">
-        ///     The credentials used to acquire the response.
+        /// <param name="key">
+        ///   The key used to cache the <see cref="Grant"/>.
         /// </param>
-        /// <param name="response">
-        ///     The response to be cached.
+        /// <param name="grant">
+        ///     The grant to be cached.
         /// </param>
         /// <returns>
-        ///   The <paramref name="response"/> value.
+        ///   The <paramref name="grant"/> value.
         /// </returns>
-        protected async Task CacheResponseAsync<T>(string cacheRepositoryName, Credentials credentials, T response)
-        where T : GrantResponse
+        protected Task CacheGrantAsync<T>(string cacheRepositoryName, string key, T grant)
+        where T : Grant
         {
-            if (Cache is null) 
-                return;
+            if (TokenCache is null) 
+                return Task.CompletedTask;
 
-            await Cache.CreateOrUpdateAsync(
-                response,
-                credentials.Identity,
+            return TokenCache.CreateOrUpdateAsync(
+                grant,
+                key,
                 cacheRepositoryName,
-                response.ExpiresIn);
+                spawnTimeUtc: DateTime.UtcNow);
         }
 
         /// <summary>
@@ -94,8 +133,8 @@ namespace TetraPak.XP.Auth
         /// <param name="cacheRepositoryName">
         ///   The name of the repository caching the response.
         /// </param>
-        /// <param name="credentials">
-        ///   The credentials used to acquire the response.
+        /// <param name="key">
+        ///   The key used to cache the <see cref="Grant"/>.
         /// </param>
         /// <param name="cancellationToken">
         ///  (optional)<br/>
@@ -105,16 +144,16 @@ namespace TetraPak.XP.Auth
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="ClientCredentialsResponse"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        protected async Task<Outcome<Grant>> GetCachedResponseAsync(
-            string cacheRepositoryName, 
-            Credentials credentials,
+        protected async Task<Outcome<Grant>> GetCachedGrantAsync(
+            string cacheRepositoryName,
+            string key,
             CancellationToken? cancellationToken = null)
         {
             if (TokenCache is null)
                 return Outcome<Grant>.Fail("No token cache is available");
                 
             var cachedOutcome = await TokenCache.ReadAsync<Grant>(
-                credentials.Identity,
+                key,
                 cacheRepositoryName, 
                 cancellationToken);
 
@@ -147,7 +186,7 @@ namespace TetraPak.XP.Auth
                 ? bac
                 : new BasicAuthCredentials(credentials.Identity, credentials.Secret!);
         }
-        
+
         /// <summary>
         ///   Initializes the grant service.
         /// </summary>
@@ -157,10 +196,10 @@ namespace TetraPak.XP.Auth
         /// <param name="httpClientProvider">
         ///   A HTTP client provider, required for communicating with Tetra Pak.
         /// </param>
-        /// <param name="cache">
-        ///   (optional)<br/>
-        ///   A time-limited repositories provider, used to cache grants.
+        /// <param name="refreshTokenGrantService">
+        ///   Enables the OAuth Refresh Grant flow. 
         /// </param>
+        /// <param name="tokenCache"></param>
         /// <param name="log">
         ///   (optional)<br/>
         ///   A log provider.
@@ -171,21 +210,21 @@ namespace TetraPak.XP.Auth
         /// <exception cref="ArgumentNullException">
         ///   Any of the compulsory arguments where unassigned.
         /// </exception>
-        protected GrantServiceBase(
-            ITetraPakConfiguration tetraPakConfig, 
+        protected GrantServiceBase(ITetraPakConfiguration tetraPakConfig,
             IHttpClientProvider httpClientProvider,
-            ITimeLimitedRepositories? cache = null,
+            IRefreshTokenGrantService? refreshTokenGrantService,
+            // ITimeLimitedRepositories? cache = null, obsolete
             ITokenCache? tokenCache = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
         {
             TetraPakConfig = tetraPakConfig ?? throw new ArgumentNullException(nameof(tetraPakConfig));
             HttpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
+            RefreshTokenGrantService = refreshTokenGrantService;
             HttpContextAccessor = httpContextAccessor;
             Log = log;
-            Cache = cache;
+            // Cache = cache; obsolete
             TokenCache = tokenCache;
         }
-
     }
 }

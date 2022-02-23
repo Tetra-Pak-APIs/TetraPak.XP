@@ -1,4 +1,6 @@
-﻿namespace TetraPak.XP.Auth.Abstractions
+﻿using System.Threading;
+
+namespace TetraPak.XP.Auth.Abstractions
 {
     /// <summary>
     ///   Used to describe an auth request context.
@@ -15,6 +17,10 @@
         ///   Gets the <see cref="IServiceAuthConfig"/> object.
         /// </summary>
         public IServiceAuthConfig AuthConfig { get; }
+
+        public GrantOptions Options { get; }
+
+        public CancellationToken CancellationToken => Options.CancellationTokenSource?.Token ?? CancellationToken.None;
         
         /// <summary>
         ///   Initializes the <see cref="AuthContext"/>.
@@ -25,10 +31,11 @@
         /// <param name="authConfig">
         ///   Initializes <see cref="AuthConfig"/>. 
         /// </param>
-        public AuthContext(GrantType grantType, IServiceAuthConfig authConfig)
+        public AuthContext(GrantType grantType, IServiceAuthConfig authConfig, GrantOptions options)
         {
             GrantType = grantType;
             AuthConfig = authConfig;
+            Options = options;
         }
     }
 }

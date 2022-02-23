@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Caching.Abstractions;
+using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
@@ -34,14 +34,24 @@ namespace TetraPak.XP.Auth.ClientCredentials
             var appCredentialsOutcome = await GetAppCredentialsAsync();
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
-            
             var appCredentials = appCredentialsOutcome.Value!;
+            
+            var authContextOutcome = await TetraPakConfig.GetAuthContextAsync(GrantType.DeviceCode, options);
+            if (!authContextOutcome)
+                return Outcome<Grant>.Fail(authContextOutcome.Exception!);
+            var authContext = authContextOutcome.Value!;
+            
+            var tokenIssuerUriOutcome = await TetraPakConfig.GetTokenIssuerUrlAsync(authContext);
+            if (!tokenIssuerUriOutcome)
+                return Outcome<Grant>.Fail(tokenIssuerUriOutcome.Exception!);
+            var tokenIssuerUri = tokenIssuerUriOutcome.Value!;
+            
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
                 var basicAuthCredentials = ValidateBasicAuthCredentials(appCredentials);
                 var cachedOutcome = IsCachingGrants(options)
-                    ? await GetCachedResponseAsync(CacheRepository, appCredentials)
+                    ? await GetCachedGrantAsync(CacheRepository, appCredentials.Identity)
                     : Outcome<Grant>.Fail("Cached grant not allowed");
                 if (cachedOutcome)
                 {
@@ -71,8 +81,9 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 var keyValues = formsValues.Select(kvp 
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var tokenIssuerUrl = await TetraPakConfig.GetTokenIssuerUrlAsync();
-                var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUrl)
+                
+                
+                var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
                 };
@@ -109,7 +120,8 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 var outcome = ClientCredentialsResponse.TryParse(responseBody!);
                 if (outcome)
                 {
-                    await CacheResponseAsync(CacheRepository, basicAuthCredentials, outcome.Value!);
+                    var grant = outcome.Value!.ToGrant();
+                    await CacheGrantAsync(CacheRepository, basicAuthCredentials.Identity, grant);
                 }
 
                 var g = outcome.Value!;
@@ -236,6 +248,9 @@ namespace TetraPak.XP.Auth.ClientCredentials
         /// <param name="httpClientProvider">
         ///   A HttpClient factory.
         /// </param>
+        /// <param name="refreshTokenGrantService">
+        ///   Enables the OAuth Refresh Grant flow. 
+        /// </param>
         /// <param name="cache">
         ///   (optional)<br/>
         ///   A cache to reduce traffic and improve performance
@@ -257,11 +272,11 @@ namespace TetraPak.XP.Auth.ClientCredentials
         public TetraPakClientCredentialsGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
-            ITimeLimitedRepositories? cache = null,
+            IRefreshTokenGrantService? refreshTokenGrantService,
             ITokenCache? tokenCache = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, cache, tokenCache, log, httpContextAccessor)
+        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, log, httpContextAccessor)
         {
         }
     }
