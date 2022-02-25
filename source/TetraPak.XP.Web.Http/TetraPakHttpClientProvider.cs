@@ -5,12 +5,10 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Logging;
-using TetraPak.XP.Web;
 
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     /// <summary>
     ///   A base implementation of the <see cref="IHttpClientProvider"/>.  

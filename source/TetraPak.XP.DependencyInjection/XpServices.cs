@@ -192,7 +192,7 @@ namespace TetraPak.XP.DependencyInjection
         {
             var outcome = TryGet(typeof(T), true);
             if (!outcome)
-                return Outcome<T>.Fail(outcome.Message, outcome.Exception!);
+                return Outcome<T>.Fail(outcome.Exception!);
             
             if (outcome.Value is T tValue)
                 return Outcome<T>.Success(tValue);
@@ -291,7 +291,7 @@ namespace TetraPak.XP.DependencyInjection
                 catch (Exception ex)
                 {
                     cannotResolve.Add(type);
-                    return Outcome<object>.Fail($"Failed when activating service {type}", ex);
+                    return Outcome<object>.Fail(new Exception($"Failed when activating service {type}", ex));
                 }
 
             foreach (var constructor in type.GetConstructors())
@@ -326,7 +326,8 @@ namespace TetraPak.XP.DependencyInjection
             }
             
             cannotResolve.Add(type);
-            return Outcome<object>.Fail($"Failed when activating service {type}", new Exception("Could not resolve a suitable constructor"));
+            return Outcome<object>.Fail(
+                new Exception($"Failed when activating service {type}. Could not resolve a suitable constructor"));
         }
 
         public static IServiceCollection RegisterXpServices(ILog? log = null)

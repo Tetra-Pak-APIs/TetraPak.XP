@@ -210,7 +210,7 @@ namespace TetraPak.XP
         /// <returns>
         ///   A hash code for the current value.
         /// </returns>
-        public override int GetHashCode() => StringValue.GetHashCode();
+        public override int GetHashCode() => StringValue?.GetHashCode() ?? 0;
 
         /// <summary>
         ///   Comparison operator overload.
@@ -411,7 +411,7 @@ namespace TetraPak.XP
         /// </returns>
         /// <seealso cref="OnValidate"/>
         /// <seealso cref="OnValidateItem"/>
-        protected override string OnParse(string? stringValue)
+        protected override StringValueParseResult OnParse(string? stringValue)
         {
             Separator = s_separator!;
             Comparison = s_comparison!.Value;
@@ -424,7 +424,7 @@ namespace TetraPak.XP
 
             Items = validate(outcome.Value!);
             IsEmpty = Items.Length == 0;
-            return stringValue!;
+            return new StringValueParseResult(stringValue!, stringValue?.GetHashCode() ?? 0);
         }
 
         Outcome<string[]> tryParse(string? value)

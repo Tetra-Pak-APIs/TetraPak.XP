@@ -13,6 +13,10 @@ namespace TetraPak.XP
     {
         readonly string? _message;
         
+        /// <summary>
+        ///   Gets or sets a default message to reflect an outcome that failed due to the operaion
+        ///   being cancelled, and not message was specified. 
+        /// </summary>
         public static string DefaultCanceledMessage { get; set; } = "Operation was canceled";
 
         /// <summary>
@@ -97,23 +101,30 @@ namespace TetraPak.XP
         public static Outcome Success() => new(true, null!, null!);
         
         /// <summary>
+        ///   Constructs and returns an <see cref="Outcome"/> with <see cref="Message"/>
+        ///   that equals <c>true</c> when cast to a <see cref="bool"/> value.
+        /// </summary>
+        /// <returns>
+        ///   A <see cref="Outcome{T}"/> that represents a <c>true</c> value when
+        ///   cast as a <see cref="bool"/> while also carrying a specified value.
+        /// </returns>
+        public static Outcome Success(string message) => new(true, message, null!);
+        
+        /// <summary>
         ///   Creates and returns an <see cref="Outcome"/> that equals <c>false</c> when cast to a
         ///   <see cref="bool"/> value.
         /// </summary>
         /// <param name="message">
-        ///   A message to be carried by the <see cref="Outcome"/> object
+        ///   A message to be carried by the <see cref="Outcome"/> object.
+        ///   The message is simply passed as a message for the  <see cref="Exception"/>
         ///   (useful for error handling).
-        /// </param>
-        /// <param name="exception">
-        ///   An <see cref="Exception"/> to be carried by the <see cref="Outcome"/> object
-        ///   (for error handling).
         /// </param>
         /// <returns>
         ///   A <see cref="Outcome"/> that represents a <c>true</c> value when
         ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
         /// </returns>
         /// <seealso cref="Fail(System.Exception)"/>
-        public static Outcome Fail(string message, Exception exception) => new(false, message, exception);
+        public static Outcome Fail(string message) => new(false, null, new Exception(message));
 
         /// <summary>
         ///   Creates and returns an <see cref="Outcome"/> that equals <c>false</c> when cast to a
@@ -127,10 +138,7 @@ namespace TetraPak.XP
         ///   A <see cref="Outcome"/> that represents a <c>true</c> value when
         ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
         /// </returns>
-        public static Outcome Fail(Exception exception)
-        {
-            return new Outcome(false, null!, exception);
-        }
+        public static Outcome Fail(Exception exception) => new(false, null!, exception);
 
         /// <summary>
         ///   Creates and returns a 'Failed' <see cref="Outcome"/> due to a operation being canceled.

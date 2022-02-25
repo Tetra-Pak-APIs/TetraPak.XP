@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     /// <summary>
     ///    Provides <see cref="string"/> constants for standard HTTP methods.

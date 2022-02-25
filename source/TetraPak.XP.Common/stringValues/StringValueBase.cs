@@ -38,7 +38,7 @@ namespace TetraPak.XP
         /// </summary>
         public string StringValue { get; }
 
-        protected string Parse(string? stringValue) => OnParse(stringValue);
+        protected StringValueParseResult Parse(string? stringValue) => OnParse(stringValue);
 
         /// <summary>
         ///   Instantiates a <see cref="IStringValue"/> of the specified type.
@@ -105,18 +105,17 @@ namespace TetraPak.XP
         ///   Instead it will simply look for the <see cref="ErrorQualifier"/> to determine whether
         ///   it is already an erroneous <see cref="IStringValue"/>.  
         /// </remarks>
-        protected virtual string OnParse(string? stringValue)
+        protected virtual StringValueParseResult OnParse(string? stringValue)
         {
             if (stringValue.IsUnassigned(true) || !stringValue!.StartsWith(ErrorQualifier))
-                return stringValue ?? string.Empty;
+                return new StringValueParseResult(stringValue ?? string.Empty, stringValue?.GetHashCode() ?? 0);
 
             IsError = true;
-            return stringValue;
+            return new StringValueParseResult(stringValue, stringValue.GetHashCode());
         }
 
         protected bool IsAssignedAndNotError(string? stringValue)
             => stringValue.IsAssigned(true) && !stringValue!.StartsWith(ErrorQualifier);
-        
 
         /// <inheritdoc />
         public override string ToString() => StringValue;
@@ -187,8 +186,33 @@ namespace TetraPak.XP
         /// </param>
         public StringValueBase(string? stringValue)
         {
-            StringValue = isParsed(stringValue) ? stripParsed(stringValue!) : Parse(stringValue);
-            _hashCode = StringValue.GetHashCode();
+            if (isParsed(stringValue))
+            {
+                StringValue = stripParsed(stringValue!);
+                _hashCode = StringValue.GetHashCode();
+                return;
+            }
+
+            var parseResult = Parse(stringValue);
+            StringValue = parseResult.StringValue;
+            _hashCode = parseResult.HashCode;
         }
     }
+
+    public class StringValueParseResult
+    {
+        public string StringValue { get; }
+
+        public int HashCode { get; }
+
+        public static StringValueParseResult Empty => new(string.Empty, string.Empty.GetHashCode());
+
+        public StringValueParseResult(string stringValue, int hashCode)
+        {
+            StringValue = stringValue;
+            HashCode = hashCode;
+        }
+    }
+    
+    
 }

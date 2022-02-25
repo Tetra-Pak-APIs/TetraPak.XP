@@ -1,9 +1,8 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
-using TetraPak.XP;
 using TetraPak.XP.Web.Abstractions;
 
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     public class TetraPakMessageIdClientDecorator : IHttpClientDecorator
     {
