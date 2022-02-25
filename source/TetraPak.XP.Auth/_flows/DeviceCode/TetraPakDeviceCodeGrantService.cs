@@ -72,11 +72,10 @@ namespace TetraPak.XP.Auth.DeviceCode
                 var keyValues = formsValues.Select(kvp
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var deviceCodeIssuerUrlOutcome = await TetraPakConfig.GetDeviceCodeIssuerUrlAsync(authContext);
-                if (!deviceCodeIssuerUrlOutcome)
-                    return Outcome<Grant>.Fail(deviceCodeIssuerUrlOutcome.Exception!);
-
-                var deviceCodeIssuerUri = deviceCodeIssuerUrlOutcome.Value!;
+                var deviceCodeIssuerUri = authContext.DeviceCodeIssuerUri;
+                if (string.IsNullOrWhiteSpace(deviceCodeIssuerUri))
+                    return ServiceAuthConfig.MissingConfigurationOutcome<Grant>(authContext, nameof(AuthContext.DeviceCodeIssuerUri));
+                
                 var request = new HttpRequestMessage(HttpMethod.Post, deviceCodeIssuerUri)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
@@ -176,12 +175,11 @@ namespace TetraPak.XP.Auth.DeviceCode
                 var keyValues = formsValues.Select(kvp 
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var tokenIssuerUrlOutcome = await TetraPakConfig.GetTokenIssuerUrlAsync(authContext);
-                if (!tokenIssuerUrlOutcome)
-                    return Outcome<Grant>.Fail(tokenIssuerUrlOutcome.Exception!);
-
-                var tokenIssuerUrl = tokenIssuerUrlOutcome.Value!;
-                var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUrl)
+                var tokenIssuerUri = authContext.TokenIssuerUri;
+                if (string.IsNullOrWhiteSpace(tokenIssuerUri))
+                    return ServiceAuthConfig.MissingConfigurationOutcome<Grant>(authContext, nameof(AuthContext.TokenIssuerUri));
+                
+                var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
                 };

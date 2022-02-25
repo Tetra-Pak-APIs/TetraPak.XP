@@ -186,7 +186,7 @@ namespace TetraPak.XP.Auth
                 ? bac
                 : new BasicAuthCredentials(credentials.Identity, credentials.Secret!);
         }
-
+        
         /// <summary>
         ///   Initializes the grant service.
         /// </summary>

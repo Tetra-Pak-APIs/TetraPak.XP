@@ -26,7 +26,7 @@ namespace TetraPak.XP.Configuration
     [JsonConvertDynamicEntities(FactoryType = typeof(ConfigurationSectionFactory))]
     [JsonKeyFormat(KeyTransformationFormat.None)]
     [DebuggerDisplay("{ToString()}")] 
-    public class ConfigurationSection : DynamicEntity, IConfigurationSectionExtended
+    public class ConfigurationSection : DynamicEntity, IConfigurationSection
     {
         const string RootKey = ".";
         static readonly List<ArbitraryValueParser> s_valueParsers = getDefaultValueParsers();
@@ -87,16 +87,18 @@ namespace TetraPak.XP.Configuration
         ///   (or <c>null</c> if this section is also the configuration root).
         /// </summary>
         internal IConfigurationSection? ParentConfiguration { get; set; }
+        
+        public virtual TValue? GetDerived<TValue>(TValue? useDefault = default, [CallerMemberName] string? caller = null) 
+            => GetValue(JsonKey(caller!), useDefault);
 
-        // /// <summary>
-        // ///   Gets a logger.
-        // /// </summary>
-        // public ILog? Log => _log ?? getParentLog();
+        public virtual TValue? GetDerivedValue<TValue>(string key, TValue? useDefault = default)
+        {
+            var value = base.GetValue(key, useDefault);
+            if (ParentConfiguration is {} && value is {} && value.Equals(useDefault))
+                return ParentConfiguration.GetDerivedValue(key, useDefault);
 
-        // ILog? getParentLog() =>
-        //     ParentConfiguration is ConfigurationSection parentSection
-        //         ? parentSection.Log
-        //         : null;
+            return value;
+        }
 
         /// <summary>
         ///   Obtains a <see cref="FieldInfo"/> object for a specified field.

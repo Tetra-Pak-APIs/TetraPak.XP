@@ -10,14 +10,68 @@ namespace TetraPak.XP.Auth
     {
         const string SectionKey = "TetraPak";
         readonly ITimeLimitedRepositories? _cache;
+        readonly IRuntimeEnvironmentResolver _environmentResolver;
 
         public string? RequestMessageIdHeader => Section?.Get<string?>();
+        
+        /// <summary>
+        ///   Gets the current runtime environment (DEV, TEST, PROD ...).
+        ///   The value is a <see cref="RuntimeEnvironment"/> enum value. 
+        /// </summary>
+        [StateDump]
+        public RuntimeEnvironment Environment
+        {
+            get
+            {
+                var resolved = _environmentResolver.ResolveRuntimeEnvironment();
+                return resolved == RuntimeEnvironment.Unknown
+                    ? Get<RuntimeEnvironment?>() ?? RuntimeEnvironment.Production
+                    : resolved;
+            }
+        } 
 
-        /// <inheritdoc />
-        public async Task<Outcome<AuthContext>> GetAuthContextAsync(GrantType grantType, GrantOptions options)
+        public TetraPakConfig(
+            IConfigurationSection section, 
+            IRuntimeEnvironmentResolver environmentResolver,
+            ITimeLimitedRepositories? cache = null,
+            ITokenCache? tokenCache = null,
+            ILog? log = null) 
+        : base(section, tokenCache, log)
+        {
+            _environmentResolver = environmentResolver;
+            _cache = cache;
+        }
+
+        // public TetraPakConfig(
+        //     IConfiguration? configuration,
+        //     IRuntimeEnvironmentResolver environmentResolver,
+        //     ITimeLimitedRepositories? cache = null,
+        //     ITokenCache? tokenCache = null,
+        //     ILog? log = null) 
+        // : base(configuration, SectionKey, tokenCache, log)
+        // {
+        //     _environmentResolver = environmentResolver;
+        //     _cache = cache;
+        // }
+    }
+
+    public static class TetraPakConfigurationHelper
+    {
+        /// <summary>
+        ///   Constructs and returns a <see cref="AuthContext"/>. 
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="grantType">
+        ///   Specifies the requested <see cref="GrantType"/>.
+        /// </param>
+        /// <param name="options">
+        ///   Options describing the request.
+        /// </param>
+        /// <returns></returns>
+        public static async Task<Outcome<AuthContext>> GetAuthContextAsync(this ITetraPakConfiguration self, GrantType grantType, GrantOptions options)
         {
             if (string.IsNullOrWhiteSpace(options.Service))
-                return Outcome<AuthContext>.Success(new AuthContext(grantType, this, options));
+                return Outcome<AuthContext>.Success(new AuthContext(grantType, self, options));
 
             var path = new ConfigPath(options.Service);
             if (path.Count < 2)
@@ -25,31 +79,9 @@ namespace TetraPak.XP.Auth
                 path = path.Insert(ConfigurationSectionNames.Services);
             }
 
-            return await GetSectionAsync(path) is not IServiceAuthConfig section 
+            return await self.GetSectionAsync(path) is not IServiceAuthConfig section 
                 ? Outcome<AuthContext>.Fail(new ConfigurationException($"Could not find configured service \"{path}\"")) 
                 : Outcome<AuthContext>.Success(new AuthContext(grantType, section, options));
-        }
-
-        public TetraPakConfig(
-            IConfigurationSectionExtended section, 
-            IRuntimeEnvironmentResolver environmentResolver,
-            ITimeLimitedRepositories? cache = null,
-            ITokenCache? tokenCache = null,
-            ILog? log = null) 
-        : base(section, environmentResolver, tokenCache, log)
-        {
-            _cache = cache;
-        }
-
-        public TetraPakConfig(
-            IConfiguration? configuration,
-            IRuntimeEnvironmentResolver environmentResolver,
-            ITimeLimitedRepositories? cache = null,
-            ITokenCache? tokenCache = null,
-            ILog? log = null) 
-        : base(configuration, SectionKey, environmentResolver, tokenCache, log)
-        {
-            _cache = cache;
         }
     }
 

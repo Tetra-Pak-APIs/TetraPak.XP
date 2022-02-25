@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Authentication;
@@ -14,7 +13,6 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Caching;
-using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web;
 using TetraPak.XP.Web.Http;
@@ -41,6 +39,29 @@ namespace TetraPak.XP.Auth.AuthCode
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             var authContext = authContextOutcome.Value!;
+            
+            var redirectUriString = authContext.RedirectUri;
+            if (string.IsNullOrWhiteSpace(redirectUriString))
+                return ServiceAuthConfig.MissingConfigurationOutcome<Grant>(authContext, nameof(AuthContext.RedirectUri));
+            if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
+                return ServiceAuthConfig.InvalidConfigurationOutcome<Grant>(authContext, nameof(AuthContext.RedirectUri), redirectUriString);
+
+            var authorityUriString = authContext.AuthorityUri;
+            if (string.IsNullOrWhiteSpace(authorityUriString))
+                return ServiceAuthConfig.MissingConfigurationOutcome<Grant>(authContext, nameof(AuthContext.AuthorityUri));
+            if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var authorityUri))
+                return ServiceAuthConfig.InvalidConfigurationOutcome<Grant>(authContext, nameof(AuthContext.AuthorityUri), authorityUriString);
+            
+            var tokenIssuerUriString = authContext.TokenIssuerUri;
+            if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
+                return ServiceAuthConfig.MissingConfigurationOutcome<Grant>(authContext, nameof(AuthContext.TokenIssuerUri));
+            if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var tokenIssuerUri))
+                return ServiceAuthConfig.InvalidConfigurationOutcome<Grant>(authContext, nameof(AuthContext.TokenIssuerUri), tokenIssuerUriString);
+
+            var isStateUsed = authContext.UseState;
+            var isPkceUsed = authContext.UsePKCE;
+            var authState = new AuthState(isStateUsed, isPkceUsed, appCredentials.Identity);
+
 
             var cachedOutcome = !string.IsNullOrWhiteSpace(options.ActorId) && IsCachingGrants(options)
                 ? await GetCachedGrantAsync(CacheRepository, options.ActorId)
@@ -52,7 +73,7 @@ namespace TetraPak.XP.Auth.AuthCode
             await removeFromCacheAsync(appCredentials);
             if (!IsRefreshingGrants(cachedOutcome.Value!.RefreshToken, options))
                 return await onAuthorizationDone(
-                    await acquireTokenViaWebUIAsync(appCredentials, authContext, messageId));
+                    await acquireTokenViaWebUIAsync(authorityUri,  tokenIssuerUri,authState, appCredentials, redirectUri, authContext, messageId));
 
             // attempt refresh token ...
             var refreshToken = cachedOutcome.Value!.RefreshToken;
@@ -61,7 +82,8 @@ namespace TetraPak.XP.Auth.AuthCode
                 return await onAuthorizationDone(refreshOutcome);
 
             // run the OIDC 'dance' through a browser ... 
-            return await onAuthorizationDone(await acquireTokenViaWebUIAsync(appCredentials, authContext, messageId));
+            return await onAuthorizationDone
+                (await acquireTokenViaWebUIAsync(authorityUri, tokenIssuerUri, authState, appCredentials,  redirectUri, authContext, messageId));
             
             async Task<Outcome<Grant>> onAuthorizationDone(Outcome<Grant> outcome)
             {
@@ -82,33 +104,19 @@ namespace TetraPak.XP.Auth.AuthCode
             !string.IsNullOrWhiteSpace(options.ActorId) && IsCachingGrants(options);
         
         async Task<Outcome<Grant>> acquireTokenViaWebUIAsync(
+            Uri authorityUri,
+            Uri tokenIssuerUri,
+            AuthState authState,
             Credentials appCredentials, 
+            Uri redirectUri,
             AuthContext authContext, 
             LogMessageId? messageId)
         {
             Log.Debug("[BEGIN - Authorization Code request]", messageId);
-            var redirectUriOutcome = await TetraPakConfig.GetRedirectUriAsync(authContext);
-            if (!redirectUriOutcome)
-                return Outcome<Grant>.Fail(new ConfigurationException("Redirect URI was not configured"));
-            var redirectUri = redirectUriOutcome.Value!;
-            
             Log.Debug($"Listens for authorization code on {redirectUri} ...");
             
             // make the call for auth code and await callback from redirect ...
-            var authorityUriOutcome = await TetraPakConfig.GetTokenIssuerUrlAsync(authContext);
-            if (!authorityUriOutcome)
-                return Outcome<Grant>.Fail(authorityUriOutcome.Exception!);
-            var authorityUri = authorityUriOutcome.Value!;
-            
-            var tokenIssuerUriOutcome = await TetraPakConfig.GetTokenIssuerUrlAsync(authContext);
-            if (!tokenIssuerUriOutcome)
-                return Outcome<Grant>.Fail(tokenIssuerUriOutcome.Exception!);
-            var tokenIssuerUri = tokenIssuerUriOutcome.Value!;
-
-            var isStateUsedOutcome = await TetraPakConfig.IsStateUsedAsync(authContext, false);
-            var isPkceUsedOutcome = await TetraPakConfig.IsPkceUsedAsync(authContext, false);
-            var authState = new AuthState(isStateUsedOutcome.Value, isPkceUsedOutcome.Value, appCredentials.Identity);
-            var authCodeRequestOutcome = await buildAuthRequestAsync(authorityUri, authState, authContext);
+            var authCodeRequestOutcome = await buildAuthRequestAsync(authorityUri, redirectUri, authState, authContext);
             if (!authCodeRequestOutcome)
                 return Outcome<Grant>.Fail(authCodeRequestOutcome.Exception!);
             
@@ -133,7 +141,7 @@ namespace TetraPak.XP.Auth.AuthCode
                 return Outcome<Grant>.Fail(
                     new WebException($"Returned state was invalid: \"{inState}\". Expected state: \"{authState.State}\""));
             
-            var accessCodeOutcome = await getAccessCodeAsync(tokenIssuerUri, authCode, authState, authContext, messageId);
+            var accessCodeOutcome = await getAccessCodeAsync(tokenIssuerUri, redirectUri, appCredentials, authCode, authState, authContext, messageId);
             Log.Debug("[GET ACCESS CODE END]");
             return accessCodeOutcome;
 
@@ -146,26 +154,18 @@ namespace TetraPak.XP.Auth.AuthCode
             }
         }
 
-        async Task<Outcome<string>> buildAuthRequestAsync(Uri authorityUri, AuthState authState, AuthContext authContext)
+        static Task<Outcome<string>> buildAuthRequestAsync(
+            Uri authorityUri,
+            Uri redirectUri, 
+            AuthState authState,
+            IServiceAuthConfig authConfig)
         {
             var sb = new StringBuilder();
-            var redirectUriOutcome = await TetraPakConfig.GetRedirectUriAsync(authContext);
-            if (!redirectUriOutcome)
-                return Outcome<string>.Fail(redirectUriOutcome.Exception!);
-            var redirectUri = redirectUriOutcome.Value!;
-            
-            var clientIdOutcome = await TetraPakConfig.GetClientIdAsync(authContext);
-            if (!clientIdOutcome)
-                return Outcome<string>.Fail(clientIdOutcome.Exception!);
-            var clientId = clientIdOutcome.Value!;
-            
-            var scopeOutcome = await TetraPakConfig.GetScopeAsync(authContext);
-            var scopes = scopeOutcome ? scopeOutcome.Value!.Items.ToList() : new List<string>();
-            if (scopes.Count == 0)
-            {
-                scopes.Add(GrantScope.OpenId); // todo consider whether "openid" grant request should be optional
-            }
-            var scope = new GrantScope(scopes.ToArray());
+            var clientId =  authConfig.ClientId;
+            if (string.IsNullOrWhiteSpace(clientId))
+                return Task.FromResult(ServiceAuthConfig.MissingConfigurationOutcome<string>(authConfig, nameof(AuthContext.ClientId)));
+
+            var scope = authConfig.Scope;
             
             sb.Append($"{authorityUri.AbsoluteUri}?response_type=code");
             sb.Append($"&redirect_uri={Uri.EscapeDataString(redirectUri.AbsoluteUri)}");
@@ -174,19 +174,21 @@ namespace TetraPak.XP.Auth.AuthCode
                 
             // state ...
             if (!authState.IsUsed)
-                return Outcome<string>.Success(sb.ToString());
+                return Task.FromResult(Outcome<string>.Success(sb.ToString()));
 
             sb.Append($"&state={HttpUtility.UrlEncode(authState.State)}");
             if (!authState.IsPKCEUsed)
-                return Outcome<string>.Success(sb.ToString());
+                return Task.FromResult(Outcome<string>.Success(sb.ToString()));
 
             sb.Append($"&code_challenge={authState.CodeChallenge}");
             sb.Append($"&code_challenge_method={authState.CodeChallengeMethod}");
-            return Outcome<string>.Success(sb.ToString());
+            return Task.FromResult(Outcome<string>.Success(sb.ToString()));
         }
         
          async Task<Outcome<Grant>> getAccessCodeAsync(
-             Uri tokenIssuerUri, 
+             Uri tokenIssuerUri,
+             Uri redirectUri,
+             Credentials appCredentials,
              string authCode, 
              AuthState authState,
              AuthContext authContext,
@@ -200,7 +202,7 @@ namespace TetraPak.XP.Auth.AuthCode
                         clientOutcome.Exception));
                 
             using var client = clientOutcome.Value!;
-            var bodyOutcome = await buildTokenRequestBodyAsync(authCode, authState, authContext);
+            var bodyOutcome = await buildTokenRequestBodyAsync(authCode, appCredentials, redirectUri, authState);
             if (!bodyOutcome)
                 return Outcome<Grant>.Fail(bodyOutcome.Exception!);
 
@@ -288,24 +290,15 @@ namespace TetraPak.XP.Auth.AuthCode
                 Log.Error(ex, message.ToString(), messageId);
                 return Outcome<Grant>.Fail(ex);
             }
-
         }
-         
-         async Task<Outcome<Dictionary<string,string>>> buildTokenRequestBodyAsync(
+
+         static Task<Outcome<Dictionary<string,string>>> buildTokenRequestBodyAsync(
              string authCode, 
-             AuthState authState, 
-             AuthContext authContext)
+             Credentials appCredentials,
+             Uri redirectUri,
+             AuthState authState)
          {
-             var clientIdOutcome = await TetraPakConfig.GetClientIdAsync(authContext);
-             if (!clientIdOutcome)
-                 return Outcome<Dictionary<string,string>>.Fail(clientIdOutcome.Exception!);
-             var clientId = clientIdOutcome.Value!;
-
-             var redirectUriOutcome = await TetraPakConfig.GetRedirectUriAsync(authContext);
-             if (!redirectUriOutcome)
-                 return Outcome<Dictionary<string,string>>.Fail(redirectUriOutcome.Exception!);
-
-             var redirectUri = redirectUriOutcome.Value!;
+             var clientId = appCredentials.Identity;
              var dictionary = new Dictionary<string, string>
              {
                  ["grant_type"] = "authorization_code",
@@ -323,7 +316,7 @@ namespace TetraPak.XP.Auth.AuthCode
              // if (authState.Verifier is not null)
              //     sb.Append($"&code_verifier={authState.Verifier}");
 
-             return Outcome<Dictionary<string,string>>.Success(dictionary);
+             return Task.FromResult(Outcome<Dictionary<string,string>>.Success(dictionary));
          }
 
         public TetraPakAuthorizationCodeGrantService(

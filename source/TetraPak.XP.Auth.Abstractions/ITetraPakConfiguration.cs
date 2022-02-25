@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using TetraPak.XP.Web.Abstractions;
+﻿using TetraPak.XP.Web.Abstractions;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
@@ -14,17 +13,5 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   configuration is honored.
         /// </remarks>
         bool IsCaching { get; }
-
-        /// <summary>
-        ///   Constructs and returns a <see cref="AuthContext"/>. 
-        /// </summary>
-        /// <param name="grantType">
-        ///   Specifies the requested <see cref="GrantType"/>.
-        /// </param>
-        /// <param name="options">
-        ///   Options describing the request.
-        /// </param>
-        /// <returns></returns>
-        Task<Outcome<AuthContext>> GetAuthContextAsync(GrantType grantType, GrantOptions options);
     }
 }

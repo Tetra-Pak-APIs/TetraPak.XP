@@ -2,6 +2,9 @@
 
 namespace TetraPak.XP.Auth.Abstractions
 {
+    /// <summary>
+    ///   Specifies options for a <see cref="Grant"/> request.
+    /// </summary>
     public class GrantOptions
     {
         /// <summary>
@@ -10,7 +13,7 @@ namespace TetraPak.XP.Auth.Abstractions
         public GrantFlags Flags { get; set; }
 
         /// <summary>
-        ///   Specifies the service to be consumed.  
+        ///   Specifies a service to be consumed.  
         /// </summary>
         internal string? Service { get; set; }
 
@@ -45,6 +48,7 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Constructs and returns a <see cref="GrantOptions"/> object to force the grant request.
         /// </summary>
         /// <param name="cancellationTokenSource">
+        ///   (optional)<br/>
         ///   Enables canceling the request.
         /// </param>
         /// <param name="actorId">
@@ -53,7 +57,9 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   This information is needed for caching purposed by some grant flows.  
         /// </param>
         /// <seealso cref="GrantFlags"/>
-        public static GrantOptions Forced(CancellationTokenSource? cancellationTokenSource = null, string? actorId = null)
+        public static GrantOptions Forced(
+            CancellationTokenSource? cancellationTokenSource = null, 
+            string? actorId = null)
         {
             return new GrantOptions
             {
@@ -71,6 +77,7 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Specifies a service to be consumed. 
         /// </param>
         /// <param name="cancellationTokenSource">
+        ///   (optional)<br/>
         ///   Enables canceling the request.
         /// </param>
         /// <param name="actorId">
@@ -79,7 +86,10 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   This information is needed for caching purposed by some grant flows.  
         /// </param>
         /// <seealso cref="GrantFlags"/>
-        public static GrantOptions Forced(string? service, CancellationTokenSource? cancellationTokenSource = null, string? actorId = null)
+        public static GrantOptions Forced(
+            string? service, 
+            CancellationTokenSource? cancellationTokenSource = null, 
+            string? actorId = null)
         {
             return new GrantOptions
             {
@@ -94,10 +104,18 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Constructs and returns a <see cref="GrantOptions"/> object for a silent grant request.
         /// </summary>
         /// <param name="cancellationTokenSource">
+        ///   (optional)<br/>
         ///   Enables canceling the request.
         /// </param>
+        /// <param name="actorId">
+        ///   (optional)<br/>
+        ///   A (unique) id used to identify the actor requesting authorization. 
+        ///   This information is needed for caching purposed by some grant flows.  
+        /// </param>
         /// <seealso cref="GrantFlags"/>
-        public static GrantOptions Silent(CancellationTokenSource cancellationTokenSource) 
+        public static GrantOptions Silent(
+            CancellationTokenSource? cancellationTokenSource = null, 
+            string? actorId = null) 
             =>
             Silent(null, cancellationTokenSource);
         
@@ -109,10 +127,19 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Specifies a service to be consumed. 
         /// </param>
         /// <param name="cancellationTokenSource">
+        ///   (optional)<br/>
         ///   Enables canceling the request.
         /// </param>
+        /// <param name="actorId">
+        ///   (optional)<br/>
+        ///   A (unique) id used to identify the actor requesting authorization. 
+        ///   This information is needed for caching purposed by some grant flows.  
+        /// </param>
         /// <seealso cref="GrantFlags"/>
-        public static GrantOptions Silent(string? service, CancellationTokenSource cancellationTokenSource)
+        public static GrantOptions Silent(
+            string? service,
+            CancellationTokenSource? cancellationTokenSource = null, 
+            string? actorId = null)
         {
             return new GrantOptions
             {

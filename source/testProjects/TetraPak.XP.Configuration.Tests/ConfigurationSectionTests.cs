@@ -42,7 +42,7 @@ namespace TetraPak.XP.Desktop.Tests
             Assert.NotNull(numArray);
             Assert.Equal(2, numArray!.Length);
 
-            var logLevel = await config.GetAsync<IConfigurationSectionExtended>("Logging:LogLevel");
+            var logLevel = await config.GetAsync<IConfigurationSection>("Logging:LogLevel");
             Assert.Equal("Logging:LogLevel", logLevel!.Path);
             Assert.NotNull(logLevel);
             Assert.Equal(3, logLevel.Count);

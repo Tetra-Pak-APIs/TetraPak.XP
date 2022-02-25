@@ -41,10 +41,9 @@ namespace TetraPak.XP.Auth.ClientCredentials
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             var authContext = authContextOutcome.Value!;
             
-            var tokenIssuerUriOutcome = await TetraPakConfig.GetTokenIssuerUrlAsync(authContext);
-            if (!tokenIssuerUriOutcome)
-                return Outcome<Grant>.Fail(tokenIssuerUriOutcome.Exception!);
-            var tokenIssuerUri = tokenIssuerUriOutcome.Value!;
+            var tokenIssuerUri = authContext.TokenIssuerUri;
+            if (string.IsNullOrWhiteSpace(tokenIssuerUri))
+                return ServiceAuthConfig.MissingConfigurationOutcome<Grant>(authContext, nameof(AuthContext.TokenIssuerUri));
             
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try

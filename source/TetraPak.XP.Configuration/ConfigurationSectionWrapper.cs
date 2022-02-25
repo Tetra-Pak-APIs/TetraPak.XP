@@ -10,9 +10,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace TetraPak.XP.Configuration
 {
-    public class ConfigurationSectionWrapper : IConfigurationSectionExtended
+    public class ConfigurationSectionWrapper : IConfigurationSection
     {
-        protected readonly IConfigurationSectionExtended? Section;
+        protected readonly IConfigurationSection? Section;
 
         public string Key => Section?.Key ?? string.Empty;
 
@@ -30,6 +30,16 @@ namespace TetraPak.XP.Configuration
         public TValue? GetValue<TValue>(string key, TValue? useDefault = default)
         {
             return Section is { } ? Section.GetValue(key, useDefault) : useDefault;
+        }
+
+        public TValue? GetDerived<TValue>(TValue? useDefault = default, string? caller = null)
+        {
+            return Section is { } ? Section.GetDerived(useDefault, caller) : useDefault;
+        }
+
+        public TValue? GetDerivedValue<TValue>(string key, TValue? useDefault = default)
+        {
+            return Section is { } ? Section.GetDerivedValue(key, useDefault) : useDefault;
         }
 
         public async Task<TValue?> GetAsync<TValue>(string key, TValue? useDefault = default)
@@ -131,6 +141,12 @@ namespace TetraPak.XP.Configuration
             return key;
         }
 
+        IConfigurationSection? getSection(IConfiguration? configuration, string? key) => OnGetSection(configuration, key).Result;
+
+        protected virtual Task<IConfigurationSection?> OnGetSection(IConfiguration? configuration, string? key)
+        {
+            return (configuration?.GetSectionAsync(key!) ?? null)!;
+        }
 
         public ConfigurationSectionWrapper(IConfiguration? configuration, string? key, ILog? log = null)
         {
@@ -142,13 +158,13 @@ namespace TetraPak.XP.Configuration
 
             if (configuration is { } && key.IsAssigned())
             {
-                Section = configuration.GetSectionAsync(key!).Result as IConfigurationSectionExtended 
+                Section = getSection(configuration, key!) 
                           ?? throw new ArgumentOutOfRangeException(nameof(key), 
                               $"Cannot resolve configuration section from '{key}'");
             }
         }
-        
-        public ConfigurationSectionWrapper(IConfigurationSectionExtended section, ILog? log)
+
+        public ConfigurationSectionWrapper(IConfigurationSection section, ILog? log)
         {
             Section = section;
             Log = log;

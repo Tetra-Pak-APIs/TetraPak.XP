@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
@@ -9,11 +7,41 @@ namespace TetraPak.XP.Auth
 {
     public class ServiceAuthConfigSectionWrapper : ConfigurationSectionWrapper, IServiceAuthConfig
     {
-        readonly IRuntimeEnvironmentResolver _environmentResolver;
         string? _authDomain;
         string? _tokenIssuerUrl;
         string? _deviceCodeIssuerUrl;
         bool? _isCaching;
+
+        IServiceAuthConfig AuthConfigSection => (IServiceAuthConfig)Section!;
+
+        protected RuntimeEnvironment Environment => AuthConfigSection.GetDerived<RuntimeEnvironment>(); 
+
+        
+        /// <inheritdoc />
+        [StateDump]
+        public string? AuthorityUri => AuthConfigSection.AuthorityUri;
+
+        /// <summary>
+        ///   Gets the resource locator for the token issuer endpoint.  
+        /// </summary>
+        [StateDump]
+        public string TokenIssuerUri
+        {
+            get => _tokenIssuerUrl ?? defaultUrl("/oauth2/token");
+            set => _tokenIssuerUrl = value;
+        }
+        
+        /// <summary>
+        ///   Gets the resource locator for the token issuer endpoint.  
+        /// </summary>
+        [StateDump]
+        public string DeviceCodeIssuerUri
+        {
+            get => _deviceCodeIssuerUrl ?? defaultUrl("/oauth2/device_authorization");
+            set => _deviceCodeIssuerUrl = value;
+        }
+
+        public string? RedirectUri => AuthConfigSection.RedirectUri;
 
         public ITokenCache? TokenCache { get; }
         
@@ -29,43 +57,7 @@ namespace TetraPak.XP.Auth
             if (IsCaching && ClientId is {})
                 await TokenCache?.DeleteAsync(ClientId)!;
         }
-        
-        /// <summary>
-        ///   Gets the current runtime environment (DEV, TEST, PROD ...).
-        ///   The value is a <see cref="RuntimeEnvironment"/> enum value. 
-        /// </summary>
-        [StateDump]
-        public RuntimeEnvironment Environment
-        {
-            get
-            {
-                var resolved = _environmentResolver.ResolveRuntimeEnvironment();
-                return resolved == RuntimeEnvironment.Unknown
-                    ? Get<RuntimeEnvironment?>() ?? RuntimeEnvironment.Production
-                    : resolved;
-            }
-        } 
 
-        /// <summary>
-        ///   Gets the resource locator for the token issuer endpoint.  
-        /// </summary>
-        [StateDump]
-        public string TokenIssuerUrl
-        {
-            get => _tokenIssuerUrl ?? defaultUrl("/oauth2/token");
-            set => _tokenIssuerUrl = value;
-        }
-        
-        /// <summary>
-        ///   Gets the resource locator for the token issuer endpoint.  
-        /// </summary>
-        [StateDump]
-        public string DeviceCodeIssuerUrl
-        {
-            get => _deviceCodeIssuerUrl ?? defaultUrl("/oauth2/device_authorization");
-            set => _deviceCodeIssuerUrl = value;
-        }
-        
         /// <summary>
         ///   Gets the domain element of the authority URI.
         /// </summary>
@@ -76,73 +68,20 @@ namespace TetraPak.XP.Auth
             set => _authDomain = value;
         }
         
-        public GrantType GrantType => Section?.Get<GrantType>() ?? GrantType.None;
+        public virtual GrantType GrantType => AuthConfigSection.GrantType;
         
-        public string? ClientId => Section?.Get<string?>();
+        public string? ClientId => AuthConfigSection.ClientId;
         
-        public string? ClientSecret => Section?.Get<string?>();
+        public string? ClientSecret => AuthConfigSection.ClientSecret;
 
-        public MultiStringValue? Scope => Section?.Get<MultiStringValue?>();
-        
-        public Task<Outcome<string>> GetClientIdAsync(AuthContext authContext)
-        {
-            throw new NotImplementedException();
-        }
+        public GrantScope? Scope => AuthConfigSection.Scope;
 
-        public Task<Outcome<string>> GetClientSecretAsync(AuthContext authContext)
-        {
-            throw new NotImplementedException();
-        }
+        public bool UseState => AuthConfigSection.UseState;
 
-        public Task<Outcome<Uri>> GetRedirectUriAsync(AuthContext authContext)
-        {
-            throw new NotImplementedException();
-        }
+        public bool UsePKCE => AuthConfigSection.UsePKCE;
 
-        public Task<Outcome<GrantScope>> GetScopeAsync(AuthContext authContext, MultiStringValue? useDefault = null,
-            CancellationToken? cancellationToken = null)
-        {
-            throw new NotImplementedException();
-        }
+        public string? GetRawConfiguredValue(string key) => AuthConfigSection.GetRawConfiguredValue(key);
 
-        public Task<Outcome<bool>> IsStateUsedAsync(AuthContext authContext, bool useDefault, CancellationToken? cancellationToken = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Outcome<bool>> IsPkceUsedAsync(AuthContext authContext, bool useDefault, CancellationToken? cancellationToken = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string? GetConfiguredValue(string key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Outcome<Uri>> GetTokenIssuerUrlAsync(AuthContext authContext)
-        {
-            // todo consider supporting getting from well-known discovery document
-            return Task.FromResult(Outcome<Uri>.Success(new Uri(TokenIssuerUrl)));
-        }
-
-        public Task<Outcome<Uri>> GetAuthorityUrlAsync(AuthContext authContext)
-        {
-            // todo consider supporting getting from well-known discovery document
-            return Task.FromResult(Outcome<Uri>.Success(new Uri(TokenIssuerUrl)));
-        }
-
-        public Task<Outcome<Uri>> GetDeviceCodeIssuerUrlAsync(AuthContext authContext)
-        {
-            // todo consider supporting getting from well-known discovery document
-            return Task.FromResult(Outcome<Uri>.Success(new Uri(DeviceCodeIssuerUrl)));
-        }
-
-        public bool IsAuthIdentifier(string identifier)
-        {
-            throw new NotImplementedException();
-        }
-        
         protected virtual string OnGetAuthDomain()
         {
             if (_authDomain is { })
@@ -162,26 +101,22 @@ namespace TetraPak.XP.Auth
         string defaultUrl(string path) => $"{AuthDomain}{path}";
 
         public ServiceAuthConfigSectionWrapper(
-            IConfigurationSectionExtended section, 
-            IRuntimeEnvironmentResolver environmentResolver,
+            IConfigurationSection section, 
             ITokenCache? tokenCache = null,
             ILog? log = null) 
         : base(section, log)
         {
-            _environmentResolver = environmentResolver;
             TokenCache = tokenCache;
         }
 
-        protected ServiceAuthConfigSectionWrapper(   
-            IConfiguration? configuration,
-            string key,
-            IRuntimeEnvironmentResolver environmentResolver,
-            ITokenCache? tokenCache = null,
-            ILog? log = null) 
-        : base(configuration, key, log)
-        {
-            _environmentResolver = environmentResolver;
-            TokenCache = tokenCache;
-        }
+        // protected ServiceAuthConfigSectionWrapper(   
+        //     IConfiguration? configuration,
+        //     string key,
+        //     ITokenCache? tokenCache = null,
+        //     ILog? log = null) 
+        // : base(configuration, key, log)
+        // {
+        //     TokenCache = tokenCache;
+        // }
     }
 }
