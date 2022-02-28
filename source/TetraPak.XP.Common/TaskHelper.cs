@@ -27,12 +27,24 @@ namespace TetraPak.XP
         /// </remarks>
         public static async Task<TaskCompletionSource<T>> AwaitCompletionAsync<T>(this TaskCompletionSource<T> tcs)
         {
-            if (tcs.Task.Status < TaskStatus.RanToCompletion)
+            if (!tcs.IsFinished())
             {
                 await tcs.Task.ConfigureAwait(false);
             }
 
             return tcs;
+        }
+
+        /// <summary>
+        ///   Gets a value indicating whether the <see cref="TaskCompletionSource{TResult}"/>
+        ///   is finished (ran to completion, successfully or not).   
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if the task has finished; otherwise <c>false</c>.
+        /// </returns>
+        public static bool IsFinished<T>(this TaskCompletionSource<T> tcs)
+        {
+            return tcs.Task.Status >= TaskStatus.RanToCompletion;
         }
 
         /// <summary>

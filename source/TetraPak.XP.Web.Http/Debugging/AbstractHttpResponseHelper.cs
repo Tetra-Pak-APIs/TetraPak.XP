@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using TetraPk.XP.Web.Http;
 
 
 namespace TetraPak.XP.Web.Http.Debugging

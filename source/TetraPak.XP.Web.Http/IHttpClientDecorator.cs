@@ -1,8 +1,7 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
-using TetraPak.XP;
 
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     /// <summary>
     ///   Classes implementing this interface can be registered to decorate <see cref="HttpClient"/>s

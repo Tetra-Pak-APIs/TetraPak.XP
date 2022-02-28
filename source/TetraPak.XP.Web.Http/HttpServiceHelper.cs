@@ -3,7 +3,7 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     public static class HttpServiceHelper
     {

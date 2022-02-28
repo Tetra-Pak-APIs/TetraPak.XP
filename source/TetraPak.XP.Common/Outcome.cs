@@ -13,6 +13,10 @@ namespace TetraPak.XP
     {
         readonly string? _message;
         
+        /// <summary>
+        ///   Gets or sets a default message to reflect an outcome that failed due to the operaion
+        ///   being cancelled, and not message was specified. 
+        /// </summary>
         public static string DefaultCanceledMessage { get; set; } = "Operation was canceled";
 
         /// <summary>
@@ -95,6 +99,16 @@ namespace TetraPak.XP
         ///   cast as a <see cref="bool"/> while also carrying a specified value.
         /// </returns>
         public static Outcome Success() => new(true, null!, null!);
+        
+        /// <summary>
+        ///   Constructs and returns an <see cref="Outcome"/> with <see cref="Message"/>
+        ///   that equals <c>true</c> when cast to a <see cref="bool"/> value.
+        /// </summary>
+        /// <returns>
+        ///   A <see cref="Outcome{T}"/> that represents a <c>true</c> value when
+        ///   cast as a <see cref="bool"/> while also carrying a specified value.
+        /// </returns>
+        public static Outcome Success(string message) => new(true, message, null!);
         
         /// <summary>
         ///   Creates and returns an <see cref="Outcome"/> that equals <c>false</c> when cast to a

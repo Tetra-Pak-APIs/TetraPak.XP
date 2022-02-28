@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP;
 
-namespace TetraPk.XP.Web.Http
+namespace TetraPak.XP.Web.Http
 {
     /// <summary>
     ///   A string compatible (criteria) expression for use with HTTP requests.
@@ -108,15 +107,15 @@ namespace TetraPk.XP.Web.Http
         /// <returns>
         ///   The <paramref name="stringValue"/> if parsing is successful; otherwise <c>null</c>.
         /// </returns>
-        protected override string OnParse(string? stringValue)
+        protected override StringValueParseResult OnParse(string? stringValue)
         {
             var input = stringValue?.Trim();
             if (input.IsUnassigned())
-                return string.Empty;
+                return StringValueParseResult.Empty;
 
             var match = s_regex.Match(input!);
             if (!match.Success)
-                return string.Empty;
+                return StringValueParseResult.Empty;
 
             var element = match.Groups["element"].Value.ToLowerInvariant() switch
             {
@@ -126,7 +125,7 @@ namespace TetraPk.XP.Web.Http
             };
 
             if (element == HttpRequestElement.None)
-                return string.Empty;
+                return StringValueParseResult.Empty;
 
             var operation = match.Groups["operator"].Value switch
             {
@@ -135,13 +134,13 @@ namespace TetraPk.XP.Web.Http
                 _ => ComparisonOperation.None
             };
             if (operation is ComparisonOperation.None)
-                return string.Empty;
+                return StringValueParseResult.Empty;
                 
             Element = element;
             Operation = operation;
-            Key = match.Groups["key"].Value!;
-            Value = match.Groups["value"].Value!;
-            return input!;
+            Key = match.Groups["key"].Value;
+            Value = match.Groups["value"].Value;
+            return new StringValueParseResult(input!, input!.GetHashCode());
         }
 
         bool isMatch(string value, StringComparison comparison)
