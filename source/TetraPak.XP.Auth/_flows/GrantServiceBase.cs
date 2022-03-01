@@ -9,7 +9,7 @@ using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
-using TetraPk.XP.Web.Http;
+using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Auth
 {

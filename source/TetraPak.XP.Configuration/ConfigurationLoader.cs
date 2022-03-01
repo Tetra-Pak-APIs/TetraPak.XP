@@ -6,7 +6,6 @@ using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Configuration
 {
-    // todo Support overloading configuration from specialized 'Environment' files (eg. appsettings.Development.json)
     // todo Support overloading configuration from environment variables (eg. "TetraPak:GrantType") 
     public class ConfigurationLoader  
     {
@@ -21,7 +20,7 @@ namespace TetraPak.XP.Configuration
             var file = new FileInfo(Path.Combine(folder.FullName, "appsettings.json"));
             log.Trace($"Loads configuration from {file.FullName}");
             var config = await LoadFromAsync(file, log);
-            environment ??= _runtimeEnvironmentResolver.ResolveRuntimeEnvironment();
+            environment ??= _runtimeEnvironmentResolver.ResolveRuntimeEnvironment();    
             return environment == RuntimeEnvironment.Production
                 ? config
                 : await overloadFromAsync(config, folder, log, environment);

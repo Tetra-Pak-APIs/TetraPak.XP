@@ -345,7 +345,7 @@ namespace TetraPak.XP.Configuration
             return useDefault;
         }
 
-        T? getEntityValue<T>(DynamicEntity entity, DynamicPath path, T? useDefault)
+        static T? getEntityValue<T>(DynamicEntity entity, DynamicPath path, T? useDefault)
         {
             if (path.Count == 1)
                 return entity.GetValue(path.StringValue, useDefault);

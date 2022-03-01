@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TetraPk.XP.Web.Http;
+using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Auth.AuthCode
 {

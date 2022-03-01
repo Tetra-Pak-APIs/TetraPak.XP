@@ -12,7 +12,6 @@ using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
-using TetraPk.XP.Web.Http;
 
 namespace TetraPak.XP.Auth.DeviceCode
 {

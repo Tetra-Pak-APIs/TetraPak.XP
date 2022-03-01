@@ -326,7 +326,7 @@ namespace TetraPak.XP.DependencyInjection
             }
             
             cannotResolve.Add(type);
-            return Outcome<object>.Fail($"Failed when activating service {type}", new Exception("Could not resolve a suitable constructor"));
+            return Outcome<object>.Fail($"Failed when activating service {type}. Could not resolve a suitable constructor");
         }
 
         public static IServiceCollection RegisterXpServices(ILog? log = null)

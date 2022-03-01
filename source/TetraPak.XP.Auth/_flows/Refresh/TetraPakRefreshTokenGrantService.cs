@@ -3,9 +3,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
-using TetraPk.XP.Web.Http;
+using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Auth.Refresh
 {
