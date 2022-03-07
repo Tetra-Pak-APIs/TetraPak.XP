@@ -1,173 +1,154 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using TetraPak.XP.Logging;
-#if NET5_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace TetraPak.XP.Configuration
 {
     public class ConfigurationSectionWrapper : IConfigurationSection
     {
         protected readonly IConfigurationSection? Section;
+        
+        readonly Dictionary<string, ConfigurationSectionWrapper>? _childSections;
 
+        protected IConfiguration _configuration { get; }
+
+        protected IRuntimeEnvironmentResolver _runtimeEnvironmentResolver { get; }
+
+        public bool IsEmpty => Section is null;
+        
         public string Key => Section?.Key ?? string.Empty;
 
         public string Path => Section?.Path ?? string.Empty;
-        
+       
+        public string Value
+        {
+            get => Section?.Value ?? string.Empty;
+            set
+            {
+                if (Section is null)
+                    return;
+                        
+                Section.Value = value;
+            }
+        }
+
         public ILog? Log { get; }
 
-        public int Count => Section?.Count ?? 0;
-
-        public TValue? Get<TValue>(TValue? useDefault = default, [CallerMemberName] string? caller = null)
+        internal IConfigurationSection? Parent { get; set; }
+        
+        public IConfigurationSection? GetSection(string key)
         {
-            return Section is { } ? Section.Get(useDefault, caller) : useDefault;
-        }
-
-        public TValue? GetValue<TValue>(string key, TValue? useDefault = default)
-        {
-            return Section is { } ? Section.GetValue(key, useDefault) : useDefault;
-        }
-
-        public TValue? GetDerived<TValue>(TValue? useDefault = default, string? caller = null)
-        {
-            return Section is { } ? Section.GetDerived(useDefault, caller) : useDefault;
-        }
-
-        public TValue? GetDerivedValue<TValue>(string key, TValue? useDefault = default)
-        {
-            return Section is { } ? Section.GetDerivedValue(key, useDefault) : useDefault;
-        }
-
-        public async Task<TValue?> GetAsync<TValue>(string key, TValue? useDefault = default)
-        {
-            return Section is { } ? await Section.GetAsync(key, useDefault) : useDefault;
-        }
-
-        public Task SetAsync(string key, object? value)
-        {
-            return Section is null 
-                ? Task.CompletedTask 
-                : Section.SetAsync(key, value);
-        }
-
-        public Task<IConfigurationSection?> GetSectionAsync(string key)
-        {
-            return Section is {}
-                ? Section.GetSectionAsync(key) 
-                : Task.FromResult<IConfigurationSection?>(null);
-        }
-
-        public Task<IEnumerable<IConfigurationItem>> GetChildrenAsync()
-        {
-            return Section is {} 
-                ? Section.GetChildrenAsync() 
-                : Task.FromResult<IEnumerable<IConfigurationItem>>(Array.Empty<IConfigurationSection>());
-        }
-
-        protected virtual Task<T?> GetFromFieldThenSectionAsync<T>(
-            T useDefault = default!,
-            TypedValueParser<T>? parser = null,
-            bool inherited = true,
-            [CallerMemberName] string propertyName = null!)
-        {
-            if (Section is not ConfigurationSection cs)
-                throw new InvalidOperationException($"Wrapped configuration section must derive from {typeof(ConfigurationSection)}");
+            if (IsEmpty)
+                return null!;
             
-            return cs.GetFromFieldThenSectionAsync(useDefault, parser, inherited, propertyName);
+            if (_childSections is null)
+                return Section!.GetSection(key);
+
+            if (_childSections.TryGetValue(key, out var sectionWrapper))
+                return sectionWrapper;
+
+            var section = Section!.GetSection(key);
+            if (!section.IsConfigurationSection())
+                return section;
+            
+            sectionWrapper = new ConfigurationSectionWrapper(CreateSectionWrapperArgs(section, this));
+            _childSections.Add(key, sectionWrapper);
+            return sectionWrapper;
+        }
+
+        public IEnumerable<IConfigurationSection> GetChildren() => IsEmpty 
+            ? Array.Empty<IConfigurationSection>() 
+            : _childSections?.Values ?? Section?.GetChildren() ?? Array.Empty<IConfigurationSection>();
+
+        public IChangeToken GetReloadToken() => Section?.GetReloadToken() ?? null!;
+
+        public string this[string key]
+        {
+            get => IsEmpty ? string.Empty : Section![key] ?? string.Empty;
+            set
+            {
+                if (IsEmpty)
+                    return;
+                
+                Section![key] = value;
+            }
+        }
+
+        protected virtual ConfigurationSectionWrapper[] OnBuildWrapperGraph(IConfigurationSection rootSection)
+        {
+            var children = rootSection.GetSubSections();
+            var childWrappers = new List<ConfigurationSectionWrapper>();
+            var wrapperDelegates = Configure.GetSectionWrapperDelegates();
+            foreach (var childSection in children)
+            {
+                childWrappers.Add(OnWrapConfigurationSection(childSection, this, wrapperDelegates));
+            }
+
+            return childWrappers.ToArray();
+        }
+
+        protected ConfigurationSectionWrapperArgs CreateSectionWrapperArgs(
+            IConfigurationSection section,
+            ConfigurationSectionWrapper parent)
+            => new(
+                parent,
+                _configuration,
+                section,
+                _runtimeEnvironmentResolver,
+                Log);
+            
+        protected virtual ConfigurationSectionWrapper OnWrapConfigurationSection(
+            IConfigurationSection section, 
+            ConfigurationSectionWrapper parent,
+            ConfigurationSectionWrapperDelegate[] wrapperDelegates)
+        {
+            var args = CreateSectionWrapperArgs(section, parent);
+            for (var i = 0; i < wrapperDelegates.Length; i++)
+            {
+                var wrapperDelegate = wrapperDelegates[i];
+                var wrapper = wrapperDelegate(args);
+                if (wrapper is null) 
+                    continue;
+                
+                wrapper.Parent = parent;
+                return wrapper;
+            }
+            
+            return new ConfigurationSectionWrapper(args)
+            {
+                Parent = parent
+            };
+        }
+
+        ConfigurationSectionWrapper[] buildWrapperGraph(IConfigurationSection rootSection)
+        {
+            var sections = OnBuildWrapperGraph(rootSection);
+            for (var i = 0; i < sections.Length; i++)
+            {
+                var section = sections[i];
+                section.Parent ??= this;
+            }
+
+            return sections;
+        }
+
+        protected ConfigurationSectionWrapper()
+        {
+            _configuration = null!;
+            _runtimeEnvironmentResolver = null!;
+            Section = null!;
         }
         
-#if NET5_0_OR_GREATER
-        protected bool TryGetFieldValue<T>(string propertyName, [NotNullWhen(true)] out T value, bool inherited = false)
-#else
-        protected bool TryGetFieldValue<T>(string propertyName, out T value, bool inherited = false)
-#endif
+        public ConfigurationSectionWrapper(ConfigurationSectionWrapperArgs args)
         {
-            value = default!;
-            var fieldName = $"_{propertyName.ToLowerInitial()}";
-            var field = OnGetField(fieldName, inherited);
-            var o = field?.GetValue(this);
-            if (o is not T tValue)
-                return false;
-
-            value = tValue;
-            return true;
-        }
-        
-        /// <summary>
-        ///   Obtains a <see cref="FieldInfo"/> object for a specified field.
-        /// </summary>
-        /// <param name="fieldName">
-        ///   Identifies the requested field.
-        /// </param>
-        /// <param name="inherited">
-        ///   (optional; default=<c>false</c>)<br/>
-        ///   Specifies whether to look for the field in base type(s).
-        /// </param>
-        /// <returns>
-        ///   A <see cref="FieldInfo"/> object.
-        /// </returns>
-        protected virtual FieldInfo? OnGetField(string fieldName, bool inherited = false)
-        {
-            const BindingFlags Flags = BindingFlags.NonPublic | BindingFlags.Instance;
-            var fieldInfo = GetType().GetField(fieldName, Flags);
-            if (fieldInfo is { } || !inherited)
-                return fieldInfo;
-
-            var type = GetType().BaseType;
-            while (type is { } && fieldInfo is null)
-            {
-                fieldInfo = type.GetField(fieldName, Flags);
-                type = type.BaseType;
-            }
-
-            if (fieldInfo is { })
-                return fieldInfo;
-
-            if (Section is ConfigurationSection cs)
-                return cs.GetField(fieldName, inherited);
-
-            return null;
-        }
-
-        public static string ValidateAssigned(string key)
-        {
-            if (key.IsUnassigned()) 
-                throw new ArgumentException($"Configuration key was unassigned");
-
-            return key;
-        }
-
-        IConfigurationSection? getSection(IConfiguration? configuration, string? key) => OnGetSection(configuration, key).Result;
-
-        protected virtual Task<IConfigurationSection?> OnGetSection(IConfiguration? configuration, string? key)
-        {
-            return (configuration?.GetSectionAsync(key!) ?? null)!;
-        }
-
-        public ConfigurationSectionWrapper(IConfiguration? configuration, string? key, ILog? log = null)
-        {
-            Log = log;
-            if (configuration is null)
-            {
-                Section = null;
-            }
-
-            if (configuration is { } && key.IsAssigned())
-            {
-                Section = getSection(configuration, key!) 
-                          ?? throw new ArgumentOutOfRangeException(nameof(key), 
-                              $"Cannot resolve configuration section from '{key}'");
-            }
-        }
-
-        public ConfigurationSectionWrapper(IConfigurationSection section, ILog? log)
-        {
-            Section = section;
-            Log = log;
+            _configuration = args.Configuration;
+            Log = args.Log;
+            Section = args.Section;
+            _runtimeEnvironmentResolver = args.RuntimeEnvironmentResolver;
+            _childSections = buildWrapperGraph(this).ToDictionary(i => i.Key);
         }
     }
 }

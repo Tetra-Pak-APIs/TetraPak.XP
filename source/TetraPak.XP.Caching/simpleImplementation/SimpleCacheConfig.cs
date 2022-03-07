@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Caching
 {
@@ -13,14 +11,12 @@ namespace TetraPak.XP.Caching
     /// </summary>
     public class SimpleCacheConfig : ConfigurationSectionWrapper, IEnumerable<KeyValuePair<string,ITimeLimitedRepositoryOptions>>
     {
-        readonly Task _loadTask;
         SimpleCache? _cache;
         readonly Dictionary<string, ITimeLimitedRepositoryOptions> _repositoryConfigs;
 
         /// <inheritdoc />
         public IEnumerator<KeyValuePair<string, ITimeLimitedRepositoryOptions>> GetEnumerator()
         {
-            awaitLoadingConfiguration();
             return _repositoryConfigs.GetEnumerator();
         }
 
@@ -37,7 +33,6 @@ namespace TetraPak.XP.Caching
         /// </returns>
         public ITimeLimitedRepositoryOptions? GetRepositoryOptions(string repository)
         {
-            awaitLoadingConfiguration();
             return _repositoryConfigs.TryGetValue(repository, out var config)
                 ? config
                 : null;
@@ -54,7 +49,6 @@ namespace TetraPak.XP.Caching
         /// </param>
         public void Configure(string repository, ITimeLimitedRepositoryOptions options)
         {
-            awaitLoadingConfiguration();
             if (_repositoryConfigs.TryGetValue(repository, out var existing))
             {
                 ((SimpleTimeLimitedRepositoryOptions) existing).MergeFrom(options);
@@ -70,7 +64,6 @@ namespace TetraPak.XP.Caching
         /// </summary>
         public SimpleCacheConfig WithCache(SimpleCache cache)
         {
-            awaitLoadingConfiguration();
             _cache = cache;
             foreach (var options in _repositoryConfigs.Values)
             {
@@ -79,40 +72,28 @@ namespace TetraPak.XP.Caching
             return this;
         }
 
-        void awaitLoadingConfiguration() => _loadTask.Await();
+        // void awaitLoadingConfiguration() => _loadTask.Await();
         
-        Task loadRepositoryConfigsAsync()
+        void loadRepositoryConfigsAsync()
         {
-            return Task.Run(async () => 
+            var childSections = this.GetSubSections();
+            foreach (var childSection in childSections)
             {
-                var childSections = await GetChildrenAsync();
-                foreach (var childSection in childSections)
-                {
-                    var config = new SimpleTimeLimitedRepositoryOptions(_cache, Section, childSection.Key, Log);
-                    _repositoryConfigs.Add(childSection.Key, config);
-                }
-            });
-            return Task.CompletedTask;
+                var args = CreateSectionWrapperArgs(childSection, this);
+                var config = new SimpleTimeLimitedRepositoryOptions(null, args);
+                _repositoryConfigs.Add(childSection.Key, config);
+            }
         }
 
         /// <summary>
         ///   Initializes the <see cref="SimpleCacheConfig"/>.
         /// </summary>
-        /// <param name="cache"></param>
-        /// <param name="configuration"></param>
-        /// <param name="log"></param>
-        /// <param name="key"></param>
-        public SimpleCacheConfig(
-            SimpleCache? cache,
-            IConfiguration configuration, 
-            string key,
-            ILog? log = null) 
-        : base(configuration, ValidateAssigned(key), log)
+        public SimpleCacheConfig(SimpleCache? cache, ConfigurationSectionWrapperArgs args)
+        : base(args)
         {
             // todo This class needs to rely on the root configuration (implemented per platform) rather than inheritance
             _cache = cache;
             _repositoryConfigs = new Dictionary<string, ITimeLimitedRepositoryOptions>();
-            _loadTask = loadRepositoryConfigsAsync(); // loads configuration in background
         }
     }
 

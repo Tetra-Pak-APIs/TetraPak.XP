@@ -21,24 +21,15 @@ namespace TetraPak.XP.Configuration
         public static implicit operator ConfigPath(string s) => new(s);
 
         protected override DynamicPath OnCreate(string[] items) => new ConfigPath(items, Separator, Comparison);
-
-        /// <summary>
-        ///   Constructs and returns an empty <see cref="ConfigPath"/>.
-        /// </summary>
-
-        public new static ConfigPath Empty => new(Array.Empty<string>());
+        
+        public new ConfigPath Push(params string[] items) => (ConfigPath) OnCreate(AddRange(items));
+        
+        public new ConfigPath Insert(params string[] items) => (ConfigPath) OnCreate(InsertRange(0, items));
         
         /// <summary>
-        ///   (fluent api)<br/>
-        ///   Creates and returns a modified path by inserting one or more item(s) at the start of the path.
+        ///   Constructs and returns an empty <see cref="ConfigPath"/> value.
         /// </summary>
-        /// <param name="items">
-        ///   The items to be inserted.
-        /// </param>
-        /// <returns>
-        ///   The resulting value.
-        /// </returns>
-        public new ConfigPath Insert(params string[] items) => (ConfigPath) OnCreate(InsertRange(0, items));
+        public new static ConfigPath Empty => new(Array.Empty<string>());
         
         /// <summary>
         ///   Initializes the <see cref="ConfigPath"/> from a <see cref="string"/> value.

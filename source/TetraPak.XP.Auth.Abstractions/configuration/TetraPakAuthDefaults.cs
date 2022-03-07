@@ -1,0 +1,41 @@
+﻿namespace TetraPak.XP.Auth.Abstractions
+{
+    /// <summary>
+    ///   Default/fallback values for authorization scenarios.
+    /// </summary>
+    public static class TetraPakAuthDefaults
+    {
+        internal const RuntimeEnvironment RuntimeEnvironment = XP.RuntimeEnvironment.Production;
+        internal const string ProductionDomain = "https://api-dev.tetrapak.com";
+        internal const string MigrationDomain = "https://api-mig.tetrapak.com";
+        internal const string DevelopmentDomain = "https://api-dev.tetrapak.com";
+        internal const string SandboxDomain = "https://api-sb.tetrapak.com";
+        internal const string DefaultAuthorityPath = "/oauth2/authorize";
+        internal const string DefaultTokenIssuerPath = "/oauth2/token";
+        internal const string DefaultDeviceCodeIssuerPath = "/oauth2/device_authorization";
+        
+        /// <summary>
+        ///   Gets or sets a global default value as a fallback when
+        ///   <see cref="IAuthConfiguration.OidcState"/> is not configured.
+        /// </summary>
+        public static bool OidcState { get; set; } = true;
+
+        /// <summary>
+        ///   Gets or sets a global default value as a fallback when
+        ///   <see cref="IAuthConfiguration.OidcPkce"/> is not configured.
+        /// </summary>
+        public static bool OidcPkce { get; set; } = true;
+
+        /// <summary>
+        ///   Gets or sets a global default value as a fallback when
+        ///   <see cref="IAuthConfiguration.OidcPkce"/> is not configured.
+        /// </summary>
+        public static GrantScope OidcScope { get; set; } = GrantScope.Empty;
+
+        /// <summary>
+        ///   Gets or sets a global default value as a fallback when
+        ///   <see cref="IAuthConfiguration.IsCaching"/> is not configured.
+        /// </summary>
+        public static bool IsCaching { get; set; } = true;
+    }
+}

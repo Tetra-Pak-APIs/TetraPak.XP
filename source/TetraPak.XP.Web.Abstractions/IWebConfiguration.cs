@@ -2,6 +2,6 @@
 {
     public interface IWebConfiguration
     {
-        string? RequestMessageIdHeader { get; }
+        string? MessageIdHeader { get; }
     }
 }

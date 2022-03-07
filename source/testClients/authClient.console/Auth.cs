@@ -2,18 +2,18 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Auth.ClientCredentials;
-using TetraPak.XP.Auth.DeviceCode;
-using TetraPak.XP.Auth.OIDC;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;
-using IConfiguration = TetraPak.XP.Configuration.IConfiguration;
+using TetraPak.XP.OAuth2.ClientCredentials;
+using TetraPak.XP.OAuth2.DeviceCode;
+using TetraPak.XP.OAuth2.OIDC;
 
 namespace authClient.console
 {
@@ -174,11 +174,11 @@ namespace authClient.console
         static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)
         {
             var config = p.GetRequiredService<IConfiguration>();
-            var logLevelSection = config.GetSectionAsync(new ConfigPath(new[] { "Logging", "LogLevel" })).Result;
+            var logLevelSection = config.GetSubSection(new ConfigPath(new[] { "Logging", "LogLevel" }));
             if (logLevelSection is null)
                 return useDefault;
 
-            var s = logLevelSection.GetAsync<string>("Default").Result;
+            var s = logLevelSection.Get<string>("Default");
             if (string.IsNullOrEmpty(s))
                 return useDefault;
             

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TetraPak.XP.Auth.Abstractions\TetraPak.XP.Auth.Abstractions.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.Web.Http\TetraPak.XP.Web.Http.csproj" />
+      <ProjectReference Include="..\TetraPak.XP.Web.Services\TetraPak.XP.Web.Services.csproj" />
+    </ItemGroup>
+
+</Project>

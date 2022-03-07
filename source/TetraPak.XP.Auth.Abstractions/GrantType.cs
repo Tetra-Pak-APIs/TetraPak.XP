@@ -57,7 +57,7 @@
         ///   Open ID Connect grant (three legged flow using a well-known discovery document when needed and
         ///   returning an identity token with the access token).
         /// </summary>
-        OpenIdConnect = CC,
+        OpenIdConnect = OIDC,
         
         /// <summary>
         ///   Abbreviation for <see cref="DeviceCode"/>.

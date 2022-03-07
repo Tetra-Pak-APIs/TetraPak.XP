@@ -8,9 +8,9 @@ namespace TetraPak.XP.Web.Http
     {
         public Task<Outcome<HttpClient>> DecorateAsync(HttpClient client)
         {
-            if (!client.DefaultRequestHeaders.TryGetValues(Headers.RequestMessageId, out _))
+            if (!client.DefaultRequestHeaders.TryGetValues(Headers.MessageId, out _))
             {
-                client.DefaultRequestHeaders.TryAddWithoutValidation(Headers.RequestMessageId, new RandomString());
+                client.DefaultRequestHeaders.TryAddWithoutValidation(Headers.MessageId, new RandomString());
             }
             return Task.FromResult(Outcome<HttpClient>.Success(client));
         }

@@ -139,7 +139,7 @@ namespace TetraPak.XP.Web.Http
             ITetraPakConfiguration? tetraPakConfig,
             bool enforce = false)
         {
-            var key = tetraPakConfig?.RequestMessageIdHeader ?? Headers.RequestMessageId;
+            var key = tetraPakConfig?.MessageIdHeader ?? Headers.MessageId;
             var value = request.Headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
             return value is { }
                 ? (LogMessageId)value
@@ -167,7 +167,7 @@ namespace TetraPak.XP.Web.Http
             ITetraPakConfiguration? tetraPakConfig,
             bool enforce = false)
         {
-            var key = tetraPakConfig?.RequestMessageIdHeader ?? Headers.RequestMessageId;
+            var key = tetraPakConfig?.MessageIdHeader ?? Headers.MessageId;
             var value = headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
             return value is { }
                 ? (LogMessageId)value

@@ -8,6 +8,6 @@
         /// <summary>
         ///   Identifies a message id persisting throughout a request/response roundtrip. 
         /// </summary>
-        public const string RequestMessageId = "api-flow-id"; 
+        public const string MessageId = "api-flow-id"; 
     }
 }

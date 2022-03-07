@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Web.Http
@@ -20,7 +19,7 @@ namespace TetraPak.XP.Web.Http
                 s_isHttpClientProviderAdded = true;
             }
 
-            collection.AddConfiguration();
+            collection.UseTetraPakConfiguration();
             collection.AddSingleton<IHttpClientProvider>(p =>
             {
                 var config = p.GetRequiredService<ITetraPakConfiguration>();

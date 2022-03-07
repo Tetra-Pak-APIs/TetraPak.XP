@@ -23,7 +23,12 @@ namespace TetraPak.XP
         ///   The internal dictionary of arbitrary data. 
         /// </summary>
         protected Dictionary<string, object?>? Data { get; private set; }
-        
+
+        /// <summary>
+        ///   Gets a flag indicating whether the outcome reflects a cancelled operation.
+        /// </summary>
+        public static bool IsCanceled { get; private set; }
+
         /// <summary>
         ///   Gets the value used when objects of this class is cast to a <see cref="bool"/> value.
         /// </summary>
@@ -153,15 +158,21 @@ namespace TetraPak.XP
         ///   A <see cref="Outcome"/> that represents a <c>true</c> value when
         ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
         /// </returns>
-        public static Outcome Canceled(string? message = null) => Fail(new TaskCanceledException(message ?? DefaultCanceledMessage));
+        public static Outcome Cancel(string? message = null)
+        {
+            IsCanceled = true;
+            return Fail(new TaskCanceledException(message ?? DefaultCanceledMessage));
+        }
 
         /// <summary>
         ///   Overrides base implementation to reflect evaluated state ("success" / "fail").
         /// </summary>
-        public override string ToString()
-        {
-            return Evaluated ? "success" : "fail";
-        }
+        public override string ToString() =>
+            IsCanceled 
+                ? "cancelled" 
+                : Evaluated 
+                    ? "success" 
+                    : "fail";
 
         /// <summary>
         ///   Initializes a <see cref="Outcome"/>.

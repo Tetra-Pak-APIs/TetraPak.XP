@@ -21,7 +21,6 @@ namespace TetraPak.XP.Caching
         TimeSpan? _adjustedLifeSpan;
        // ReSharper restore NotAccessedField.Local
         
-        
         /// <summary>
         ///   Gets or sets a default lifespan for items in <see cref="ITimeLimitedRepositories"/>.
         /// </summary>
@@ -55,7 +54,7 @@ namespace TetraPak.XP.Caching
 
         public TimeSpan PurgeInterval
         {
-            get => GetFromFieldThenSectionAsync(_cache?.DefaultPurgeInterval ?? DefaultPurgeInterval,
+            get => this.GetFromFieldThenSection(_cache?.DefaultPurgeInterval ?? DefaultPurgeInterval,
                 (string? value, out TimeSpan span) =>
                 {
                     // 0 or absent = default
@@ -70,7 +69,7 @@ namespace TetraPak.XP.Caching
                 
                     Log.Warning($"Invalid value for {nameof(PurgeInterval)}: \"{value}\"");
                     return false;
-                }).Result;
+                });
             set => _purgeInterval = value;
         }
 
@@ -79,7 +78,7 @@ namespace TetraPak.XP.Caching
         /// </summary>
         public TimeSpan LifeSpan
         {
-            get => GetFromFieldThenSectionAsync(_cache?.DefaultLifeSpan ?? DefaultLifespan, (string? value, out TimeSpan span) => 
+            get => this.GetFromFieldThenSection(_cache?.DefaultLifeSpan ?? DefaultLifespan, (string? value, out TimeSpan span) => 
             {
                 // 0 or absent = default
                 if (string.IsNullOrWhiteSpace(value))
@@ -93,7 +92,7 @@ namespace TetraPak.XP.Caching
                 
                 Log.Warning($"Invalid value for {nameof(LifeSpan)}: \"{value}\"");
                 return false;
-            }).Result;
+            });
             set => _lifeSpan = value;
         }
 
@@ -106,7 +105,7 @@ namespace TetraPak.XP.Caching
         /// </remarks>
         public TimeSpan ExtendedLifeSpan
         {
-            get => GetFromFieldThenSectionAsync(_cache?.DefaultExtendedLifeSpan ?? DefaultExtendedLifespan, (string? value, out TimeSpan span) =>
+            get => this.GetFromFieldThenSection(_cache?.DefaultExtendedLifeSpan ?? DefaultExtendedLifespan, (string? value, out TimeSpan span) =>
             {
                 // 0 or absent = default
                 if (string.IsNullOrWhiteSpace(value))
@@ -128,7 +127,7 @@ namespace TetraPak.XP.Caching
                 Log.Warning($"Invalid value for {nameof(ExtendedLifeSpan)}: \"{value}\"");
                 return false;
 
-            }).Result;
+            });
             set => _extendedLifeSpan = value;
         }
 
@@ -140,7 +139,7 @@ namespace TetraPak.XP.Caching
         /// </summary>
         public TimeSpan MaxLifeSpan
         {
-            get => GetFromFieldThenSectionAsync(_cache?.DefaultMaxLifeSpan ?? DefaultMaxLifespan, (string? value, out TimeSpan span) =>
+            get => this.GetFromFieldThenSection(_cache?.DefaultMaxLifeSpan ?? DefaultMaxLifespan, (string? value, out TimeSpan span) =>
             {
                 // 0 or absent = default
                 if (string.IsNullOrWhiteSpace(value))
@@ -156,7 +155,7 @@ namespace TetraPak.XP.Caching
                 
                 Log.Warning($"Invalid value for {nameof(MaxLifeSpan)}: \"{value}\"");
                 return false;
-            }).Result;
+            });
             set => _maxLifeSpan = value;
         }
 
@@ -183,7 +182,7 @@ namespace TetraPak.XP.Caching
         /// </remarks>
         public TimeSpan AdjustedLifeSpan
         {
-            get => GetFromFieldThenSectionAsync(_cache?.DefaultAdjustedLifeSpan ?? DefaultAdjustedLifeSpan, (string? value, out TimeSpan span) =>
+            get => this.GetFromFieldThenSection(_cache?.DefaultAdjustedLifeSpan ?? DefaultAdjustedLifeSpan, (string? value, out TimeSpan span) =>
             {
                 // 0 or absent = default
                 if (string.IsNullOrWhiteSpace(value))
@@ -200,13 +199,13 @@ namespace TetraPak.XP.Caching
 
                 Log.Warning($"Invalid value for {nameof(AdjustedLifeSpan)}: \"{value}\"");
                 return false;
-            }).Result;
+            });
             set => _adjustedLifeSpan = value;
         }
         
         internal static SimpleTimeLimitedRepositoryOptions AsDefault(SimpleCache simpleCache) 
         {
-            return new SimpleTimeLimitedRepositoryOptions(simpleCache, null, null)
+            return new SimpleTimeLimitedRepositoryOptions
             {
                 _cache = simpleCache,
                 _lifeSpan = simpleCache.DefaultLifeSpan,
@@ -230,7 +229,7 @@ namespace TetraPak.XP.Caching
         /// <summary>
         ///   Returns a configuration with all values initialized to <see cref="TimeSpan.Zero"/>.
         /// </summary>
-        public static SimpleTimeLimitedRepositoryOptions Zero => new(null, null, null)
+        public static SimpleTimeLimitedRepositoryOptions Zero => new()
         {
             _lifeSpan = TimeSpan.Zero,
             _extendedLifeSpan = TimeSpan.Zero,
@@ -276,21 +275,19 @@ namespace TetraPak.XP.Caching
         /// </summary>
         public SimpleTimeLimitedRepositoryOptions(
             SimpleCache? cache,
-            IConfiguration? configuration,
-            string? key,
-            ILog? log = null) 
-        : base(configuration, key, log)
+            ConfigurationSectionWrapperArgs args) 
+        : base(args)
         {
             _cache = cache;
         }
 
-//         /// <summary>
-//         ///   Initializes the <see cref="SimpleTimeLimitedRepositoryOptions"/>.
-//         /// </summary>
-// #pragma warning disable 8618
-//         SimpleTimeLimitedRepositoryOptions() : base()
-//         {
-//         }
-// #pragma warning restore 8618
+        /// <summary>
+        ///   Initializes the <see cref="SimpleTimeLimitedRepositoryOptions"/>.
+        /// </summary>
+#pragma warning disable 8618
+        SimpleTimeLimitedRepositoryOptions() 
+        {
+        }
+#pragma warning restore 8618
     }
 }

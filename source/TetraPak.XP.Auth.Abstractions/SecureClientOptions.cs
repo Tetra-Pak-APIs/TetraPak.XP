@@ -35,7 +35,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <summary>
         ///   Gets or sets the configuration required for authenticating the client. 
         /// </summary>
-        public IServiceAuthConfig? AuthConfig { get; set; }
+        public IAuthConfiguration? AuthConfig { get; set; }
 
         /// <summary>
         ///   (intended for internal use; default=<c>false</c>)<br/>

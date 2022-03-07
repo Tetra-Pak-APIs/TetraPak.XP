@@ -53,7 +53,7 @@ namespace TetraPak.XP.Auth.Debugging
             // return await config.CacheAsync(new AuthResult(null!, null!, accessToken, refreshToken, idToken), cacheKey);
         }
 
-        public static async Task<Outcome<Grant>> TryGetSimulatedRenewedAccessTokenAsync(string refreshToken, IServiceAuthConfig config, string cacheKey)
+        public static async Task<Outcome<Grant>> TryGetSimulatedRenewedAccessTokenAsync(string refreshToken, IAuthConfiguration config, string cacheKey)
         {
             throw new NotImplementedException(); // nisse
             // var canBeRefreshed = await config.TryGetFromRefreshTokenAsync(refreshToken); 
