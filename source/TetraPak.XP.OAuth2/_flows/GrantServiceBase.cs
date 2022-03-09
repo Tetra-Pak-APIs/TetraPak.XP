@@ -5,17 +5,19 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 using TetraPak.XP.OAuth2.ClientCredentials;
+using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.OAuth2
 {
     public abstract class GrantServiceBase
     {
+        readonly IAppCredentialsDelegate? _appCredentialsDelegate;
+
         /// <summary>
         ///   The Tetra Pak configuration object.
         /// </summary>
@@ -51,19 +53,22 @@ namespace TetraPak.XP.OAuth2
         ///   Examines passed state and returns a value indicating whether the Refresh Grant flow is
         ///   currently available. 
         /// </summary>
-        /// <param name="refreshToken">
-        ///   An available refresh token.
-        /// </param>
         /// <param name="options">
         ///   Specifies options for the <see cref="Grant"/> request.
         /// </param>
         /// <returns>
         ///   <c>true</c> if the Refresh Grant is currently available and possible; otherwise <c>false</c>.
         /// </returns>
-        protected bool IsRefreshingGrants(ActorToken? refreshToken, GrantOptions options)
-            => RefreshTokenGrantService is { } && options.IsRefreshAllowed && !string.IsNullOrEmpty(refreshToken);
+        protected async Task<Outcome<ActorToken>> IsRefreshingGrantsAsync(GrantOptions options)
+        {
+            if (RefreshTokenGrantService is null || !options.IsRefreshAllowed)
+                return Outcome<ActorToken>.Fail("Refresh not allowed or no refresh token service available");
+                    
+            if (string.IsNullOrEmpty(options.ActorId))
+                return Outcome<ActorToken>.Fail("Refresh not possible because no actor id was specified");
 
-        // protected ITimeLimitedRepositories? Cache { get; }  
+            return await GetCachedTokenAsync(CacheRepositories.Tokens.Refresh, options.ActorId);
+        }
         
         /// <summary>
         ///   A (secure) cache to be used fo caching <see cref="Grant"/>s or individual tokens.
@@ -84,14 +89,26 @@ namespace TetraPak.XP.OAuth2
         protected Task<Outcome<HttpClient>> GetHttpClientAsync() => HttpClientProvider.GetHttpClientAsync();
         
         /// <summary>
-        ///   Gets the configures application credentials (the client id and, if applicable, client secret). 
+        ///   Gets application credentials (the client id and, if applicable, client secret)
+        ///   for a specified auth context. 
         /// </summary>
+        /// <param name="context">
+        ///   (optional)<br/>
+        ///   Details the current auth context.
+        /// </param>
         /// <returns>
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="Credentials"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        protected Task<Outcome<Credentials>> GetAppCredentialsAsync()
+        protected Task<Outcome<Credentials>> GetAppCredentialsAsync(AuthContext? context = null)
         {
+            if (_appCredentialsDelegate is { })
+            {
+                var outcome = _appCredentialsDelegate.GetAppCredentials(TetraPakConfig, context);
+                if (outcome)
+                    return Task.FromResult(outcome);
+            }
+            
             if (string.IsNullOrWhiteSpace(TetraPakConfig.ClientId))
                 return Task.FromResult(Outcome<Credentials>.Fail(
                     new ConfigurationException("Client credentials have not been provisioned")));
@@ -101,7 +118,7 @@ namespace TetraPak.XP.OAuth2
         }
 
         /// <summary>
-        ///   Caches <see cref="Credentials"/>.  
+        ///   Caches a grant.  
         /// </summary>
         /// <param name="cacheRepositoryName">
         ///   The name of the repository to cache the response.
@@ -112,6 +129,9 @@ namespace TetraPak.XP.OAuth2
         /// <param name="grant">
         ///     The grant to be cached.
         /// </param>
+        /// <typeparam name="T">
+        ///   The type of grant to be cached (must derive from <see cref="Grant"/>).
+        /// </typeparam>
         /// <returns>
         ///   The <paramref name="grant"/> value.
         /// </returns>
@@ -129,7 +149,7 @@ namespace TetraPak.XP.OAuth2
         }
 
         /// <summary>
-        ///   Retrieves cached <see cref="Credentials"/>.  
+        ///   Retrieves cached <see cref="Grant"/>.  
         /// </summary>
         /// <param name="cacheRepositoryName">
         ///   The name of the repository caching the response.
@@ -164,6 +184,58 @@ namespace TetraPak.XP.OAuth2
             var remainingLifeSpan = cachedOutcome.GetRemainingLifespan();
             return cachedOutcome
                 ? Outcome<Grant>.Success(cachedOutcome.Value!.Clone(remainingLifeSpan))
+                : cachedOutcome;
+        }
+        
+        /// <summary>
+        ///   Caches a token.  
+        /// </summary>
+        /// <param name="cacheRepositoryName">
+        ///   The name of the repository to cache the response.
+        /// </param>
+        /// <param name="key">
+        ///   The key used to cache the <see cref="Grant"/>.
+        /// </param>
+        /// <param name="token">
+        ///     The grant to be cached.
+        /// </param>
+        /// <typeparam name="T">
+        ///   The type of token to be cached (must derive from <see cref="ActorToken"/>).
+        /// </typeparam>
+        /// <returns>
+        ///   The <paramref name="token"/> value.
+        /// </returns>
+        protected Task CacheTokenAsync<T>(string cacheRepositoryName, string key, T token)
+            where T : ActorToken
+        {
+            if (TokenCache is null) 
+                return Task.CompletedTask;
+
+            return TokenCache.CreateOrUpdateAsync(
+                token,
+                key,
+                cacheRepositoryName,
+                spawnTimeUtc: DateTime.UtcNow);
+        }
+        
+        protected async Task<Outcome<ActorToken>> GetCachedTokenAsync(
+            string cacheRepositoryName,
+            string key,
+            CancellationToken? cancellationToken = null)
+        {
+            if (TokenCache is null)
+                return Outcome<ActorToken>.Fail("No token cache is available");
+                
+            var cachedOutcome = await TokenCache.ReadAsync<ActorToken>(
+                key,
+                cacheRepositoryName, 
+                cancellationToken);
+
+            if (!cachedOutcome)
+                return cachedOutcome;
+
+            return cachedOutcome
+                ? Outcome<ActorToken>.Success(cachedOutcome.Value!.Clone<ActorToken>())
                 : cachedOutcome;
         }
                 
@@ -213,19 +285,19 @@ namespace TetraPak.XP.OAuth2
         /// </exception>
         protected GrantServiceBase(ITetraPakConfiguration tetraPakConfig,
             IHttpClientProvider httpClientProvider,
-            IRefreshTokenGrantService? refreshTokenGrantService,
-            // ITimeLimitedRepositories? cache = null, obsolete
+            IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
+            IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
         {
             TetraPakConfig = tetraPakConfig ?? throw new ArgumentNullException(nameof(tetraPakConfig));
             HttpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
             RefreshTokenGrantService = refreshTokenGrantService;
-            HttpContextAccessor = httpContextAccessor;
-            Log = log;
-            // Cache = cache; obsolete
             TokenCache = tokenCache;
+            _appCredentialsDelegate = appCredentialsDelegate;
+            Log = log;
+            HttpContextAccessor = httpContextAccessor;
         }
     }
 }

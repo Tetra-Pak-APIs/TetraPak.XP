@@ -25,7 +25,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
             }
             
             collection.UseTetraPakConfiguration();
-            collection.AddTetraPakHttpClientProvider();
+            collection.UseTetraPakHttpClientProvider();
             collection.AddSingleton<IAuthorizationCodeGrantService,TetraPakAuthorizationCodeGrantService>();
             return collection;
         }

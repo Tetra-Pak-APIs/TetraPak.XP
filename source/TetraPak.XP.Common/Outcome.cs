@@ -38,7 +38,7 @@ namespace TetraPak.XP
         ///   A message to be carried by the <see cref="Outcome"/> object
         ///   (useful for error handling).
         /// </summary>
-        public string Message => _message ?? Exception!.Message; 
+        public string Message => _message ?? Exception?.Message ?? string.Empty; 
 
         /// <summary>
         ///   An <see cref="Exception"/> to be carried by the <see cref="Outcome"/> object

@@ -21,7 +21,7 @@ namespace TetraPak.XP.Web.Services
         
         internal static void InsertWrapperDelegates()
         {
-            Configure.InsertWrapperDelegate(getWebServiceCollectionConfiguration);
+            Configure.InsertConfigurationDecorator(new WebServicesConfigurationDecoratorDelegate());
         }
 
         protected override ConfigurationSectionWrapper[] OnBuildWrapperGraph(IConfigurationSection rootSection)
@@ -38,7 +38,7 @@ namespace TetraPak.XP.Web.Services
         }
 
         static ConfigurationSectionWrapper? getWebServiceCollectionConfiguration(
-            ConfigurationSectionWrapperArgs args)
+            ConfigurationSectionDecoratorArgs args)
         {
             return args.Section.Path == s_webServicesPath 
                 ? new WebServicesConfiguration(args) 
@@ -49,11 +49,22 @@ namespace TetraPak.XP.Web.Services
         {
         }
         
-        public WebServicesConfiguration(ConfigurationSectionWrapperArgs args)
+        public WebServicesConfiguration(ConfigurationSectionDecoratorArgs args)
         : base(args)
         {
             this.SetAsSingletonService();
         }
+        
+        class WebServicesConfigurationDecoratorDelegate : IConfigurationDecoratorDelegate
+        {
+            public bool IsFallbackDecorator => false;
+
+            public Outcome<ConfigurationSectionWrapper> WrapSection(ConfigurationSectionDecoratorArgs args)
+            {
+                return args.Section.Path == s_webServicesPath 
+                    ? Outcome<ConfigurationSectionWrapper>.Success(new WebServicesConfiguration(args)) 
+                    : Outcome<ConfigurationSectionWrapper>.Fail("");
+            }
+        }
     }
-    
 }

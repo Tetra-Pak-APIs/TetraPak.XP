@@ -9,21 +9,18 @@ namespace TetraPak.XP.OAuth2
     /// <summary>
     ///   Used to describe an auth request context.
     /// </summary>
-    public class AuthContext //: AuthConfiguration obsolete
+    public class AuthContext
     {
-        readonly GrantOptions _options;
-        readonly GrantType? _grantType;
-
-        // public override GrantType GrantType => this.GetFromFieldThenSection(base.GrantType);
-
         /// <summary>
         ///   Gets the <see cref="IAuthConfiguration"/> object.
         /// </summary>
         public IAuthConfiguration Configuration { get; }
 
+        public GrantOptions Options { get; }
+        
         public GrantType GrantType { get; }
 
-        public CancellationToken CancellationToken => _options.CancellationTokenSource?.Token ?? CancellationToken.None;
+        public CancellationToken CancellationToken => Options.CancellationTokenSource?.Token ?? CancellationToken.None;
 
         /// <summary>
         ///   Initializes the <see cref="AuthContext"/>.
@@ -40,7 +37,7 @@ namespace TetraPak.XP.OAuth2
         internal AuthContext(GrantType grantType, IAuthConfiguration configuration, GrantOptions options)
         {
             GrantType = grantType;
-            _options = options;
+            Options = options;
             Configuration = configuration;
         }
     }

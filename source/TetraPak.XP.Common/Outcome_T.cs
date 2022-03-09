@@ -94,7 +94,7 @@ namespace TetraPak.XP
         ///   A <see cref="Outcome{T}"/> that represents a <c>true</c> value when
         ///   cast as a <see cref="Boolean"/> while also carrying a specified value.
         /// </returns>
-        public new static Outcome<T> Canceled(string? message = null) 
+        public new static Outcome<T> Cancel(string? message = null) 
             => Fail(new TaskCanceledException(message ?? DefaultCanceledMessage));
         
         public new Outcome<T> WithValue(string key, object? value, bool overwrite = false)

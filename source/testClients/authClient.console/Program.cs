@@ -2,13 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.DependencyInjection;
-using TetraPak.XP.Desktop;
-using TetraPak.XP.Web.Services;
 
 namespace authClient.console
 {
@@ -21,27 +16,10 @@ namespace authClient.console
         const string NewDcTokenCommand = "dc";
         const string SilentTokenCommand = "sl";
         static CancellationTokenSource s_cts = new();
-        static IServiceProvider s_serviceProvider;
+        // static IServiceProvider s_serviceProvider;
 
         public static async Task Main(string[] args)
         {
-            var host = Host.CreateDefaultBuilder(args)
-                .ConfigureServices(collection =>
-                {
-                    s_serviceProvider = XpServices
-                        .BuildFor().Desktop()
-                        .UseServiceCollection(collection)
-                        .UseTetraPakConfiguration()
-                        .UseTetraPakWebServices()
-                        .BuildXpServices();
-                })
-                .ConfigureHostConfiguration(builder =>
-                {
-                    builder.AddEnvironmentVariables();
-                })
-                .ConfigureAppConfiguration((_, builder) => builder.Build())
-                .Build();
-            
             Console.WriteLine("+---------------------------------------------------+");
             Console.WriteLine("|  ac = get new token using OIDC                    |");
             Console.WriteLine("|  sl = get token silently (OIDC)                   |");
@@ -51,7 +29,7 @@ namespace authClient.console
             Console.WriteLine("|  q  = quit                                        |");
             Console.WriteLine("+---------------------------------------------------+");
 
-            var auth = new Auth();
+            var auth = new Auth(args);
             prompt();
             var command = getCommandFrom(args) ?? getCommandFromConsole();
             while (command != QuitCommand)

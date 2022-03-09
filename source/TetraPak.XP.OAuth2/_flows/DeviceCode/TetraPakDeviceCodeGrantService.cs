@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Logging;
+using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
 
@@ -27,13 +27,14 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             // todo Consider breaking up this method (it's too big) 
             // todo Honor the GrantOptions.Flags value (silent/forced request etc.)
             var messageId = GetMessageId();
-            var appCredentialsOutcome = await GetAppCredentialsAsync();
+            var appCredentialsOutcome = await GetAppCredentialsAsync(new AuthContext(GrantType.DC, TetraPakConfig, options));
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
 
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.DeviceCode, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
+            
             var authContext = authContextOutcome.Value!;
             
             var appCredentials = appCredentialsOutcome.Value!;
@@ -239,7 +240,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 CancellationToken cancellationToken)
             {
                 if (cancellationToken.IsCancellationRequested)
-                    return Outcome<Grant>.Canceled();
+                    return Outcome<Grant>.Cancel();
                     
                 var outcome = Outcome<Grant>.Fail(
                     new HttpServerException(response), 
@@ -292,24 +293,15 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             }
         }
 
-        // Task<Outcome<Credentials>> getCredentialsAsync() obsolete
-        // {
-        //     if (string.IsNullOrWhiteSpace(TetraPakConfig.ClientId))
-        //         return Task.FromResult(Outcome<Credentials>.Fail(
-        //             new HttpServerConfigurationException("Client credentials have not been provisioned")));
-        //
-        //     return Task.FromResult(Outcome<Credentials>.Success(
-        //         new BasicAuthCredentials(TetraPakConfig.ClientId!, TetraPakConfig.ClientSecret!)));
-        // }
-
         public TetraPakDeviceCodeGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
+            IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, log, httpContextAccessor)
+        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
         }
     }

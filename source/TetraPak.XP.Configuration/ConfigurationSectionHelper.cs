@@ -18,7 +18,7 @@ namespace TetraPak.XP.Configuration
             [CallerMemberName] string? caller = null,
             bool getDerived = false)
             =>
-                conf.GetValue(caller!, useDefault, getDerived);
+                conf.GetNamed(caller!, useDefault, getDerived);
 
         static T? getDerived<T>(
             this ConfigurationSectionWrapper conf,
@@ -26,11 +26,11 @@ namespace TetraPak.XP.Configuration
             T? useDefault = default)
         {
             return conf.Parent is { }
-                ? conf.Parent.GetValue(key, useDefault)
+                ? conf.Parent.GetNamed(key, useDefault)
                 : useDefault;
         }
 
-        public static T? GetValue<T>(
+        public static T? GetNamed<T>(
             this IConfiguration conf,
             string key,
             T useDefault = default!,
@@ -43,7 +43,7 @@ namespace TetraPak.XP.Configuration
                 // obtain from child entity ...
                 var section = conf.GetSection(path.Root);
                 key = path.Pop(1, SequentialPosition.Start);
-                return section.GetValue(key, useDefault, getDerived, typedValueParser);
+                return section.GetNamed(key, useDefault, getDerived, typedValueParser);
             }
 
             var valueParsers = Configure.GetValueParsers(); 
@@ -87,12 +87,12 @@ namespace TetraPak.XP.Configuration
             [CallerMemberName] string key = null!)
         {
             if (conf is not ConfigurationSectionWrapper wrapper) 
-                return conf.GetValue(key, useDefault, false, parser);
+                return conf.GetNamed(key, useDefault, false, parser);
             
             if (wrapper.Parent is { })
                 return wrapper.Parent.GetFromRoot(useDefault, parser, key);
                     
-            return conf.GetValue(key, useDefault, false, parser);
+            return conf.GetNamed(key, useDefault, false, parser);
 
         }
 
@@ -105,7 +105,7 @@ namespace TetraPak.XP.Configuration
         {
             return conf.TryGetFieldValue<T>(propertyName, out var fieldValue, inherited)
                 ? fieldValue
-                : conf.GetValue<T>(propertyName);
+                : conf.GetNamed<T>(propertyName);
         }
 
         internal static bool TryGetFieldValue<T>(

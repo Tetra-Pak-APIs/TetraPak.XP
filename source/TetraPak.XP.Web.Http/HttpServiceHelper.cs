@@ -9,7 +9,7 @@ namespace TetraPak.XP.Web.Http
         static bool s_isHttpClientProviderAdded;
         static readonly object s_syncRoot = new();
 
-        public static IServiceCollection AddTetraPakHttpClientProvider(this IServiceCollection collection)
+        public static IServiceCollection UseTetraPakHttpClientProvider(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {

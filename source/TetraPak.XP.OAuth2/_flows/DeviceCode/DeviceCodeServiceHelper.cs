@@ -17,7 +17,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
         ///   (fluent api)<br/>
         ///   Adds support for OAuth Device Code grant to the application and returns the <paramref name="collection"/>. 
         /// </summary>
-        public static IServiceCollection AddTetraPakDeviceCodeAuthentication(this IServiceCollection collection)
+        public static IServiceCollection UseTetraPakDeviceCodeAuthentication(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -28,7 +28,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             }
             
             collection.UseTetraPakConfiguration();
-            collection.AddTetraPakHttpClientProvider();
+            collection.UseTetraPakHttpClientProvider();
             collection.AddSingleton<IDeviceCodeGrantService,TetraPakDeviceCodeGrantService>();
             return collection;
         }

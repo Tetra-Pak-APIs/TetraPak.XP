@@ -12,9 +12,9 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
-using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Logging;
+using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
@@ -24,63 +24,74 @@ namespace TetraPak.XP.OAuth2.AuthCode
     class TetraPakAuthorizationCodeGrantService : GrantServiceBase, IAuthorizationCodeGrantService
     {
         readonly ILoopbackBrowser _browser;
-        const string CacheRepository = CacheRepositories.Tokens.OIDC;
+        const string GrantCacheRepo = CacheRepositories.Tokens.OIDC;
+        const string RefreshTokenCacheRepo = CacheRepositories.Tokens.Refresh;
         
         /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options)
         {
             var messageId = GetMessageId();
-            var appCredentialsOutcome = await GetAppCredentialsAsync();
-            if (!appCredentialsOutcome)
-                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
-            var appCredentials = appCredentialsOutcome.Value!;
-
-            var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.DeviceCode, options);
+            var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.AC, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
+            
             var authContext = authContextOutcome.Value!;
+            
+            var appCredentialsOutcome = await GetAppCredentialsAsync(authContext);
+            if (!appCredentialsOutcome)
+                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+            
+            var appCredentials = appCredentialsOutcome.Value!;
             
             var redirectUriString = authContext.Configuration.RedirectUri;
             var conf = authContext.Configuration;
             if (string.IsNullOrWhiteSpace(redirectUriString))
                 return AuthConfiguration.MissingConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.RedirectUri));
+            
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
                 return AuthConfiguration.InvalidConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.RedirectUri), redirectUriString);
 
             var authorityUriString = conf.AuthorityUri;
             if (string.IsNullOrWhiteSpace(authorityUriString))
                 return AuthConfiguration.MissingConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.AuthorityUri));
+            
             if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var authorityUri))
                 return AuthConfiguration.InvalidConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.AuthorityUri), authorityUriString);
             
             var tokenIssuerUriString = conf.TokenIssuerUri;
             if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
                 return AuthConfiguration.MissingConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.TokenIssuerUri));
-            if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var tokenIssuerUri))
+            
+            if (!Uri.TryCreate(tokenIssuerUriString, UriKind.Absolute, out var tokenIssuerUri))
                 return AuthConfiguration.InvalidConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.TokenIssuerUri), tokenIssuerUriString);
 
             var isStateUsed = conf.OidcState;
             var isPkceUsed = conf.OidcPkce;
             var authState = new AuthState(isStateUsed, isPkceUsed, appCredentials.Identity);
-
-
-            var cachedOutcome = !string.IsNullOrWhiteSpace(options.ActorId) && IsCachingGrants(options)
-                ? await GetCachedGrantAsync(CacheRepository, options.ActorId)
+            
+            var cachedGrantOutcome = !string.IsNullOrWhiteSpace(options.ActorId) && IsCachingGrants(options)
+                ? await GetCachedGrantAsync(GrantCacheRepo, options.ActorId)
                 : Outcome<Grant>.Fail("Cached grant not allowed/available");
 
-            if (cachedOutcome)
-                return cachedOutcome;
-
-            await removeFromCacheAsync(appCredentials);
-            if (!IsRefreshingGrants(cachedOutcome.Value!.RefreshToken, options))
+            if (cachedGrantOutcome)
+                return cachedGrantOutcome;
+            
+            await removeFromGrantCacheAsync(options.ActorId);
+            if (!await IsRefreshingGrantsAsync(options))
                 return await onAuthorizationDone(
                     await acquireTokenViaWebUIAsync(authorityUri,  tokenIssuerUri,authState, appCredentials, redirectUri, authContext, messageId));
 
             // attempt refresh token ...
-            var refreshToken = cachedOutcome.Value!.RefreshToken;
-            var refreshOutcome = await RefreshTokenGrantService?.AcquireTokenAsync(refreshToken!, options)!;
-            if (refreshOutcome)
-                return await onAuthorizationDone(refreshOutcome);
+            var cachedRefreshTokenOutcome =
+                await GetCachedTokenAsync(RefreshTokenCacheRepo, options.ActorId!);
+
+            if (cachedRefreshTokenOutcome)
+            {
+                var refreshToken = cachedRefreshTokenOutcome.Value!;
+                var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(refreshToken, options);
+                if (refreshOutcome)
+                    return await onAuthorizationDone(refreshOutcome);
+            }
 
             // run the OIDC 'dance' through a browser ... 
             return await onAuthorizationDone
@@ -90,15 +101,19 @@ namespace TetraPak.XP.OAuth2.AuthCode
             {
                 if (outcome && isCachingTokens(options))
                 {
-                    await CacheGrantAsync(CacheRepository, options.ActorId!, outcome.Value!);
-                    // Authorized?.Invoke(this, new AuthResultEventArgs(outcome));
+                    var grant = outcome.Value!;
+                    await CacheGrantAsync(GrantCacheRepo, options.ActorId!, grant);
+                    if (grant.RefreshToken is { })
+                    {
+                        await CacheTokenAsync(RefreshTokenCacheRepo, options.ActorId!, grant.RefreshToken);
+                    }
                 }
                 return outcome;
             }
         }
         
-        Task removeFromCacheAsync(Credentials credentials) 
-            => TokenCache?.AttemptDeleteAsync(credentials.Identity, CacheRepository) 
+        Task removeFromGrantCacheAsync(string? key) 
+            => TokenCache?.AttemptDeleteAsync(key, GrantCacheRepo) 
                ?? Task.CompletedTask;
 
         bool isCachingTokens(GrantOptions options) =>
@@ -117,7 +132,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
             Log.Debug($"Listens for authorization code on {redirectUri} ...");
             
             // make the call for auth code and await callback from redirect ...
-            var authCodeRequestOutcome = await buildAuthRequestAsync(authorityUri, redirectUri, authState, authContext.Configuration);
+            var authCodeRequestOutcome = await buildAuthRequestAsync(authorityUri, redirectUri, authState, appCredentials, authContext.Configuration);
             if (!authCodeRequestOutcome)
                 return Outcome<Grant>.Fail(authCodeRequestOutcome.Exception!);
             
@@ -159,12 +174,13 @@ namespace TetraPak.XP.OAuth2.AuthCode
             Uri authorityUri,
             Uri redirectUri, 
             AuthState authState,
+            Credentials appCredentials,
             IAuthConfiguration authConfig)
         {
             var sb = new StringBuilder();
-            var clientId =  authConfig.ClientId;
+            var clientId =  appCredentials.Identity;
             if (string.IsNullOrWhiteSpace(clientId))
-                return Task.FromResult(AuthConfiguration.MissingConfigurationOutcome<string>(authConfig, nameof(AuthContext.Configuration.ClientId)));
+                return Task.FromResult(AuthConfiguration.MissingConfigurationOutcome<string>(authConfig, nameof(IAuthConfiguration.ClientId)));
 
             var scope = authConfig.OidcScope;
             
@@ -291,7 +307,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 Log.Error(ex, message.ToString(), messageId);
                 return Outcome<Grant>.Fail(ex);
             }
-        }
+         }
 
          static Task<Outcome<Dictionary<string,string>>> buildTokenRequestBodyAsync(
              string authCode, 
@@ -305,7 +321,8 @@ namespace TetraPak.XP.OAuth2.AuthCode
                  ["grant_type"] = "authorization_code",
                  ["code"] = authCode,
                  ["client_id"] = clientId,
-                 ["redirect_uri"] = Uri.EscapeDataString(redirectUri.AbsoluteUri)
+                 ["redirect_uri"] = redirectUri.AbsoluteUri
+                     // ["redirect_uri"] = Uri.EscapeDataString(redirectUri.AbsoluteUri)
              };
              if (authState.Verifier is not null)
                  dictionary["code_verifier"] = authState.Verifier;
@@ -323,12 +340,13 @@ namespace TetraPak.XP.OAuth2.AuthCode
         public TetraPakAuthorizationCodeGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
-            IRefreshTokenGrantService? refreshTokenGrantService,
             ILoopbackBrowser browser,
+            IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
+            IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, log, httpContextAccessor)
+        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
             _browser = browser;
         }

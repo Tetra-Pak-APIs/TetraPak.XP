@@ -4,50 +4,54 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TetraPak.XP;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;
+using TetraPak.XP.OAuth2;
+using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.OIDC;
+using TetraPak.XP.Web.Services;
 
 namespace authClient.console
 {
     public class Auth
     {
-        readonly IAuthenticator _authenticator;
-        readonly ILog? _log;
-        
+        ILog? _log;
+        IServiceProvider? _serviceProvider;
 
         public void NewTokenAsync(GrantType grantType, CancellationTokenSource cancellationTokenSource)
         {
             Task.Run(async () =>
             {
                 var options = GrantOptions.Forced(cancellationTokenSource);
+                var provider = _serviceProvider ?? throw new Exception("No service provider!");
                 switch (grantType)
                 {
                     case GrantType.CC:
-                        var cc = XpServices.GetRequired<IClientCredentialsGrantService>();
+                        var cc = provider.GetRequiredService<IClientCredentialsGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("Client Credentials grant requested ...");
                         writeToLog(await cc.AcquireTokenAsync(options));
                         break;
                 
                     case GrantType.DC:
-                        var dc = XpServices.GetRequired<IDeviceCodeGrantService>();
+                        var dc = provider.GetRequiredService<IDeviceCodeGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("Device Code grant requested ...");
                         writeToLog(await dc.AcquireTokenAsync(options, requestUSerCodeVerification));
                         break;
                 
                     case GrantType.OIDC:
+                        var ac = provider.GetRequiredService<IAuthorizationCodeGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("OIDC grant requested ...");
-                        writeToLog(await _authenticator.GetAccessTokenAsync(false, cancellationTokenSource)); // todo Rewrite OIDC to be a service instead (like with CC, above)
+                        writeToLog(await ac.AcquireTokenAsync(options)); 
                         break;
                 
                     default:
@@ -59,66 +63,12 @@ namespace authClient.console
 
         static void requestUSerCodeVerification(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
 
-        public async Task SilentTokenAsync()
+        public Task SilentTokenAsync()
         {
-            writeToLog(await _authenticator.GetAccessTokenSilentlyAsync());
+            throw new NotImplementedException(); // todo rewrite so support refresh/cashed token 
+            // writeToLog(await _authenticator.GetAccessTokenSilentlyAsync());
         }
         
-        // void writeToLog(Outcome<ClientCredentialsResponse> outcome)
-        // {
-        //     if (!outcome)
-        //     {
-        //         if (!string.IsNullOrWhiteSpace(outcome.Message))
-        //         {
-        //             _log.Warning(outcome.Message);
-        //         }
-        //         else if (outcome.Exception is { })
-        //         {
-        //             _log.Warning(outcome.Exception.Message);
-        //         }
-        //         else
-        //         {
-        //             _log.Warning("Client Credentials authorization failed with no message");
-        //         }
-        //         return;
-        //     }
-        //
-        //     var sb = new StringBuilder();
-        //     sb.AppendLine("SUCCESS!");
-        //     sb.Append("  access_token=");
-        //     sb.AppendLine(outcome.Value!.AccessToken);
-        //     _log.Information(sb.ToString());
-        // }
-        //
-        // void writeToLog(Outcome<DeviceCodeResponse> outcome)
-        // {
-        //     if (!outcome)
-        //     {
-        //         if (outcome.Exception is TaskCanceledException)
-        //             return; // already logged as an ERROR
-        //         
-        //         if (!string.IsNullOrWhiteSpace(outcome.Message))
-        //         {
-        //             _log.Warning(outcome.Message);
-        //         }
-        //         else if (outcome.Exception is { })
-        //         {
-        //             _log.Warning(outcome.Exception.Message);
-        //         }
-        //         else
-        //         {
-        //             _log.Warning("Device code grant failed with no message");
-        //         }
-        //         return;
-        //     }
-        //
-        //     var sb = new StringBuilder();
-        //     sb.AppendLine("SUCCESS!");
-        //     sb.Append("  access_token=");
-        //     sb.AppendLine(outcome.Value!.AccessToken);
-        //     _log.Information(sb.ToString());
-        // }
-
         void writeToLog(Outcome<Grant> outcome)
         {
             if (!outcome)
@@ -150,25 +100,37 @@ namespace authClient.console
             _log.Information(sb.ToString());
         }
 
-        public Auth()
+        public Auth(string[] args)
         {
-            var authApp = (AuthApplication)"DEV; hiJSBHQzj0v5k58j2SYTT8h54iIO8OIr; http://localhost:42444/auth";
-            var collection = new ServiceCollection();
-            var services = XpServices.BuildFor().Desktop().UseServiceCollection(collection)
-                .AddSingleton( p =>
+            Configure.InsertValueDelegate(new ConfigurationVariablesDelegate());
+            Host.CreateDefaultBuilder(args)
+                .ConfigureServices(collection =>
                 {
-                    var rank = resolveLogRank(p, LogRank.Information);
-                    var log = new BasicLog { Rank = rank } .WithConsoleLogging();
-                    return log;
+                    _serviceProvider = XpServices
+                        .BuildFor().Desktop()
+                        .UseServiceCollection(collection)
+                        .UseTetraPakConfiguration()
+                        .UseTetraPakWebServices()
+                        .AddSingleton( p =>
+                        {
+                            var rank = resolveLogRank(p, LogRank.Information);
+                            var log = new BasicLog { Rank = rank } .WithConsoleLogging();
+                            return log;
 
+                        })
+                        .UseAppCredentialsDelegate<CustomAppCredentialsDelegate>()
+                        .UseTetraPakOidcAuthentication/*<DesktopLoopbackBrowser> obsolete */()
+                        .UseTetraPakClientCredentialsAuthentication()
+                        .UseTetraPakDeviceCodeAuthentication()
+                        .BuildXpServices();
+                    _log = _serviceProvider.GetService<ILog>();
                 })
-                .AddSingleton(_ => authApp)
-                .AddTetraPakOidcAuthentication<DesktopLoopbackBrowser>(authApp)
-                .AddTetraPakClientCredentialsAuthentication()
-                .AddTetraPakDeviceCodeAuthentication()
-                .BuildXpServiceProvider();
-            _log = services.GetService<ILog>();
-            _authenticator = services.GetRequiredService<IAuthenticator>();
+                .ConfigureHostConfiguration(builder =>
+                {
+                    builder.AddEnvironmentVariables();
+                })
+                .ConfigureAppConfiguration((_, builder) => builder.Build())
+                .Build();
         }
 
         static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)

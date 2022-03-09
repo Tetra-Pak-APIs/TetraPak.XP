@@ -1,12 +1,12 @@
 ﻿using System;
+using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web;
 
-
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.OAuth2
 {
     /// <summary>
     ///   Provides a starting point for authorization.

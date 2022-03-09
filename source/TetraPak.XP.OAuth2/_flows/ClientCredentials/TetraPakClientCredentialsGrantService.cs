@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Auth.Refresh;
 using TetraPak.XP.Logging;
+using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
 
@@ -29,12 +29,12 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
             // todo Consider breaking up this method (it's too big)
             // todo Honor the GrantOptions.Flags value (silent/forced request etc.)
             var messageId = GetMessageId();
-            var appCredentialsOutcome = await GetAppCredentialsAsync();
+            var appCredentialsOutcome = await GetAppCredentialsAsync(new AuthContext(GrantType.CC, TetraPakConfig, options));
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
             var appCredentials = appCredentialsOutcome.Value!;
             
-            var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.DeviceCode, options);
+            var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.ClientCredentials, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             var authContext = authContextOutcome.Value!;
@@ -157,7 +157,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 return Outcome<Grant>.Fail(ex);
             }
         }
-        
+
         /// <summary>
         ///   Initializes the <see cref="TetraPakClientCredentialsGrantService"/>.
         /// </summary>
@@ -174,6 +174,10 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
         ///   (optional)<br/>
         ///   A specialized (secure) token cache to reduce traffic and improve performance
         /// </param>
+        /// <param name="appCredentialsDelegate">
+        ///   (optional)<br/>
+        ///   A delegate to handle custom logic for obtaining application credentials (client id / client secret).   
+        /// </param>
         /// <param name="log">
         ///   (optional)<br/>
         ///   A logger provider.   
@@ -187,11 +191,12 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
         public TetraPakClientCredentialsGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
-            IRefreshTokenGrantService? refreshTokenGrantService,
+            IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
+            IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, log, httpContextAccessor)
+        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
         }
     }

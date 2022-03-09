@@ -35,7 +35,12 @@
             /// <summary>
             ///   Identifies the cache repository used for tokens acquired from device code grants. 
             /// </summary>
-            public const string DeviceCodeCredentials = "DcTokens";
+            public const string DeviceCodeCredentials = "DC_Tokens";
+
+            /// <summary>
+            ///   Identifies  cache repository used for refresh tokens. 
+            /// </summary>
+            public const string Refresh = "RF_Tokens";
 
         }
     }

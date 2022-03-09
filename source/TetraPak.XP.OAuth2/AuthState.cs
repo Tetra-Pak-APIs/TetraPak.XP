@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.OAuth2
 {
     struct AuthState
     {
@@ -20,7 +20,7 @@ namespace TetraPak.XP.Auth
 
         public string CodeChallengeMethod { get; }
 
-        static string makeVerifier(uint length = 32, string clientId = null)
+        static string makeVerifier(uint length = 32, string? clientId = null)
         {
             return string.IsNullOrEmpty(clientId)
                 ? randomDataBase64(length)
@@ -57,14 +57,14 @@ namespace TetraPak.XP.Auth
 
             if (!useState)
             {
-                State = Verifier = CodeChallenge = CodeChallengeMethod = null;
+                State = Verifier = CodeChallenge = CodeChallengeMethod = null!;
                 return;
             }
 
             State = randomDataBase64(32);
             if (!IsPkce)
             {
-                Verifier = CodeChallenge = CodeChallengeMethod = null;
+                Verifier = CodeChallenge = CodeChallengeMethod = null!;
                 return;
             }
 

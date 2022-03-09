@@ -12,19 +12,20 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
+using TetraPak.XP.Auth.Debugging;
 using TetraPak.XP.Caching;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Logging;
+using TetraPak.XP.OAuth2;
 using TetraPak.XP.Web;
 using HttpStatusCode = TetraPak.XP.Microsoft.HttpStatusCode;
 #if DEBUG
-using TetraPak.XP.Auth.Debugging;
 #endif
 
 [assembly: XpService(typeof(TetraPakAuthenticator))]
 [assembly: XpService(typeof(TetraPakAuthCallbackHandler))]
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.OAuth2
 {
     /// <summary>
     ///   A custom (Tetra Pak) implementation of the <see cref="IAuthenticator"/> contract.

@@ -19,7 +19,7 @@ namespace TetraPak.XP.Auth.Abstractions
             }
         }
 
-        public TetraPakConfiguration(ConfigurationSectionWrapperArgs args)
+        public TetraPakConfiguration(ConfigurationSectionDecoratorArgs args)
         : base(args)
         {
         }

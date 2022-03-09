@@ -70,6 +70,17 @@
         ///   using the Device Code Grant.
         /// </summary>
         DeviceCode = DC,
+        
+        /// <summary>
+        ///   Abbreviation for <see cref="Refresh"/>.
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        RF,
+        
+        /// <summary>
+        ///   The service is requesting a refreshed token via the Refresh Token grant.
+        /// </summary>
+        Refresh = RF,
 
         /// <summary>
         ///   Abbreviation for <see cref="Automatic"/>.

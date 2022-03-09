@@ -101,23 +101,23 @@ namespace TetraPak.XP.Auth.Abstractions
         [StateDump]
         public bool IsCaching => this.Get(getDerived:true, useDefault: TetraPakAuthDefaults.IsCaching);
         
-         internal static Outcome<T> MissingConfigurationOutcome<T>(IConfigurationSection cfg, string key) 
-             => 
-             Outcome<T>.Fail(MissingConfigurationException(cfg, key));
-         
-         internal static Exception MissingConfigurationException(IConfigurationSection cfg, string key)
-             =>
-             new ConfigurationException($"Missing configuration: {new ConfigPath(cfg.Path).Push(key)}");
-        
-        internal static Outcome<T> InvalidConfigurationOutcome<T>(IConfigurationSection cfg, string key, object value) 
-             => 
-             Outcome<T>.Fail(InvalidConfigurationException(cfg, key, value));
-
-        internal static Exception InvalidConfigurationException(IConfigurationSection cfg, string key, object value) 
+        public static Outcome<T> MissingConfigurationOutcome<T>(IConfigurationSection cfg, string key) 
             => 
-                new ConfigurationException($"Invalid configuration: {new ConfigPath(cfg.Path).Push(key)}: {value}");
+            Outcome<T>.Fail(MissingConfigurationException(cfg, key));
+         
+        public static Exception MissingConfigurationException(IConfigurationSection cfg, string key)
+            =>
+            new ConfigurationException($"Missing configuration: {new ConfigPath(cfg.Path).Push(key)}");
+        
+        public static Outcome<T> InvalidConfigurationOutcome<T>(IConfigurationSection cfg, string key, object value) 
+            => 
+            Outcome<T>.Fail(InvalidConfigurationException(cfg, key, value));
 
-        public AuthConfiguration(ConfigurationSectionWrapperArgs args)
+        public static Exception InvalidConfigurationException(IConfigurationSection cfg, string key, object value) 
+            => 
+            new ConfigurationException($"Invalid configuration: {new ConfigPath(cfg.Path).Push(key)}: {value}");
+
+        public AuthConfiguration(ConfigurationSectionDecoratorArgs args)
         : base(args)
         {
             RuntimeEnvironmentResolver = args.RuntimeEnvironmentResolver;

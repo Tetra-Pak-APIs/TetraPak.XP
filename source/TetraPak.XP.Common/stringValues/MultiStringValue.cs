@@ -399,9 +399,8 @@ namespace TetraPak.XP
         /// </summary>
         protected static string? WithArgs(string? stringValue, string? separator, StringComparison comparison)
         {
-            // note: The thread-statics are only set once in a thread
-            s_separator ??= separator ?? DefaultSeparator;
-            s_comparison ??= comparison;
+            s_separator = separator?.Trim() ?? separator ?? DefaultSeparator;
+            s_comparison = comparison;
             return stringValue;
         }
 

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
 
-namespace TetraPak.XP.Auth.Refresh
+namespace TetraPak.XP.OAuth2.Refresh
 {
     public interface IRefreshTokenGrantService
     {

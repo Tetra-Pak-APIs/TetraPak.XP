@@ -22,7 +22,7 @@ namespace TetraPak.XP.Auth.Abstractions
                 s_isTetraPakConfigurationAdded = true;
             }
 
-            Configure.InsertWrapperDelegate(e => new ConfigurationSectionWrapper(e));
+            Configure.InsertConfigurationDecorator(new FallbackConfigurationDecoratorDelegate());
             Configure.InsertValueDelegate(new TetraPakConfigurationValueDelegate());
             collection.AddSingleton<ITetraPakConfiguration>(p =>
             {
@@ -30,7 +30,7 @@ namespace TetraPak.XP.Auth.Abstractions
                 var resolver = p.GetRequiredService<IRuntimeEnvironmentResolver>();
                 var section = conf.GetSection(TetraPakConfiguration.SectionKey);
                 var log = p.GetService<ILog>();
-                var args = new ConfigurationSectionWrapperArgs(null, conf, section, resolver, log);
+                var args = new ConfigurationSectionDecoratorArgs(null, conf, section, resolver, log);
                 return new TetraPakConfiguration(args);
                 
             });
@@ -39,6 +39,8 @@ namespace TetraPak.XP.Auth.Abstractions
         
         class TetraPakConfigurationValueDelegate : IConfigurationValueDelegate
         {
+            public bool IsFallbackDelegate => true;
+
             public Outcome<T> GetValue<T>(ConfigurationValueArgs<T> args)
             {
                 if (args.Configuration is not TetraPakConfiguration tpConf)
@@ -93,6 +95,15 @@ namespace TetraPak.XP.Auth.Abstractions
                 nameof(IAuthConfiguration.OidcScope) => true,
                 _ => false
             };
+        }
+    }
+    
+    class FallbackConfigurationDecoratorDelegate : IConfigurationDecoratorDelegate
+    {
+        public bool IsFallbackDecorator => true;
+        public Outcome<ConfigurationSectionWrapper> WrapSection(ConfigurationSectionDecoratorArgs args)
+        {
+            throw new NotImplementedException();
         }
     }
 }

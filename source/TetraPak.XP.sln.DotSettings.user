@@ -36,4 +36,6 @@
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5baec876_002D8bd9_002D4773_002Db019_002D6538cbe872b3_0023TetraPak_002EXP_002EiOS/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=beb06ab9_002D03a8_002D4815_002D9717_002D004b801d8449_0023TetraPak_002EXP_002EUWP/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c4c17daf_002D21a6_002D4801_002D8d85_002Dba14b453dd8a_0023authClient_002Eios/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c8f6ae96_002Dfcc1_002D4bfe_002Da8a8_002Dc15a9d652225_0023TetraPak_002EXP_002EAndroid/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c8f6ae96_002Dfcc1_002D4bfe_002Da8a8_002Dc15a9d652225_0023TetraPak_002EXP_002EAndroid/@EntryIndexedValue">True</s:Boolean>
+	
+	</wpf:ResourceDictionary>

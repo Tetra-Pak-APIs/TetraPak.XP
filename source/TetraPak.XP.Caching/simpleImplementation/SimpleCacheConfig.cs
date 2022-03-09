@@ -88,7 +88,7 @@ namespace TetraPak.XP.Caching
         /// <summary>
         ///   Initializes the <see cref="SimpleCacheConfig"/>.
         /// </summary>
-        public SimpleCacheConfig(SimpleCache? cache, ConfigurationSectionWrapperArgs args)
+        public SimpleCacheConfig(SimpleCache? cache, ConfigurationSectionDecoratorArgs args)
         : base(args)
         {
             // todo This class needs to rely on the root configuration (implemented per platform) rather than inheritance

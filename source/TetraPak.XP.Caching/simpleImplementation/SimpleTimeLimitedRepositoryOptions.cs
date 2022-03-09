@@ -275,7 +275,7 @@ namespace TetraPak.XP.Caching
         /// </summary>
         public SimpleTimeLimitedRepositoryOptions(
             SimpleCache? cache,
-            ConfigurationSectionWrapperArgs args) 
+            ConfigurationSectionDecoratorArgs args) 
         : base(args)
         {
             _cache = cache;

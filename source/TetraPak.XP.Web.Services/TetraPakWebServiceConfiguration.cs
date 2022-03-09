@@ -19,7 +19,7 @@ namespace TetraPak.XP.Web.Services
         [StateDump]
         public string ServicePath => this.Get<string>() ?? string.Empty;
 
-        public TetraPakWebServiceConfiguration(ConfigurationSectionWrapperArgs args) 
+        public TetraPakWebServiceConfiguration(ConfigurationSectionDecoratorArgs args) 
         : base(args)
         {
         }

@@ -18,10 +18,11 @@ namespace TetraPak.XP.DependencyInjection
         static IServiceCollection? s_serviceCollection;
         static IServiceProvider? s_provider;
         static readonly HashSet<Assembly> s_registeredAssemblies = new();
+        // static readonly HashSet<Type> s_registeredImplicitInterfaces = new();// Experiment concept 
 
         public static bool DefaultIsSingleton { get; set; } = true;
 
-        // public static bool IsDefaultImplementingSingleInterface { get; set; } = true; // Experiment concept (leaving it out for now)
+        // public static bool IsDefaultImplementingSingleInterface { get; set; } = true; // Experiment concept 
 
         class ResolutionInfo
         {
@@ -103,15 +104,21 @@ namespace TetraPak.XP.DependencyInjection
             =>
             Register(implementingType, null!, skipOnConflict, isTypeLiteral, isSingleton);
 
-        public static void Register(Type implementingType, Type? interfaceType, bool skipOnConflict = true, bool isTypeLiteral = false, bool? isSingleton = null)
+        public static void Register(
+            Type implementingType, 
+            Type? interfaceType, 
+            bool skipOnConflict = true, 
+            bool isTypeLiteral = false, 
+            bool? isSingleton = null)
         {
-            // if (IsDefaultImplementingSingleInterface && !isTypeLiteral && implementingType is null) Experimental concept (leaving it out for now)
+            // if (IsDefaultImplementingSingleInterface && !isTypeLiteral) // Experimental concept
             // {
-            //     // check for single interface and assume this type is an implementation it ...
-            //     var interfaces = type.GetInterfaces();
-            //     if (interfaces.Length == 1)
+            //     // check for single interface and assume this type is the implementation of it ...
+            //     var interfaces = implementingType.GetInterfaces();
+            //     if (interfaces.Length == 1 && !s_registeredImplicitInterfaces.Contains(interfaces[0]))
             //     {
-            //         implementingType = interfaces[0];
+            //         interfaceType = interfaces[0];
+            //         s_registeredImplicitInterfaces.Add(interfaceType);
             //     }
             // }
             
@@ -344,7 +351,7 @@ namespace TetraPak.XP.DependencyInjection
                     var asm = assemblies[i];
                     if (s_registeredAssemblies.Contains(asm))
                         continue;
-                    
+                    var  nisse = // nisse
                     asm.GetCustomAttributes<XpServiceAttribute>();
                     s_registeredAssemblies.Add(asm);
                 }

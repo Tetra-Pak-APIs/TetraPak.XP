@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using TetraPak.XP.Logging;
@@ -9,14 +10,16 @@ namespace TetraPak.XP.Configuration
 {
     public class ConfigurationSectionWrapper : IConfigurationSection
     {
-        protected readonly IConfigurationSection? Section;
+        protected IConfigurationSection? Section { get; }
+
+        internal IConfigurationSection? GetSection() => Section;
         
         readonly Dictionary<string, ConfigurationSectionWrapper>? _childSections;
 
-        protected IConfiguration _configuration { get; }
+        readonly IConfiguration _configuration;
 
-        protected IRuntimeEnvironmentResolver _runtimeEnvironmentResolver { get; }
-
+        readonly IRuntimeEnvironmentResolver _runtimeEnvironmentResolver;
+        
         public bool IsEmpty => Section is null;
         
         public string Key => Section?.Key ?? string.Empty;
@@ -81,7 +84,7 @@ namespace TetraPak.XP.Configuration
         {
             var children = rootSection.GetSubSections();
             var childWrappers = new List<ConfigurationSectionWrapper>();
-            var wrapperDelegates = Configure.GetSectionWrapperDelegates();
+            var wrapperDelegates = Configure.GetConfigurationDecorators();
             foreach (var childSection in children)
             {
                 childWrappers.Add(OnWrapConfigurationSection(childSection, this, wrapperDelegates));
@@ -90,7 +93,7 @@ namespace TetraPak.XP.Configuration
             return childWrappers.ToArray();
         }
 
-        protected ConfigurationSectionWrapperArgs CreateSectionWrapperArgs(
+        protected ConfigurationSectionDecoratorArgs CreateSectionWrapperArgs(
             IConfigurationSection section,
             ConfigurationSectionWrapper parent)
             => new(
@@ -103,16 +106,17 @@ namespace TetraPak.XP.Configuration
         protected virtual ConfigurationSectionWrapper OnWrapConfigurationSection(
             IConfigurationSection section, 
             ConfigurationSectionWrapper parent,
-            ConfigurationSectionWrapperDelegate[] wrapperDelegates)
+            IConfigurationDecoratorDelegate[] decorators)
         {
             var args = CreateSectionWrapperArgs(section, parent);
-            for (var i = 0; i < wrapperDelegates.Length; i++)
+            for (var i = 0; i < decorators.Length; i++)
             {
-                var wrapperDelegate = wrapperDelegates[i];
-                var wrapper = wrapperDelegate(args);
-                if (wrapper is null) 
+                var decorator = decorators[i];
+                var outcome = decorator.WrapSection(args);
+                if (!outcome)
                     continue;
-                
+
+                var wrapper = outcome.Value!;
                 wrapper.Parent = parent;
                 return wrapper;
             }
@@ -142,7 +146,7 @@ namespace TetraPak.XP.Configuration
             Section = null!;
         }
         
-        public ConfigurationSectionWrapper(ConfigurationSectionWrapperArgs args)
+        public ConfigurationSectionWrapper(ConfigurationSectionDecoratorArgs args)
         {
             _configuration = args.Configuration;
             Log = args.Log;

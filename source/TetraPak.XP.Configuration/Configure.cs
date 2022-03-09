@@ -9,14 +9,14 @@ namespace TetraPak.XP.Configuration
 {
     public static class Configure
     {
-        static readonly List<ConfigurationSectionWrapperDelegate> s_wrapperDelegates = new();
+        static readonly List<IConfigurationDecoratorDelegate> s_decorators = new();
         static readonly List<IConfigurationValueDelegate> s_valueDelegates = new();
         static readonly List<ValueParser> s_valueParsers = getDefaultValueParsers();
 
-        internal static ConfigurationSectionWrapperDelegate[] GetSectionWrapperDelegates()
+        internal static IConfigurationDecoratorDelegate[] GetConfigurationDecorators()
         {
-            lock (s_wrapperDelegates)
-                return s_wrapperDelegates.ToArray();
+            lock (s_decorators)
+                return s_decorators.ToArray();
         }
 
         internal static IConfigurationValueDelegate[] GetValueDelegates()
@@ -31,25 +31,77 @@ namespace TetraPak.XP.Configuration
                 return s_valueParsers.ToArray();
         }
 
-        public static void InsertWrapperDelegate(ConfigurationSectionWrapperDelegate wrapperDelegate, int index = 0)
+        public static void InsertConfigurationDecorator(IConfigurationDecoratorDelegate decoratorDelegate, int index = -1)
         {
-            lock (s_wrapperDelegates)
+            lock (s_decorators)
             {
-                if (s_wrapperDelegates.Contains(wrapperDelegate))
-                    throw new ArgumentException("Delegate was already inserted", nameof(wrapperDelegate));
+                if (s_decorators.Contains(decoratorDelegate))
+                    throw new ArgumentException("Decorator was already inserted", nameof(decoratorDelegate));
 
-                s_wrapperDelegates.Insert(index, wrapperDelegate);
+                if (index >= 0)
+                {
+                    s_decorators.Insert(index, decoratorDelegate);
+                    return;
+                }
+
+                if (!decoratorDelegate.IsFallbackDecorator || s_decorators.Count == 0)
+                {
+                    s_decorators.Insert(0, decoratorDelegate);
+                    return;
+                }
+
+                // insert fallback decorator ...
+                var lastIndex = s_decorators.Count - 1;
+                for (var i = s_decorators.Count-1; i >= 0; i--)
+                {
+                    var decorator = s_decorators[i];
+                    if (decorator.IsFallbackDecorator)
+                    {
+                        s_decorators.Insert(lastIndex, decoratorDelegate);
+                        return;
+                    }
+
+                    lastIndex = i;
+                }
+                s_decorators.Insert(0, decoratorDelegate);
             }
         }
 
-        public static void InsertValueDelegate(IConfigurationValueDelegate valueDelegate, int index = 0)
+        public static void InsertValueDelegate(IConfigurationValueDelegate valueDelegate, int index = -1)
         {
             lock (s_valueDelegates)
             {
                 if (s_valueDelegates.Contains(valueDelegate))
                    throw new ArgumentException("Delegate was already inserted", nameof(valueDelegate));
 
-                s_valueDelegates.Insert(index, valueDelegate);
+                if (index >= 0)
+                {
+                    s_valueDelegates.Insert(index, valueDelegate);
+                    return;
+                }
+                
+                if (!valueDelegate.IsFallbackDelegate || s_valueDelegates.Count == 0)
+                {
+                    s_valueDelegates.Insert(0, valueDelegate);
+                    return;
+                }
+                
+                // insert fallback delegate ...
+                for (var i = s_valueDelegates.Count-1; i >= 0; i--)
+                {
+                    var del = s_valueDelegates[i];
+                    if (del.IsFallbackDelegate) 
+                        continue;
+                    
+                    if (i + 1 > s_valueDelegates.Count - 1)
+                    {
+                        s_valueDelegates.Add(valueDelegate);
+                        return;
+                    }
+                    s_valueDelegates.Insert(i+1, valueDelegate);
+                    return;
+                }
+                s_valueDelegates.Insert(0, valueDelegate);
             }
         }
         
@@ -175,10 +227,19 @@ namespace TetraPak.XP.Configuration
         }
     }
 
-    public delegate ConfigurationSectionWrapper? ConfigurationSectionWrapperDelegate(ConfigurationSectionWrapperArgs args);
+    public interface IConfigurationDecoratorDelegate
+    {
+        bool IsFallbackDecorator { get; }
+
+        Outcome<ConfigurationSectionWrapper> WrapSection(ConfigurationSectionDecoratorArgs args);
+    }
+    
+    // public delegate ConfigurationSectionWrapper? ConfigurationSectionWrapperDelegate(ConfigurationSectionDecoratorArgs args); obsolete
 
     public interface IConfigurationValueDelegate
     {
+        bool IsFallbackDelegate { get; }
+        
         Outcome<T> GetValue<T>(ConfigurationValueArgs<T> args);
     }
 
@@ -191,7 +252,6 @@ namespace TetraPak.XP.Configuration
         public string Key { get; }
 
         public T DefaultValue { get; }
-
 
         public ILog? Log { get; }
 
@@ -225,7 +285,7 @@ namespace TetraPak.XP.Configuration
         }
     }
 
-    public class ConfigurationSectionWrapperArgs
+    public class ConfigurationSectionDecoratorArgs
     {
         public ILog? Log { get; }
 
@@ -237,28 +297,29 @@ namespace TetraPak.XP.Configuration
         
         public IConfigurationSection Section { get; }
 
-        // public ConfigurationSectionWrapperArgs ForSubSection(ConfigurationSectionWrapper? parent, IConfigurationSection subSection)
-        // {
-        //     return new ConfigurationSectionWrapperArgs(
-        //         parent, 
-        //         Configuration, 
-        //         subSection,
-        //         RuntimeEnvironmentResolver,
-        //         Log);
-        // }
-
-        public static ConfigurationSectionWrapperArgs CreateFromServices(ConfigurationSectionWrapper? parent, string key)
+        public static ConfigurationSectionDecoratorArgs ForSubSection(
+            ConfigurationSectionWrapper? parent, 
+            string key)
         {
-            var conf = XpServices.GetRequired<IConfiguration>();
-            return new ConfigurationSectionWrapperArgs(
-                parent,
-                XpServices.GetRequired<IConfiguration>(),
-                conf.GetRequiredSubSection(key),
-                XpServices.GetRequired<IRuntimeEnvironmentResolver>(),
-                XpServices.Get<ILog>());
+            var path = new ConfigPath(key);
+            if (path.Count != 1) 
+                throw new ArgumentException($"Unexpected sub section key: '{key}'", nameof(key));
+            
+            var section = parent is { }
+                ? parent.GetSection()
+                : XpServices.GetRequired<IConfiguration>().GetSubSection(key);
+            if (section is { })
+                return new ConfigurationSectionDecoratorArgs(
+                    parent,
+                    XpServices.GetRequired<IConfiguration>(),
+                    section,
+                    XpServices.GetRequired<IRuntimeEnvironmentResolver>(),
+                    XpServices.Get<ILog>());
+
+            throw new ArgumentException($"Sub section not found: '{key}'", nameof(key));
         }
 
-        public ConfigurationSectionWrapperArgs(
+        public ConfigurationSectionDecoratorArgs(
             ConfigurationSectionWrapper? parent,
             IConfiguration conf,
             IConfigurationSection section,
