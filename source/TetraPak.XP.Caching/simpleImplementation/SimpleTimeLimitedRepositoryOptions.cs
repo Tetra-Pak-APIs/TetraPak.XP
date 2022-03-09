@@ -10,7 +10,7 @@ namespace TetraPak.XP.Caching
     /// </summary>
     /// <seealso cref="SimpleCache"/>
     /// <seealso cref="SimpleCacheConfig"/>
-    public class SimpleTimeLimitedRepositoryOptions : ConfigurationSectionWrapper, ITimeLimitedRepositoryOptions
+    public class SimpleTimeLimitedRepositoryOptions : ConfigurationSectionDecorator, ITimeLimitedRepositoryOptions
     {
         SimpleCache? _cache;
         // ReSharper disable NotAccessedField.Local

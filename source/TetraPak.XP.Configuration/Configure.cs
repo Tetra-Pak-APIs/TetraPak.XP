@@ -231,7 +231,7 @@ namespace TetraPak.XP.Configuration
     {
         bool IsFallbackDecorator { get; }
 
-        Outcome<ConfigurationSectionWrapper> WrapSection(ConfigurationSectionDecoratorArgs args);
+        Outcome<ConfigurationSectionDecorator> WrapSection(ConfigurationSectionDecoratorArgs args);
     }
     
     // public delegate ConfigurationSectionWrapper? ConfigurationSectionWrapperDelegate(ConfigurationSectionDecoratorArgs args); obsolete
@@ -293,12 +293,12 @@ namespace TetraPak.XP.Configuration
 
         public IRuntimeEnvironmentResolver RuntimeEnvironmentResolver { get; }
             
-        public ConfigurationSectionWrapper? Parent { get; }  
+        public ConfigurationSectionDecorator? Parent { get; }  
         
         public IConfigurationSection Section { get; }
 
         public static ConfigurationSectionDecoratorArgs ForSubSection(
-            ConfigurationSectionWrapper? parent, 
+            ConfigurationSectionDecorator? parent, 
             string key)
         {
             var path = new ConfigPath(key);
@@ -320,7 +320,7 @@ namespace TetraPak.XP.Configuration
         }
 
         public ConfigurationSectionDecoratorArgs(
-            ConfigurationSectionWrapper? parent,
+            ConfigurationSectionDecorator? parent,
             IConfiguration conf,
             IConfigurationSection section,
             IRuntimeEnvironmentResolver runtimeEnvironmentResolver,

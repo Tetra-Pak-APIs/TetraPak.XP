@@ -6,7 +6,7 @@ using TetraPak.XP.Configuration;
 namespace TetraPak.XP.Web.Services
 {
     // todo move to a more "web" oriented lib
-    public class WebServicesConfiguration : ConfigurationSectionWrapper, IWebServicesConfiguration
+    public class WebServicesConfiguration : ConfigurationSectionDecorator, IWebServicesConfiguration
     {
         internal const string SectionKey = "WebServices";
         static readonly ConfigPath s_webServicesPath = new(new[] { TetraPakConfiguration.SectionKey, SectionKey });
@@ -24,10 +24,10 @@ namespace TetraPak.XP.Web.Services
             Configure.InsertConfigurationDecorator(new WebServicesConfigurationDecoratorDelegate());
         }
 
-        protected override ConfigurationSectionWrapper[] OnBuildWrapperGraph(IConfigurationSection rootSection)
+        protected override ConfigurationSectionDecorator[] OnBuildWrapperGraph(IConfigurationSection rootSection)
         {
             var serviceSections = Section!.GetSubSections();
-            var wrappedSections = new List<ConfigurationSectionWrapper>();
+            var wrappedSections = new List<ConfigurationSectionDecorator>();
             foreach (var serviceSection in serviceSections)
             {
                 var args = CreateSectionWrapperArgs(serviceSection, this);
@@ -37,7 +37,7 @@ namespace TetraPak.XP.Web.Services
             return wrappedSections.ToArray();
         }
 
-        static ConfigurationSectionWrapper? getWebServiceCollectionConfiguration(
+        static ConfigurationSectionDecorator? getWebServiceCollectionConfiguration(
             ConfigurationSectionDecoratorArgs args)
         {
             return args.Section.Path == s_webServicesPath 
@@ -59,11 +59,11 @@ namespace TetraPak.XP.Web.Services
         {
             public bool IsFallbackDecorator => false;
 
-            public Outcome<ConfigurationSectionWrapper> WrapSection(ConfigurationSectionDecoratorArgs args)
+            public Outcome<ConfigurationSectionDecorator> WrapSection(ConfigurationSectionDecoratorArgs args)
             {
                 return args.Section.Path == s_webServicesPath 
-                    ? Outcome<ConfigurationSectionWrapper>.Success(new WebServicesConfiguration(args)) 
-                    : Outcome<ConfigurationSectionWrapper>.Fail("");
+                    ? Outcome<ConfigurationSectionDecorator>.Success(new WebServicesConfiguration(args)) 
+                    : Outcome<ConfigurationSectionDecorator>.Fail("");
             }
         }
     }

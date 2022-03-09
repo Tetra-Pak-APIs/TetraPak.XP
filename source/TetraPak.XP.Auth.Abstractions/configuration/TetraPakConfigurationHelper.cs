@@ -101,7 +101,7 @@ namespace TetraPak.XP.Auth.Abstractions
     class FallbackConfigurationDecoratorDelegate : IConfigurationDecoratorDelegate
     {
         public bool IsFallbackDecorator => true;
-        public Outcome<ConfigurationSectionWrapper> WrapSection(ConfigurationSectionDecoratorArgs args)
+        public Outcome<ConfigurationSectionDecorator> WrapSection(ConfigurationSectionDecoratorArgs args)
         {
             throw new NotImplementedException();
         }

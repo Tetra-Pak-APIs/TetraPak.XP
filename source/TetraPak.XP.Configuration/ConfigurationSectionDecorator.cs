@@ -8,13 +8,13 @@ using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Configuration
 {
-    public class ConfigurationSectionWrapper : IConfigurationSection
+    public class ConfigurationSectionDecorator : IConfigurationSection
     {
         protected IConfigurationSection? Section { get; }
 
         internal IConfigurationSection? GetSection() => Section;
         
-        readonly Dictionary<string, ConfigurationSectionWrapper>? _childSections;
+        readonly Dictionary<string, ConfigurationSectionDecorator>? _childSections;
 
         readonly IConfiguration _configuration;
 
@@ -57,7 +57,7 @@ namespace TetraPak.XP.Configuration
             if (!section.IsConfigurationSection())
                 return section;
             
-            sectionWrapper = new ConfigurationSectionWrapper(CreateSectionWrapperArgs(section, this));
+            sectionWrapper = new ConfigurationSectionDecorator(CreateSectionWrapperArgs(section, this));
             _childSections.Add(key, sectionWrapper);
             return sectionWrapper;
         }
@@ -80,10 +80,10 @@ namespace TetraPak.XP.Configuration
             }
         }
 
-        protected virtual ConfigurationSectionWrapper[] OnBuildWrapperGraph(IConfigurationSection rootSection)
+        protected virtual ConfigurationSectionDecorator[] OnBuildWrapperGraph(IConfigurationSection rootSection)
         {
             var children = rootSection.GetSubSections();
-            var childWrappers = new List<ConfigurationSectionWrapper>();
+            var childWrappers = new List<ConfigurationSectionDecorator>();
             var wrapperDelegates = Configure.GetConfigurationDecorators();
             foreach (var childSection in children)
             {
@@ -95,7 +95,7 @@ namespace TetraPak.XP.Configuration
 
         protected ConfigurationSectionDecoratorArgs CreateSectionWrapperArgs(
             IConfigurationSection section,
-            ConfigurationSectionWrapper parent)
+            ConfigurationSectionDecorator parent)
             => new(
                 parent,
                 _configuration,
@@ -103,9 +103,9 @@ namespace TetraPak.XP.Configuration
                 _runtimeEnvironmentResolver,
                 Log);
             
-        protected virtual ConfigurationSectionWrapper OnWrapConfigurationSection(
+        protected virtual ConfigurationSectionDecorator OnWrapConfigurationSection(
             IConfigurationSection section, 
-            ConfigurationSectionWrapper parent,
+            ConfigurationSectionDecorator parent,
             IConfigurationDecoratorDelegate[] decorators)
         {
             var args = CreateSectionWrapperArgs(section, parent);
@@ -121,13 +121,13 @@ namespace TetraPak.XP.Configuration
                 return wrapper;
             }
             
-            return new ConfigurationSectionWrapper(args)
+            return new ConfigurationSectionDecorator(args)
             {
                 Parent = parent
             };
         }
 
-        ConfigurationSectionWrapper[] buildWrapperGraph(IConfigurationSection rootSection)
+        ConfigurationSectionDecorator[] buildWrapperGraph(IConfigurationSection rootSection)
         {
             var sections = OnBuildWrapperGraph(rootSection);
             for (var i = 0; i < sections.Length; i++)
@@ -139,14 +139,14 @@ namespace TetraPak.XP.Configuration
             return sections;
         }
 
-        protected ConfigurationSectionWrapper()
+        protected ConfigurationSectionDecorator()
         {
             _configuration = null!;
             _runtimeEnvironmentResolver = null!;
             Section = null!;
         }
         
-        public ConfigurationSectionWrapper(ConfigurationSectionDecoratorArgs args)
+        public ConfigurationSectionDecorator(ConfigurationSectionDecoratorArgs args)
         {
             _configuration = args.Configuration;
             Log = args.Log;

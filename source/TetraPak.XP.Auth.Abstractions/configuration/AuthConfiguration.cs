@@ -5,7 +5,7 @@ using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
-    public class AuthConfiguration : ConfigurationSectionWrapper, IAuthConfiguration
+    public class AuthConfiguration : ConfigurationSectionDecorator, IAuthConfiguration
     {
         internal IRuntimeEnvironmentResolver RuntimeEnvironmentResolver { get; }
 

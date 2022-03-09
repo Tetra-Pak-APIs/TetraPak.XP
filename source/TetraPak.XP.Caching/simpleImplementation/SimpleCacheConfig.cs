@@ -9,7 +9,7 @@ namespace TetraPak.XP.Caching
     /// <summary>
     ///   A configuration section specifying caching strategies. 
     /// </summary>
-    public class SimpleCacheConfig : ConfigurationSectionWrapper, IEnumerable<KeyValuePair<string,ITimeLimitedRepositoryOptions>>
+    public class SimpleCacheConfig : ConfigurationSectionDecorator, IEnumerable<KeyValuePair<string,ITimeLimitedRepositoryOptions>>
     {
         SimpleCache? _cache;
         readonly Dictionary<string, ITimeLimitedRepositoryOptions> _repositoryConfigs;

@@ -21,7 +21,7 @@ namespace TetraPak.XP.Configuration
                 conf.GetNamed(caller!, useDefault, getDerived);
 
         static T? getDerived<T>(
-            this ConfigurationSectionWrapper conf,
+            this ConfigurationSectionDecorator conf,
             string key,
             T? useDefault = default)
         {
@@ -62,7 +62,7 @@ namespace TetraPak.XP.Configuration
             var stringValue = conf[key];
             if (string.IsNullOrWhiteSpace(stringValue))
             {
-                if (getDerived && conf is ConfigurationSectionWrapper wrapper)
+                if (getDerived && conf is ConfigurationSectionDecorator wrapper)
                     return wrapper.getDerived(key, useDefault);
 
                 return useDefault;
@@ -86,7 +86,7 @@ namespace TetraPak.XP.Configuration
             TypedValueParser<T>? parser = null,
             [CallerMemberName] string key = null!)
         {
-            if (conf is not ConfigurationSectionWrapper wrapper) 
+            if (conf is not ConfigurationSectionDecorator wrapper) 
                 return conf.GetNamed(key, useDefault, false, parser);
             
             if (wrapper.Parent is { })
