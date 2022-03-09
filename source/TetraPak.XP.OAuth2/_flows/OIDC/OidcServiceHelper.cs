@@ -52,16 +52,13 @@ namespace TetraPak.XP.OAuth2.OIDC
         ///   The <paramref name="collection"/> value.   
         /// </returns>
         /// <seealso cref="SetAuthApplication"/>
-        public static IServiceCollection UseTetraPakOidcAuthentication/*<TBrowser>*/(
+        public static IServiceCollection UseTetraPakOidcAuthentication(
             this IServiceCollection collection,
             ILog? log = null)
-        // where TBrowser : class, ILoopbackBrowser
         {
             // todo The OIDC browser should be provider thru DI, not as a type
             // todo The OIDC service should take its config from IConfiguration (provided by DI); not from AuthApplication
             XpServices.RegisterLiteral<DiscoveryDocumentCache>();
-            // services.AddAuthApplication(authApplication); obsolete
-            // services.AddSingleton<ILoopbackBrowser, TBrowser>();
             collection.UseTetraPakConfiguration();
             collection.UseTetraPakHttpClientProvider();
             collection.RegisterXpServices(log);
@@ -70,26 +67,8 @@ namespace TetraPak.XP.OAuth2.OIDC
                 p.GetRequiredService<ILoopbackBrowser>(),
                 p.GetService<ILog>()));
             collection.AddSingleton<IAuthorizationCodeGrantService, TetraPakAuthorizationCodeGrantService>();
-            // collection.AddSingleton<IAuthenticator, TetraPakAuthenticator>();
             
             return collection;
         }
-        
-        // public static IServiceCollection AddTetraPakOidcAuthentication<TBrowser>(
-        //     this IServiceCollection services,
-        //     RuntimeEnvironment environment,
-        //     string clientId,
-        //     Uri redirectUri,
-        //     RuntimePlatform runtimePlatform = RuntimePlatform.Any)
-        // where TBrowser : class, ILoopbackBrowser
-        // {
-        //     return services.AddTetraPakOidcAuthentication<TBrowser>(
-        //         new AuthApplication(
-        //             clientId,
-        //             redirectUri, 
-        //             environment,
-        //             runtimePlatform));
-        // }
-
     }
 }

@@ -23,25 +23,5 @@ namespace TetraPak.XP.Auth
             services.AddSingleton<ITokenCache>(p => new TokenCache(p));
             return services;
         }
-
-        // /// <summary>
-        // ///   (fluent api)<br/>
-        // ///   Adds a token caching mechanism to a provided <see cref="ISecureCache"/> and returns it.  obsolete
-        // /// </summary>
-        // /// <param name="secureCache">
-        // ///   The provided <see cref="ISecureCache"/> service.
-        // /// </param>
-        // /// <param name="log">
-        // ///   (optional)<br/>
-        // ///   A logger provider.
-        // /// </param>
-        // ///  <returns>
-        // ///   The <paramref name="secureCache"/> instance.
-        // /// </returns>
-        // public static ITimeLimitedRepositories AddTokenCacheSupport(this ISecureCache secureCache, ILog? log)
-        // {
-        //     secureCache.InsertDelegateBefore<ISecureCacheDelegate>(new TokenCacheDelegate(log));
-        //     return secureCache;
-        // }
     }
 }

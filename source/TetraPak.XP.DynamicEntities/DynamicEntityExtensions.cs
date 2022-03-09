@@ -149,7 +149,7 @@ namespace TetraPak.XP.DynamicEntities
                 if (jsonProperty is null)
                     continue;
 
-                var key = jsonProperty.Name; // ?? property.Name.ToLowerInitial(); obsolete
+                var key = jsonProperty.Name;
                 if (keys.ContainsKey(key))
                     keys[key] = property;
                 else

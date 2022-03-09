@@ -56,16 +56,15 @@ namespace TetraPak.XP
         ///   Specifies the character used to build the textual indentation (<see cref="StringValue"/>).
         /// </param>
         public Indentation(int increment, char character = ' ')
-        : this(increment, character, increment/*, null obsolete */)
+        : this(increment, character, increment)
         {
         }
 
-        Indentation(int increment, char character, int currentLength/*, Indentation? previous obsolete */)
+        Indentation(int increment, char character, int currentLength)
         {
             Increment = increment;
             currentLength = Math.Max(0, currentLength);
             StringValue = new string(character, currentLength);
-            // _previous = previous; obsolete
         }
 
     }

@@ -1,4 +1,4 @@
-﻿namespace TetraPak.XP.Auth
+﻿namespace TetraPak.XP.Auth.Abstractions
 {
     public enum TokenRole
     {

@@ -48,33 +48,15 @@ namespace TetraPak.XP
         /// </param>
         public HttpServerException(HttpStatusCode statusCode, string? message = null, Exception? innerException = null)
         : this(makeResponseMessage(statusCode), message, innerException)
-        // : base(message ?? $"Server error: {(int)statusCode} {statusCode.ToString().SplitCamelCase()}", innerException) obsolete
         {
             _statusCode = statusCode;
         }
 
-        // /// <summary>
-        // ///   Initializes the <see cref="HttpServerException"/> with a <see cref="HttpStatusCode"/>. obsolete
-        // /// </summary>
-        // /// <param name="statusCode">
-        // ///   The <see cref="HttpStatusCode"/> to be assigned.
-        // /// </param>
-        // /// <param name="innerException">
-        // ///   (optional)<br/>
-        // ///   The exception that is the cause of the current exception.
-        // /// </param>
-        // internal HttpServerException(HttpStatusCode statusCode, Exception? innerException = null)
-        // : base(null, innerException)
-        // {
-        //     _statusCode = statusCode;
-        // }
-        
         static HttpResponseMessage makeResponseMessage(HttpStatusCode statusCode)
         {
             return new((System.Net.HttpStatusCode)statusCode);
         }
-
-
+        
         /// <summary>
         ///   Initializes the <see cref="HttpServerException"/> with a <see cref="HttpResponseMessage"/>.
         ///   Please note that this also assigns the <see cref="StatusCode"/>.

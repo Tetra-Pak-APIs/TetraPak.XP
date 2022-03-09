@@ -234,8 +234,6 @@ namespace TetraPak.XP.Configuration
         Outcome<ConfigurationSectionDecorator> WrapSection(ConfigurationSectionDecoratorArgs args);
     }
     
-    // public delegate ConfigurationSectionWrapper? ConfigurationSectionWrapperDelegate(ConfigurationSectionDecoratorArgs args); obsolete
-
     public interface IConfigurationValueDelegate
     {
         bool IsFallbackDelegate { get; }

@@ -27,13 +27,6 @@ namespace TetraPak.XP.Caching
         
         public string Path { get; set; }
         
-        // public bool IsLive(out DateTime expireTimeUtc) obsolete
-        // {
-        //     var remainingLifeSpan = GetRemainingTime();
-        //     expireTimeUtc = DateTime.UtcNow.Add(remainingLifeSpan);
-        //     return remainingLifeSpan != TimeSpan.Zero;
-        // }
-
         public Type GetValueType() => _value.GetType();
 
         public virtual T GetValue<T>() => (T)_value;
@@ -69,30 +62,9 @@ namespace TetraPak.XP.Caching
 
         TimeSpan getMaxLifeSpan() => _customMaxLifeSpan ?? Repositories.GetMaxLifeSpan(_path.Repository);
 
-        // TimeSpan getExtendedLifeSpan() => Repositories.GetExtendedLifeSpan(_path.Repository); obsolete
-
         TimeSpan getAdjustedLifeSpan() => Repositories.GetAdjustedLifeSpan(_path.Repository);
 
         public object GetValue() => _value;
-        // {
-        //     if (validate && !IsLive(out _))
-        //         return Outcome<T>.Fail(new Exception("Value has expired")); obsolete
-        //
-        //     var outcome = _value is T tValue
-        //         ? Outcome<T>.Success(tValue) 
-        //         : Outcome<T>.Fail(new InvalidCastException("Value is not of requested type"));
-        //
-        //     if (!outcome)
-        //         return outcome;
-        //     
-        //     var extendedLifSpan = getExtendedLifeSpan();
-        //     if (extendedLifSpan != TimeSpan.Zero)
-        //     {
-        //         extendLifeSpan();
-        //     }
-        //
-        //     return outcome;
-        // }
 
         public void UpdateValue(object value, DateTime? spawnTimeUtc = null, TimeSpan? customLifeSpan = null)
         {

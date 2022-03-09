@@ -33,6 +33,13 @@ namespace authClient.console
                 var provider = _serviceProvider ?? throw new Exception("No service provider!");
                 switch (grantType)
                 {
+                    case GrantType.OIDC:
+                        var ac = provider.GetRequiredService<IAuthorizationCodeGrantService>();
+                        Console.WriteLine();
+                        Console.WriteLine("OIDC grant requested ...");
+                        writeToLog(await ac.AcquireTokenAsync(options)); 
+                        break;
+                
                     case GrantType.CC:
                         var cc = provider.GetRequiredService<IClientCredentialsGrantService>();
                         Console.WriteLine();
@@ -45,13 +52,6 @@ namespace authClient.console
                         Console.WriteLine();
                         Console.WriteLine("Device Code grant requested ...");
                         writeToLog(await dc.AcquireTokenAsync(options, requestUSerCodeVerification));
-                        break;
-                
-                    case GrantType.OIDC:
-                        var ac = provider.GetRequiredService<IAuthorizationCodeGrantService>();
-                        Console.WriteLine();
-                        Console.WriteLine("OIDC grant requested ...");
-                        writeToLog(await ac.AcquireTokenAsync(options)); 
                         break;
                 
                     default:
@@ -91,9 +91,10 @@ namespace authClient.console
             var sb = new StringBuilder();
             sb.AppendLine("SUCCESS!");
             var grant = outcome.Value!;
+            sb.AppendLine("Token(s):");
             foreach (var token in grant.Tokens!)
             {
-                sb.Append($"  {token.Role}={token.Token}");
+                sb.AppendLine($"  {token.Role}={token.Token}");
             }
 
             sb.AppendLine($"Scope={grant.Scope}");
@@ -119,7 +120,7 @@ namespace authClient.console
 
                         })
                         .UseAppCredentialsDelegate<CustomAppCredentialsDelegate>()
-                        .UseTetraPakOidcAuthentication/*<DesktopLoopbackBrowser> obsolete */()
+                        .UseTetraPakOidcAuthentication()
                         .UseTetraPakClientCredentialsAuthentication()
                         .UseTetraPakDeviceCodeAuthentication()
                         .BuildXpServices();

@@ -79,102 +79,6 @@ namespace TetraPak.XP.Auth.Abstractions
         
         public bool IsExpired => Expires <= DateTime.UtcNow;
 
-
-        //     /// <summary>
-    //     ///   Attempts obtaining user information.
-    //     /// </summary>
-    //     /// <returns></returns>
-    //     /// <remarks>
-    //     /// </remarks>
-    //     public async Task<Outcome<UserInformation>> TryGetUserInformationAsync() obsolete
-    //     {
-    //         Log?.Debug("[GET USER INFORMATION BEGIN]");
-    //
-    //         if (AccessToken is null)
-    //         {
-    //             var error = new Exception("Cannot get user information without a valid access token");
-    //             Log?.Warning(error.Message);
-    //             return Outcome<UserInformation>.Fail(error);
-    //         }
-    //
-    //         if (_userInformation != null)
-    //         {
-    //             Log?.Debug("User information was cached");
-    //             return Outcome<UserInformation>.Success(_userInformation);
-    //         }
-    //
-    //         try
-    //         {
-    //             Log?.Debug("Retrieves user information from API ...");
-    //             var discoDoc = DiscoveryDocument.Current;
-    //             if (discoDoc is null)
-    //             {
-    //                 var gotDiscoDoc = await DiscoveryDocument.TryDownloadAndSetCurrentAsync(this, Cache);
-    //                 if (!gotDiscoDoc)
-    //                 {
-    //                     var error = new Exception("Failed to retrieve the discovery document. Cannot resolve user information endpoint");
-    //                     Log?.Debug($"ERROR: {error.Message}");
-    //                     return Outcome<UserInformation>.Fail(error);
-    //                 }
-    //
-    //                 discoDoc = gotDiscoDoc.Value;
-    //             }
-    //         
-    //             _userInfoLoader ??= new UserInfoLoader(AccessToken, discoDoc, Log);
-    //             _userInformation = await _userInfoLoader.AwaitDownloadedAsync();
-    //             Log?.Debug("Successfully received user information from API");
-    //             return Outcome<UserInformation>.Success(_userInformation);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             const string Message = "Failed while retrieving user information from API";
-    //             Log?.Error(ex, Message);
-    //             return Outcome<UserInformation>.Fail(Message, ex);
-    //         }
-    //         finally
-    //         {
-    //             Log?.Debug("[GET USER INFORMATION END]");
-    //         }
-    //     }
-    //
-    //     public async Task<Outcome<string[]>> TeyGetUserInfoTypes()
-    //     {
-    //         if (AccessToken is null)
-    //         {
-    //             var error = new Exception("Cannot get user information without a valid access token");
-    //             Log?.Warning(error.Message);
-    //             return Outcome<string[]>.Fail(error);
-    //         }
-    //     
-    //         try
-    //         {
-    //             if (_userInformation is { }) 
-    //                 return Outcome<string[]>.Success(_userInformation.Types);
-    //     
-    //             var discoDoc = DiscoveryDocument.Current;
-    //             if (discoDoc is null)
-    //             {
-    //                 var gotDiscoDoc = await DiscoveryDocument.TryDownloadAndSetCurrentAsync(this, Cache);
-    //                 if (!gotDiscoDoc)
-    //                 {
-    //                     var error = new Exception("Failed to retrieve the discovery document. Cannot resolve user information endpoint");
-    //                     Log?.Debug($"ERROR: {error.Message}");
-    //                     return Outcome<string[]>.Fail(error);
-    //                 }
-    //                 discoDoc = gotDiscoDoc.Value;
-    //             }
-    //             _userInfoLoader ??= new UserInfoLoader(AccessToken, discoDoc, Log);
-    //             _userInformation = await _userInfoLoader.AwaitDownloadedAsync();
-    //     
-    //             return Outcome<string[]>.Success(_userInformation.Types);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Log?.Error(ex);
-    //             return Outcome<string[]>.Fail(ex.Message, ex);
-    //         }
-    //     }
-    //
         internal Grant(params TokenInfo[] tokens)
         { 
             Tokens = tokens;
@@ -328,16 +232,6 @@ namespace TetraPak.XP.Auth.Abstractions
             _dictionary = dictionary;
         }
     }
-
-    // public static class UserInfoTypes obsolete
-    // {
-    //     public const string Subject = "sub";
-    //     public const string UserId = Subject;
-    //     public const string Name = "name";
-    //     public const string FamilyName = "family_name";
-    //     public const string Email = "email";
-    //     public const string Domain = "domain";
-    // }
 
     delegate Task<Outcome<ActorToken>> TokenValidationDelegate(ActorToken token);
 

@@ -329,17 +329,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
                  ["code"] = authCode,
                  ["client_id"] = clientId,
                  ["redirect_uri"] = redirectUri.AbsoluteUri
-                     // ["redirect_uri"] = Uri.EscapeDataString(redirectUri.AbsoluteUri)
              };
              if (authState.Verifier is not null)
                  dictionary["code_verifier"] = authState.Verifier;
-                 
-             // sb.Append("grant_type=authorization_code"); obsolete
-             // sb.Append($"&code={authCode}");
-             // sb.Append($"&client_id={clientId}");
-             // sb.Append($"&redirect_uri={Uri.EscapeDataString(redirectUri.AbsoluteUri)}");
-             // if (authState.Verifier is not null)
-             //     sb.Append($"&code_verifier={authState.Verifier}");
 
              return Task.FromResult(Outcome<Dictionary<string,string>>.Success(dictionary));
          }

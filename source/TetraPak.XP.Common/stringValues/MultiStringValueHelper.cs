@@ -9,11 +9,6 @@ namespace TetraPak.XP
     /// </summary>
     public static class MultiStringValueHelper
     {
-        // /// <summary>
-        // ///   Gets a value indicating whether the <see cref="MultiStringValue"/> is empty.
-        // /// </summary>
-        // public static bool IsEmpty(this MultiStringValue? self) => self is null || self.Count == 0; obsolete
-        
         /// <summary>
         ///   Constructs a new <see cref="MultiStringValue"/> by combining the <see cref="MultiStringValue.Items"/>
         ///   of an existing <see cref="MultiStringValue"/> with another <see cref="MultiStringValue"/>. 

@@ -44,12 +44,6 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
             }
         }
 
-        // DiscoveryEndpoint getDiscoveryEndpoint(SecurityToken jwtSecurityToken) obsolete
-        // {
-        //     var disco = DiscoveryEndpoint.ParseUrl(jwtSecurityToken.Issuer);
-        //     return validate(disco, jwtSecurityToken.Issuer);
-        // }
-
         DiscoveryEndpoint validate(DiscoveryEndpoint discoveryEndpoint, string issuer)
         {
             if (!DiscoveryPolicy.ValidateIssuerName) 

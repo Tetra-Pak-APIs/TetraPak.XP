@@ -20,8 +20,6 @@ namespace TetraPak.XP.Auth.Abstractions
         public const string General = "general";
         public const string Groups = "groups";
 
-        // internal static bool IsDiscovered { get; private set; } obsolete
-
         public new static GrantScope Empty => new(); 
         
         /// <summary>

@@ -1,9 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
         <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <PackageVersion>1.0.0-alpha.6</PackageVersion>
+        <Title>Tetra Pak SDK library for cross-platform (XP) applications</Title>
+        <Description>A common set of code APIs and tools for Tetra Pak .NET development</Description>
+        <Copyright>Tetra Pak</Copyright>
+        <PackageReleaseNotes>Early alpha for internal testing</PackageReleaseNotes>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <AssemblyVersion>0.1.6</AssemblyVersion>
+        <FileVersion>0.1.6</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>

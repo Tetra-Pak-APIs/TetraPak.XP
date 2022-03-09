@@ -15,41 +15,6 @@ namespace TetraPak.XP.Web.Http
 {
     partial class WebLoggerHelper // HTTP traffic
     {
-        // static bool s_isTraceRequestAdded;
-        // static TraceRequestMiddleware? s_traceRequestMiddleware;
-        
-        // /// <summary>
-        // ///   (fluent api)<br/>
-        // ///   Injects middleware that traces all requests to the logger provider obsolete
-        // ///   when <see cref="LogLevel.Trace"/> is set.
-        // /// </summary>
-        // /// <param name="app">
-        // ///   The extended application builder. 
-        // /// </param>
-        // public static IApplicationBuilder UseTetraPakTraceRequestAsync(this IApplicationBuilder app)
-        // {
-        //     lock (s_syncRoot)
-        //     {
-        //         if (s_isTraceRequestAdded)
-        //             return app;
-        //
-        //         s_isTraceRequestAdded = true;
-        //         var config = app.ApplicationServices.GetRequiredService<TetraPakConfig>();
-        //         var logger = app.ApplicationServices.GetService<ILogger<TraceRequestMiddleware>>();
-        //         if (logger is null || !logger.IsEnabled(LogLevel.Trace))
-        //             return app;
-        //
-        //         s_traceRequestMiddleware = new TraceRequestMiddleware(config, logger);
-        //         app.Use(async (context, next) =>
-        //         {
-        //             await s_traceRequestMiddleware.InvokeAsync(context);
-        //             await next();
-        //         });
-        //     }
-        //
-        //     return app;
-        // }
-        
         /// <summary>
         ///   Attempts building and returning a textual representation of a <see cref="Stream"/>. 
         /// </summary>
@@ -123,40 +88,6 @@ namespace TetraPak.XP.Web.Http
                 ? $"{body}...[--TRUNCATED--]"
                 : body;
         }
-        
-        // static async Task traceAsync( obsolete
-        //     ILogger? logger, 
-        //     WebResponse? response, 
-        //     Func<WebResponse?,Task<string>>? bodyHandler)
-        // {
-        //     if (logger is null || response is null || !logger.IsEnabled(LogLevel.Debug))
-        //         return;
-        //     
-        //     var sb = new StringBuilder();
-        //     if (response is HttpWebResponse webResponse)
-        //     {
-        //         sb.Append((int)webResponse.StatusCode);
-        //         sb.Append(' ');
-        //         sb.AppendLine(webResponse.StatusCode.ToString());
-        //     }
-        //     else
-        //     {
-        //         sb.AppendLine("(status code unavailable)");
-        //     }
-        //     addHeaders(sb, response.Headers.ToKeyValuePairs(), null);
-        //     await addBody();
-        //
-        //     logger.Trace(sb.ToString());
-        //     
-        //     async Task addBody()
-        //     {
-        //         if (bodyHandler is null)
-        //             return;
-        //         
-        //         sb.AppendLine();
-        //         sb.AppendLine(await bodyHandler(response));
-        //     }
-        // }
         
         static void addHeaders(
             StringBuilder sb, 
