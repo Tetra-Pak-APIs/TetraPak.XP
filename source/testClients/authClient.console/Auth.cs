@@ -140,7 +140,7 @@ namespace authClient.console
             if (logLevelSection is null)
                 return useDefault;
 
-            var s = logLevelSection.Get<string>("Default");
+            var s = logLevelSection.GetNamed<string>("Default");
             if (string.IsNullOrEmpty(s))
                 return useDefault;
             

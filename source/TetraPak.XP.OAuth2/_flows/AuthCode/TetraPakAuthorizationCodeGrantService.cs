@@ -94,8 +94,15 @@ namespace TetraPak.XP.OAuth2.AuthCode
             }
 
             // run the OIDC 'dance' through a browser ... 
-            return await onAuthorizationDone
-                (await acquireTokenViaWebUIAsync(authorityUri, tokenIssuerUri, authState, appCredentials,  redirectUri, authContext, messageId));
+            return await onAuthorizationDone(
+                await acquireTokenViaWebUIAsync(
+                    authorityUri, 
+                    tokenIssuerUri, 
+                    authState, 
+                    appCredentials,  
+                    redirectUri,
+                    authContext, 
+                    messageId));
             
             async Task<Outcome<Grant>> onAuthorizationDone(Outcome<Grant> outcome)
             {
