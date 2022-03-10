@@ -36,7 +36,7 @@ namespace authClient.console
             }
             
             return string.IsNullOrEmpty(clientId)
-                ? AuthConfiguration.MissingConfigurationOutcome<Credentials>(conf, nameof(IAuthConfiguration.ClientId))
+                ? conf.MissingConfigurationOutcome<Credentials>(nameof(IAuthConfiguration.ClientId))
                 : Outcome<Credentials>.Success(new Credentials(clientId, clientSecret));
         }
     }

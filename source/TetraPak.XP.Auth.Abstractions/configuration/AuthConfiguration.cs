@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Configuration;
-using TetraPak.XP.Configuration;
+﻿using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Auth.Abstractions
@@ -19,7 +17,7 @@ namespace TetraPak.XP.Auth.Abstractions
             {
                 var value = this.Get<string>(getDerived: true);
                 if (!string.IsNullOrWhiteSpace(value))
-                    return value;
+                    return value!;
 
                 return RuntimeEnvironment switch
                 {
@@ -43,7 +41,7 @@ namespace TetraPak.XP.Auth.Abstractions
             get
             {
                 var value = this.Get<string>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultAuthorityPath}" : value;
+                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultAuthorityPath}" : value!;
             }
         }
 
@@ -54,7 +52,7 @@ namespace TetraPak.XP.Auth.Abstractions
             get
             {
                 var value = this.Get<string>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultTokenIssuerPath}" : value;
+                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultTokenIssuerPath}" : value!;
             }
         }
 
@@ -65,7 +63,7 @@ namespace TetraPak.XP.Auth.Abstractions
             get
             {
                 var value = this.Get<string>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultDeviceCodeIssuerPath}" : value;
+                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultDeviceCodeIssuerPath}" : value!;
             }
         }
 
@@ -101,22 +99,6 @@ namespace TetraPak.XP.Auth.Abstractions
         [StateDump]
         public bool IsCaching => this.Get(getDerived:true, useDefault: TetraPakAuthDefaults.IsCaching);
         
-        public static Outcome<T> MissingConfigurationOutcome<T>(IConfigurationSection cfg, string key) 
-            => 
-            Outcome<T>.Fail(MissingConfigurationException(cfg, key));
-         
-        public static Exception MissingConfigurationException(IConfigurationSection cfg, string key)
-            =>
-            new ConfigurationException($"Missing configuration: {new ConfigPath(cfg.Path).Push(key)}");
-        
-        public static Outcome<T> InvalidConfigurationOutcome<T>(IConfigurationSection cfg, string key, object value) 
-            => 
-            Outcome<T>.Fail(InvalidConfigurationException(cfg, key, value));
-
-        public static Exception InvalidConfigurationException(IConfigurationSection cfg, string key, object value) 
-            => 
-            new ConfigurationException($"Invalid configuration: {new ConfigPath(cfg.Path).Push(key)}: {value}");
-
         public AuthConfiguration(ConfigurationSectionDecoratorArgs args)
         : base(args)
         {

@@ -23,7 +23,7 @@ namespace authClient.console
 
             if (!value.StartsWith("$(") || !value.EndsWith(')')) 
                 return Outcome<T>.Success((T) (object) value);
-
+    
             var ms = new DynamicPath(value[2..].TrimEnd(')'), "/");
             if (ms.Count == 1)
                 return getValueFromEnvironmentVariables<T>(ms);

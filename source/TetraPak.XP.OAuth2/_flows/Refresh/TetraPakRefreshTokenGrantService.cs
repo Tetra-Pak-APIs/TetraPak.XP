@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -12,31 +14,54 @@ namespace TetraPak.XP.OAuth2.Refresh
     class TetraPakRefreshTokenGrantService : GrantServiceBase, IRefreshTokenGrantService
     {
         /// <inheritdoc />
-        Task<Outcome<Grant>> IRefreshTokenGrantService.AcquireTokenAsync(
+        async Task<Outcome<Grant>> IRefreshTokenGrantService.AcquireTokenAsync(
             ActorToken refreshToken,
             GrantOptions options)
         {
             Log.Debug("---- START - Tetra Pak Refresh Token Flow ----");
+            var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.AC, options);
+            if (!authContextOutcome)
+                return Outcome<Grant>.Fail(authContextOutcome.Exception!);
+
+            var ctx = authContextOutcome.Value!;
+            var messageId = GetMessageId();
+                        
+            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
+            if (!appCredentialsOutcome)
+                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+            
+            var appCredentials = appCredentialsOutcome.Value!;
+            var clientId = appCredentials.Identity; 
+
+            var tokenIssuerUriString = ctx.Configuration.TokenIssuerUri;
+            if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
+                return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.TokenIssuerUri));
+
+            
+            
             throw new NotImplementedException();
         }
 
-        async Task<Outcome<string>> makeRefreshTokenBodyAsync(string refreshToken, bool includeClientId, AuthContext authContext)
+        static Outcome<FormUrlEncodedContent> makeRefreshTokenBody(
+            string refreshToken, 
+            string? clientId, 
+            AuthContext authContext)
         {
-            var sb = new StringBuilder();
-            sb.Append("grant_type=refresh_token");
-            sb.Append($"&refresh_token={refreshToken}");
-
-            if (!includeClientId)
-                return Outcome<string>.Success(sb.ToString());
+            var dict = new Dictionary<string, string>
+            {
+                ["grant_type"] = "refresh_token",
+                ["refresh_token"] = refreshToken
+            };
+            
+            if (clientId is null)
+                return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict!));
 
             var conf = authContext.Configuration;
-            var clientId = conf.ClientId;
             if (string.IsNullOrWhiteSpace(clientId))
-                return AuthConfiguration.MissingConfigurationOutcome<string>(conf, nameof(AuthContext.Configuration.ClientId));
-            
-            sb.Append($"&client_id={clientId}");
+                return conf.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(AuthContext.Configuration.ClientId));
 
-            return Outcome<string>.Success(sb.ToString());
+            dict["client_id"] = clientId;
+            return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict!));
         }
         
         public TetraPakRefreshTokenGrantService(

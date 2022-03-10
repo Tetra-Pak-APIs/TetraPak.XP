@@ -25,7 +25,6 @@ namespace TetraPak.XP.OAuth2.AuthCode
     {
         readonly ILoopbackBrowser _browser;
         const string GrantCacheRepo = CacheRepositories.Tokens.OIDC;
-        const string RefreshTokenCacheRepo = CacheRepositories.Tokens.Refresh;
         
         /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options)
@@ -35,55 +34,56 @@ namespace TetraPak.XP.OAuth2.AuthCode
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             
-            var authContext = authContextOutcome.Value!;
+            var ctx = authContextOutcome.Value!;
             
-            var appCredentialsOutcome = await GetAppCredentialsAsync(authContext);
+            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
             
             var appCredentials = appCredentialsOutcome.Value!;
+            var clientId = appCredentials.Identity; 
             
-            var redirectUriString = authContext.Configuration.RedirectUri;
-            var conf = authContext.Configuration;
+            var redirectUriString = ctx.Configuration.RedirectUri;
+            var conf = ctx.Configuration;
             if (string.IsNullOrWhiteSpace(redirectUriString))
-                return AuthConfiguration.MissingConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.RedirectUri));
+                return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
-                return AuthConfiguration.InvalidConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.RedirectUri), redirectUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString!);
 
             var authorityUriString = conf.AuthorityUri;
             if (string.IsNullOrWhiteSpace(authorityUriString))
-                return AuthConfiguration.MissingConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.AuthorityUri));
+                return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.AuthorityUri));
             
             if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var authorityUri))
-                return AuthConfiguration.InvalidConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.AuthorityUri), authorityUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.AuthorityUri), authorityUriString);
             
             var tokenIssuerUriString = conf.TokenIssuerUri;
             if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
-                return AuthConfiguration.MissingConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.TokenIssuerUri));
+                return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.TokenIssuerUri));
             
             if (!Uri.TryCreate(tokenIssuerUriString, UriKind.Absolute, out var tokenIssuerUri))
-                return AuthConfiguration.InvalidConfigurationOutcome<Grant>(conf, nameof(AuthContext.Configuration.TokenIssuerUri), tokenIssuerUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.TokenIssuerUri), tokenIssuerUriString);
 
             var isStateUsed = conf.OidcState;
             var isPkceUsed = conf.OidcPkce;
-            var authState = new AuthState(isStateUsed, isPkceUsed, appCredentials.Identity);
+            var authState = new AuthState(isStateUsed, isPkceUsed, clientId);
             
             var cachedGrantOutcome = !string.IsNullOrWhiteSpace(options.ActorId) && IsCachingGrants(options)
-                ? await GetCachedGrantAsync(GrantCacheRepo, options.ActorId)
+                ? await GetCachedGrantAsync(GrantCacheRepo, options.ActorId!)
                 : Outcome<Grant>.Fail("Cached grant not allowed/available");
 
             if (cachedGrantOutcome)
                 return cachedGrantOutcome;
             
             await removeFromGrantCacheAsync(options.ActorId);
-            if (!await IsRefreshingGrantsAsync(options))
+            if (!await IsRefreshingGrantsAsync(clientId, options))
                 return await onAuthorizationDone(
-                    await acquireTokenViaWebUIAsync(authorityUri,  tokenIssuerUri,authState, appCredentials, redirectUri, authContext, messageId));
+                    await acquireTokenViaWebUIAsync(authorityUri,  tokenIssuerUri,authState, appCredentials, redirectUri, ctx, messageId));
 
             // attempt refresh token ...
             var cachedRefreshTokenOutcome =
-                await GetCachedTokenAsync(RefreshTokenCacheRepo, options.ActorId!);
+                await GetCachedRefreshTokenAsync(clientId, options.ActorId!);
 
             if (cachedRefreshTokenOutcome)
             {
@@ -101,7 +101,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     authState, 
                     appCredentials,  
                     redirectUri,
-                    authContext, 
+                    ctx, 
                     messageId));
             
             async Task<Outcome<Grant>> onAuthorizationDone(Outcome<Grant> outcome)
@@ -112,7 +112,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     await CacheGrantAsync(GrantCacheRepo, options.ActorId!, grant);
                     if (grant.RefreshToken is { })
                     {
-                        await CacheTokenAsync(RefreshTokenCacheRepo, options.ActorId!, grant.RefreshToken);
+                        await CacheRefreshTokenAsync(clientId, options.ActorId!, grant.RefreshToken);
                     }
                 }
                 return outcome;
@@ -182,14 +182,14 @@ namespace TetraPak.XP.OAuth2.AuthCode
             Uri redirectUri, 
             AuthState authState,
             Credentials appCredentials,
-            IAuthConfiguration authConfig)
+            IAuthConfiguration conf)
         {
             var sb = new StringBuilder();
             var clientId =  appCredentials.Identity;
             if (string.IsNullOrWhiteSpace(clientId))
-                return Task.FromResult(AuthConfiguration.MissingConfigurationOutcome<string>(authConfig, nameof(IAuthConfiguration.ClientId)));
+                return Task.FromResult(conf.MissingConfigurationOutcome<string>(nameof(IAuthConfiguration.ClientId)));
 
-            var scope = authConfig.OidcScope;
+            var scope = conf.OidcScope;
             
             sb.Append($"{authorityUri.AbsoluteUri}?response_type=code");
             sb.Append($"&redirect_uri={Uri.EscapeDataString(redirectUri.AbsoluteUri)}");

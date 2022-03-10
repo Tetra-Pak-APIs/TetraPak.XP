@@ -3,7 +3,7 @@ using TetraPak.XP.Web.Abstractions;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
-    class TetraPakConfiguration : AuthConfiguration, ITetraPakConfiguration
+    public class TetraPakConfiguration : AuthConfiguration, ITetraPakConfiguration
     {
         public const string SectionKey = "TetraPak";
         RuntimeEnvironment? _runtimeEnvironment; 

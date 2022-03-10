@@ -35,7 +35,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             
-            var authContext = authContextOutcome.Value!;
+            var ctx = authContextOutcome.Value!;
             
             var appCredentials = appCredentialsOutcome.Value!;
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
@@ -73,9 +73,9 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 var keyValues = formsValues.Select(kvp
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var deviceCodeIssuerUri = authContext.Configuration.DeviceCodeIssuerUri;
+                var deviceCodeIssuerUri = ctx.Configuration.DeviceCodeIssuerUri;
                 if (string.IsNullOrWhiteSpace(deviceCodeIssuerUri))
-                    return AuthConfiguration.MissingConfigurationOutcome<Grant>(authContext.Configuration, nameof(AuthContext.Configuration.DeviceCodeIssuerUri));
+                    return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.DeviceCodeIssuerUri));
                 
                 var request = new HttpRequestMessage(HttpMethod.Post, deviceCodeIssuerUri)
                 {
@@ -176,9 +176,9 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 var keyValues = formsValues.Select(kvp 
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var tokenIssuerUri = authContext.Configuration.TokenIssuerUri;
+                var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
                 if (string.IsNullOrWhiteSpace(tokenIssuerUri))
-                    return AuthConfiguration.MissingConfigurationOutcome<Grant>(authContext.Configuration, nameof(IAuthConfiguration.TokenIssuerUri));
+                    return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthConfiguration.TokenIssuerUri));
                 
                 var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {

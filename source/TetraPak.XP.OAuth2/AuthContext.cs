@@ -69,9 +69,9 @@ namespace TetraPak.XP.OAuth2
             if (servicesSection is not IWebServicesConfiguration webServices)
                 return Outcome<AuthContext>.Fail(new Exception("No web services was configured"));
 
-            var section = webServices.GetSubSection(options.Service);
+            var section = webServices.GetSubSection(options.Service!);
             return section is not IWebServiceConfiguration wsSection
-                ? AuthConfiguration.MissingConfigurationOutcome<AuthContext>(servicesSection, options.Service) 
+                ? servicesSection.MissingConfigurationOutcome<AuthContext>(options.Service!) 
                 : Outcome<AuthContext>.Success(new AuthContext(grantType, wsSection, options));
         }
     }

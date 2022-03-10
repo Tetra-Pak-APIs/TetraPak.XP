@@ -7,6 +7,7 @@ using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
+using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.Refresh;
@@ -53,13 +54,16 @@ namespace TetraPak.XP.OAuth2
         ///   Examines passed state and returns a value indicating whether the Refresh Grant flow is
         ///   currently available. 
         /// </summary>
+        /// <param name="clientId">
+        ///   The client id used by the current grant flow.
+        /// </param>
         /// <param name="options">
         ///   Specifies options for the <see cref="Grant"/> request.
         /// </param>
         /// <returns>
         ///   <c>true</c> if the Refresh Grant is currently available and possible; otherwise <c>false</c>.
         /// </returns>
-        protected async Task<Outcome<ActorToken>> IsRefreshingGrantsAsync(GrantOptions options)
+        protected async Task<Outcome<ActorToken>> IsRefreshingGrantsAsync(string clientId, GrantOptions options)
         {
             if (RefreshTokenGrantService is null || !options.IsRefreshAllowed)
                 return Outcome<ActorToken>.Fail("Refresh not allowed or no refresh token service available");
@@ -67,7 +71,7 @@ namespace TetraPak.XP.OAuth2
             if (string.IsNullOrEmpty(options.ActorId))
                 return Outcome<ActorToken>.Fail("Refresh not possible because no actor id was specified");
 
-            return await GetCachedTokenAsync(CacheRepositories.Tokens.Refresh, options.ActorId);
+            return await GetCachedRefreshTokenAsync(clientId, options.ActorId);
         }
         
         /// <summary>
@@ -190,8 +194,8 @@ namespace TetraPak.XP.OAuth2
         /// <summary>
         ///   Caches a token.  
         /// </summary>
-        /// <param name="cacheRepositoryName">
-        ///   The name of the repository to cache the response.
+        /// <param name="clientId">
+        ///   The client id used to obtain the refresh token.
         /// </param>
         /// <param name="key">
         ///   The key used to cache the <see cref="Grant"/>.
@@ -205,30 +209,32 @@ namespace TetraPak.XP.OAuth2
         /// <returns>
         ///   The <paramref name="token"/> value.
         /// </returns>
-        protected Task CacheTokenAsync<T>(string cacheRepositoryName, string key, T token)
+        protected Task CacheRefreshTokenAsync<T>(string clientId, string key, T token)
             where T : ActorToken
         {
             if (TokenCache is null) 
                 return Task.CompletedTask;
 
+            var cacheKey = refreshTokenCacheKey(clientId, key);
             return TokenCache.CreateOrUpdateAsync(
                 token,
-                key,
-                cacheRepositoryName,
+                cacheKey,
+                CacheRepositories.Tokens.Refresh,
                 spawnTimeUtc: DateTime.UtcNow);
         }
         
-        protected async Task<Outcome<ActorToken>> GetCachedTokenAsync(
-            string cacheRepositoryName,
+        protected async Task<Outcome<ActorToken>> GetCachedRefreshTokenAsync(
+            string clientId,
             string key,
             CancellationToken? cancellationToken = null)
         {
             if (TokenCache is null)
                 return Outcome<ActorToken>.Fail("No token cache is available");
-                
+
+            var cacheKey = refreshTokenCacheKey(clientId, key);
             var cachedOutcome = await TokenCache.ReadAsync<ActorToken>(
-                key,
-                cacheRepositoryName, 
+                cacheKey,
+                CacheRepositories.Tokens.Refresh,
                 cancellationToken);
 
             if (!cachedOutcome)
@@ -238,6 +244,8 @@ namespace TetraPak.XP.OAuth2
                 ? Outcome<ActorToken>.Success(cachedOutcome.Value!.Clone<ActorToken>())
                 : cachedOutcome;
         }
+
+        static string refreshTokenCacheKey(string clientId, string key) => new DynamicPath(clientId, key).StringValue;
                 
         /// <summary>
         ///   Validates <see cref="Credentials"/> to be used as <see cref="BasicAuthCredentials"/>.

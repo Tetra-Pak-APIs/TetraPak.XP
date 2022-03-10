@@ -37,11 +37,11 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.ClientCredentials, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
-            var authContext = authContextOutcome.Value!;
+            var ctx = authContextOutcome.Value!;
             
-            var tokenIssuerUri = authContext.Configuration.TokenIssuerUri;
+            var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
             if (string.IsNullOrWhiteSpace(tokenIssuerUri))
-                return AuthConfiguration.MissingConfigurationOutcome<Grant>(authContext.Configuration, nameof(IAuthConfiguration.TokenIssuerUri));
+                return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthConfiguration.TokenIssuerUri));
             
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
