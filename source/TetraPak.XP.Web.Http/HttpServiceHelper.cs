@@ -19,7 +19,7 @@ namespace TetraPak.XP.Web.Http
                 s_isHttpClientProviderAdded = true;
             }
 
-            collection.UseTetraPakConfiguration();
+            collection.AddTetraPakConfiguration();
             collection.AddSingleton<IHttpClientProvider>(p =>
             {
                 var config = p.GetRequiredService<ITetraPakConfiguration>();

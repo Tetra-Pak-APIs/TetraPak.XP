@@ -8,7 +8,7 @@ namespace TetraPak.XP.Web.Services
     {
         static WebServicesConfiguration? s_singleton;
 
-        public static IServiceCollection UseTetraPakWebServices(this IServiceCollection collection) 
+        public static IServiceCollection AddTetraPakWebServices(this IServiceCollection collection) 
         {
             WebServicesConfiguration.InsertWrapperDelegates();
             // TetraPakTetraPakWebServices.InsertWebServiceValueDelegate();

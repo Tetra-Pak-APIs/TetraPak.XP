@@ -509,7 +509,7 @@ namespace TetraPak.XP.DependencyInjection
             
         public IServiceCollection GetServiceCollection() => XpServices.GetServiceCollection();
 
-        public IServiceCollection UseServiceCollection(IServiceCollection collection) 
+        public IServiceCollection AddServiceCollection(IServiceCollection collection) 
             =>
             XpServices.UseServiceCollection(collection);
 
@@ -526,7 +526,7 @@ namespace TetraPak.XP.DependencyInjection
 
     }
 
-    public class XpPlatformServicesBuilder // : XpServicesBuilder
+    public class XpPlatformServicesBuilder 
     {
         readonly Type[] _types;
 
@@ -536,7 +536,5 @@ namespace TetraPak.XP.DependencyInjection
         {
             _types = types;
         }
-
-
     }
 }

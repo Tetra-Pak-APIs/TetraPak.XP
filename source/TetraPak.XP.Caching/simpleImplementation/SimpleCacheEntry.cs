@@ -105,7 +105,7 @@ namespace TetraPak.XP.Caching
             object value,
             DateTime? spawnTimeUtc = null)
         {
-            _path = (RepositoryPath)path;
+            _path = path;
             Path = path;
             _value = value ?? throw new ArgumentNullException(nameof(value));
             Repositories = repositories;
@@ -120,7 +120,7 @@ namespace TetraPak.XP.Caching
             TimeSpan? customLifeSpan = null,
             TimeSpan? customMaxLifeSpan = null)
         {
-            _path = (RepositoryPath)path;
+            _path = path;
             Path = path;
             _value = value ?? throw new ArgumentNullException(nameof(value));
             Repositories = repositories;

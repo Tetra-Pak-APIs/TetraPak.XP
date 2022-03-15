@@ -13,12 +13,13 @@ using TetraPak.XP.Logging;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
+using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2.DeviceCode
 {
-    class TetraPakDeviceCodeGrantService : GrantServiceBase, IDeviceCodeGrantService
+    sealed class TetraPakDeviceCodeGrantService : GrantServiceBase, IDeviceCodeGrantService
     {
-        const string CacheRepository = CacheRepositories.Tokens.DeviceCodeCredentials;
+        const string CacheRepository = CacheRepositories.Tokens.DeviceCode;
 
         public async Task<Outcome<Grant>> AcquireTokenAsync(
             GrantOptions options,
@@ -27,23 +28,20 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             // todo Consider breaking up this method (it's too big) 
             // todo Honor the GrantOptions.Flags value (silent/forced request etc.)
             var messageId = GetMessageId();
-            var appCredentialsOutcome = await GetAppCredentialsAsync(new AuthContext(GrantType.DC, TetraPakConfig, options));
-            if (!appCredentialsOutcome)
-                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
-
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.DeviceCode, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             
             var ctx = authContextOutcome.Value!;
-            
+            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
+            if (!appCredentialsOutcome)
+                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+
             var appCredentials = appCredentialsOutcome.Value!;
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
-                var cachedOutcome = IsCachingGrants(options)
-                    ? await GetCachedGrantAsync(CacheRepository, appCredentials.Identity)
-                    : Outcome<Grant>.Fail("Cached grant not allowed");
+                var cachedOutcome = await GetCachedGrantAsync(ctx);
                 if (cachedOutcome)
                 {
                     var cachedGrant = cachedOutcome.Value!;
@@ -165,24 +163,15 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 }
 
                 var client = clientOutcome.Value!;
-            
-                var formsValues = new Dictionary<string, string>
-                {
-                    ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code",
-                    ["client_id"] = appCredentials.Identity,
-                    ["device_code"] = deviceCode
-                };
-        
-                var keyValues = formsValues.Select(kvp 
-                    => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
+
+                var tokenRequestBodyOutcome = makeTokenRequestBody(appCredentials.Identity, deviceCode, ctx);
+                if (!tokenRequestBodyOutcome)
+                    return Outcome<Grant>.Fail(tokenRequestBodyOutcome.Exception!);
 
                 var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
-                if (string.IsNullOrWhiteSpace(tokenIssuerUri))
-                    return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthConfiguration.TokenIssuerUri));
-                
                 var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {
-                    Content = new FormUrlEncodedContent(keyValues)
+                    Content = tokenRequestBodyOutcome.Value!
                 };
                 
                 var sb = Log?.IsEnabled(LogRank.Trace) ?? false
@@ -270,6 +259,24 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 return Outcome<Grant>.Fail(outcome.Exception!);
             }
         }
+        
+        static Outcome<FormUrlEncodedContent> makeTokenRequestBody(
+            string clientId,
+            string deviceCode,
+            AuthContext ctx)
+        {
+            var formsValues = new Dictionary<string, string>
+            {
+                ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code",
+                ["client_id"] = clientId,
+                ["device_code"] = deviceCode
+            };
+        
+            var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
+            return string.IsNullOrWhiteSpace(tokenIssuerUri) 
+                ? ctx.Configuration.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(IAuthConfiguration.TokenIssuerUri)) 
+                : Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(formsValues));
+        }
 
         static async Task<bool> isPendingUserCodeAsync(HttpResponseMessage response, CancellationToken cancellationToken)
         {
@@ -292,7 +299,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 return false;
             }
         }
-
+        
         public TetraPakDeviceCodeGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,

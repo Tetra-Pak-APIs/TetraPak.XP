@@ -25,11 +25,13 @@ namespace authClient.console
         ILog? _log;
         IServiceProvider? _serviceProvider;
 
-        public void NewTokenAsync(GrantType grantType, CancellationTokenSource cancellationTokenSource)
+        public void AcquireTokenAsync(GrantType grantType, CancellationTokenSource cts, bool silent)
         {
             Task.Run(async () =>
             {
-                var options = GrantOptions.Forced(cancellationTokenSource);
+                var options = silent 
+                    ? GrantOptions.Silent(cts) 
+                    : GrantOptions.Forced(cts);
                 var provider = _serviceProvider ?? throw new Exception("No service provider!");
                 switch (grantType)
                 {
@@ -63,12 +65,6 @@ namespace authClient.console
 
         static void requestUSerCodeVerification(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
 
-        public Task SilentTokenAsync()
-        {
-            throw new NotImplementedException(); // todo rewrite so support refresh/cashed token 
-            // writeToLog(await _authenticator.GetAccessTokenSilentlyAsync());
-        }
-        
         void writeToLog(Outcome<Grant> outcome)
         {
             if (!outcome)
@@ -109,20 +105,20 @@ namespace authClient.console
                 {
                     _serviceProvider = XpServices
                         .BuildFor().Desktop()
-                        .UseServiceCollection(collection)
-                        .UseTetraPakConfiguration()
-                        .UseTetraPakWebServices()
-                        .AddSingleton( p =>
-                        {
-                            var rank = resolveLogRank(p, LogRank.Information);
-                            var log = new BasicLog { Rank = rank } .WithConsoleLogging();
-                            return log;
-
-                        })
-                        .UseAppCredentialsDelegate<CustomAppCredentialsDelegate>()
-                        .UseTetraPakOidcAuthentication()
-                        .UseTetraPakClientCredentialsAuthentication()
-                        .UseTetraPakDeviceCodeAuthentication()
+                        .AddServiceCollection(collection)
+                        .AddTetraPakConfiguration()
+                        .AddTetraPakWebServices()
+                        .AddTokenCaching() 
+                         .AddSingleton( p =>
+                         {
+                             var rank = resolveLogRank(p, LogRank.Information);
+                             var log = new BasicLog { Rank = rank } .WithConsoleLogging();
+                             return log;
+                         })
+                        .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
+                        .AddTetraPakOidcGrant()
+                        .AddTetraPakClientCredentialsGrant()
+                        .AddTetraPakDeviceCodeGrant()
                         .BuildXpServices();
                     _log = _serviceProvider.GetService<ILog>();
                 })
@@ -148,7 +144,6 @@ namespace authClient.console
             return s.TryParseEnum(typeof(LogRank), out var obj) && obj is LogRank logRank
                 ? logRank
                 : useDefault;
-
         }
     }
 }

@@ -37,12 +37,12 @@ namespace TetraPak.XP.Caching
             lock (_values)
             {
                 var path = (RepositoryPath) entry.Path;
-                if (!_values.TryGetValue(path.StringValue!, out var existingEntry))
+                if (!_values.TryGetValue(path.StringValue, out var existingEntry))
                 {
                     var setEntry = entry is SimpleCacheEntry simpleCacheEntry
                         ? simpleCacheEntry
-                        : new SimpleCacheEntry(entry.Repositories, path!, entry.GetValue(), DateTime.UtcNow);
-                    _values.Add(path!, setEntry); 
+                        : new SimpleCacheEntry(entry.Repositories, path, entry.GetValue(), DateTime.UtcNow);
+                    _values.Add(path, setEntry); 
                 }
                 else
                 {
@@ -67,7 +67,7 @@ namespace TetraPak.XP.Caching
             PurgeNowAsync();
             lock (_values)
             {
-                return _values.TryGetValue(path!, out var entry)
+                return _values.TryGetValue(path, out var entry)
                     ? Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Success(entry))
                     : Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Fail(
                         new ArgumentOutOfRangeException(nameof(path), $"Unknown value: {path}")));
@@ -108,22 +108,22 @@ namespace TetraPak.XP.Caching
                 var customLifeSpan = simpleCacheEntry?.CustomLifeSpan ?? null;                    
                 var newEntry = new SimpleCacheEntry(
                     entry.Repositories, 
-                    path!,
+                    path,
                     entry.GetValue(), 
                     spawnTimeUTC,
                     customLifeSpan);
 
-                if (!_values.TryGetValue(path!, out var existingEntry))
+                if (!_values.TryGetValue(path, out var existingEntry))
                 {
-                    _values.Add(path!, newEntry);                   
+                    _values.Add(path, newEntry);                   
                     return Task.FromResult(Outcome.Success());
                 }
 
                 if (!entry.IsLive())
                 {
                     _log.Trace($"Updating dead cached value '{path}'. Removing and re-adding it");
-                    _values.Remove(path!);
-                    _values.Add(path!, newEntry);
+                    _values.Remove(path);
+                    _values.Add(path, newEntry);
                 }
                 existingEntry.UpdateValue(entry.GetValue(), spawnTimeUTC, customLifeSpan);
                 return Task.FromResult(Outcome.Success());
@@ -134,31 +134,45 @@ namespace TetraPak.XP.Caching
         {
             lock (_values)
             {
-                if (!_values.TryGetValue(path.StringValue!, out _))
+                if (!_values.TryGetValue(path.StringValue, out _))
                 {
                     return strict
                         ? throw new ArgumentOutOfRangeException(nameof(path), $"Unknown value: {path}")
                         : Task.FromResult(Outcome.Fail(new Exception($"Value not found: {path}")));
                 }
 
-                _values.Remove(path.StringValue!);
+                _values.Remove(path.StringValue);
             }
             return Task.FromResult(Outcome.Success());
         }
 
-        protected Task<Outcome> DelegateCreateAsync(ITimeLimitedRepositoryEntry entry, bool strict, Func<IITimeLimitedRepositoriesDelegate,bool> filter = null) 
+        protected Task<Outcome> DelegateCreateAsync(
+            ITimeLimitedRepositoryEntry entry, 
+            bool strict, 
+            Func<IITimeLimitedRepositoriesDelegate,bool>? filter = null) 
             => SimpleCache.NextCreateAsync(this, entry, strict, filter);
 
-        protected Task<Outcome<ITimeLimitedRepositoryEntry>> DelegateReadRawEntryAsync(DynamicPath path, Func<IITimeLimitedRepositoriesDelegate,bool> filter = null) 
+        protected Task<Outcome<ITimeLimitedRepositoryEntry>> DelegateReadRawEntryAsync(
+            DynamicPath path, 
+            Func<IITimeLimitedRepositoriesDelegate,bool>? filter = null) 
             => SimpleCache.NextReadRawEntryAsync(this, path, filter);
 
-        protected Task<Outcome> DelegateUpdateAsync(ITimeLimitedRepositoryEntry entry, bool strict, Func<IITimeLimitedRepositoriesDelegate,bool> filter = null) 
+        protected Task<Outcome> DelegateUpdateAsync(
+            ITimeLimitedRepositoryEntry entry, 
+            bool strict, 
+            Func<IITimeLimitedRepositoriesDelegate,bool>? filter = null) 
             => SimpleCache.NextUpdateAsync(this, entry, strict, filter);
 
-        protected Task<Outcome> DelegateCreateOrUpdateAsync(ITimeLimitedRepositoryEntry entry, bool strict, Func<IITimeLimitedRepositoriesDelegate,bool> filter = null) 
+        protected Task<Outcome> DelegateCreateOrUpdateAsync(
+            ITimeLimitedRepositoryEntry entry, 
+            bool strict, 
+            Func<IITimeLimitedRepositoriesDelegate,bool>? filter = null) 
             => SimpleCache.NextCreateOrUpdateAsync(this, entry, strict, filter);
 
-        protected Task<Outcome> DelegateDeleteAsync(DynamicPath path, bool strict, Func<IITimeLimitedRepositoriesDelegate,bool> filter = null)
+        protected Task<Outcome> DelegateDeleteAsync(
+            DynamicPath path,
+            bool strict, 
+            Func<IITimeLimitedRepositoriesDelegate,bool>? filter = null)
             => SimpleCache.NextDeleteAsync(this, path, strict, filter);
 
         public virtual Task<Outcome<CachedItem<T>>> GetValidItemAsync<T>(ITimeLimitedRepositoryEntry entry)
@@ -272,6 +286,7 @@ namespace TetraPak.XP.Caching
         ///   (virtual method; to be overriden; no base implementation)<br/>
         ///   Invoked when delegate is attached to a <see cref="SimpleCache"/> object. 
         /// </summary>
+        // ReSharper disable once UnusedParameter.Global
         protected virtual void OnAttachedToCache(SimpleCache cache)
         {
             // to be overridden

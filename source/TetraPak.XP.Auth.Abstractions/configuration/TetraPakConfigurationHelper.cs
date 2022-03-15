@@ -12,7 +12,7 @@ namespace TetraPak.XP.Auth.Abstractions
         static readonly object s_syncRoot = new();
         static bool s_isTetraPakConfigurationAdded;
         
-        public static IServiceCollection UseTetraPakConfiguration(this IServiceCollection collection)
+        public static IServiceCollection AddTetraPakConfiguration(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -54,7 +54,7 @@ namespace TetraPak.XP.Auth.Abstractions
                     return Outcome<T>.Success(tEnvironment);
 
                 var resolver = tpConf.RuntimeEnvironmentResolver;
-                env = resolver.ResolveRuntimeEnvironment();
+                env = resolver.ResolveRuntimeEnvironment(RuntimeEnvironment.Unknown);
                 return env is T tv
                     ? Outcome<T>.Success(tv)
                     : Outcome<T>.Fail(new Exception("Cannot resolve runtime environment"));

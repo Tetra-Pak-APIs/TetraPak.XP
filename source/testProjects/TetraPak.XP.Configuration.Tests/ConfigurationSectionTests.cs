@@ -29,17 +29,17 @@ namespace TetraPak.XP.Desktop.Tests
                     {
                         provider = XpServices
                             .BuildFor().Desktop()
-                            .UseServiceCollection(collection)
+                            .AddServiceCollection(collection)
                             .AddSingleton<IRuntimeEnvironmentResolver>(p => environmentResolver)
-                            .UseTetraPakConfiguration()
+                            .AddTetraPakConfiguration()
                             .BuildXpServices();
                     }
                     else
                     {
                         provider = XpServices
                             .BuildFor().Desktop()
-                            .UseServiceCollection(collection)
-                            .UseTetraPakConfiguration()
+                            .AddServiceCollection(collection)
+                            .AddTetraPakConfiguration()
                             .BuildXpServices();
                     }
                 })

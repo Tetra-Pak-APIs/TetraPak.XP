@@ -13,43 +13,42 @@ using TetraPak.XP.Logging;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
+using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2.ClientCredentials
 {
     /// <summary>
     ///   A default service to support the client credentials grant type.
     /// </summary>
-    public sealed class TetraPakClientCredentialsGrantService : GrantServiceBase, IClientCredentialsGrantService
+    sealed class TetraPakClientCredentialsGrantService : GrantServiceBase, IClientCredentialsGrantService
     {
-        const string CacheRepository = CacheRepositories.Tokens.ClientCredentials;
-
         /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options)
         {
             // todo Consider breaking up this method (it's too big)
             // todo Honor the GrantOptions.Flags value (silent/forced request etc.)
             var messageId = GetMessageId();
-            var appCredentialsOutcome = await GetAppCredentialsAsync(new AuthContext(GrantType.CC, TetraPakConfig, options));
-            if (!appCredentialsOutcome)
-                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
-            var appCredentials = appCredentialsOutcome.Value!;
-            
+
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.ClientCredentials, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             var ctx = authContextOutcome.Value!;
+
+            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
+            if (!appCredentialsOutcome)
+                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+            var appCredentials = appCredentialsOutcome.Value!;
+            
             
             var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
             if (string.IsNullOrWhiteSpace(tokenIssuerUri))
                 return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthConfiguration.TokenIssuerUri));
             
-            var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
+            var ctSource = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
                 var basicAuthCredentials = ValidateBasicAuthCredentials(appCredentials);
-                var cachedOutcome = IsCachingGrants(options)
-                    ? await GetCachedGrantAsync(CacheRepository, appCredentials.Identity)
-                    : Outcome<Grant>.Fail("Cached grant not allowed");
+                var cachedOutcome = await GetCachedGrantAsync(ctx);
                 if (cachedOutcome)
                 {
                     var cachedGrant = cachedOutcome.Value!;
@@ -92,7 +91,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                             .WithDefaultHeaders(client.DefaultRequestHeaders))
                     : null;
 
-                var response = await client.SendAsync(request, cts.Token);
+                var response = await client.SendAsync(request, ctSource.Token);
                 
                 if (sb is { })
                 {
@@ -105,20 +104,20 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                     return loggedFailedOutcome(response);
 
 #if NET5_0_OR_GREATER
-                var stream = await response.Content.ReadAsStreamAsync(cts.Token);
+                var stream = await response.Content.ReadAsStreamAsync(ctSource.Token);
 #else
                 var stream = await response.Content.ReadAsStreamAsync();
 #endif
                 var responseBody =
                     await JsonSerializer.DeserializeAsync<ClientCredentialsResponseBody>(
                         stream,
-                        cancellationToken: cts.Token);
+                        cancellationToken: ctSource.Token);
 
                 var outcome = ClientCredentialsResponse.TryParse(responseBody!);
                 if (outcome)
                 {
                     var grant = outcome.Value!.ToGrant();
-                    await CacheGrantAsync(CacheRepository, basicAuthCredentials.Identity, grant);
+                    await CacheGrantAsync(ctx, grant);
                 }
 
                 var g = outcome.Value!;

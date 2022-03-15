@@ -104,6 +104,14 @@ namespace TetraPak.XP.Configuration
                 s_valueDelegates.Insert(0, valueDelegate);
             }
         }
+
+        public static void InsertValueParser(ValueParser parser, int index = -1)
+        {
+            lock (s_valueParsers)
+            {
+                s_valueParsers.Insert(Math.Max(0, index), parser);
+            }
+        }
         
         static List<ValueParser> getDefaultValueParsers()
         {
@@ -295,16 +303,24 @@ namespace TetraPak.XP.Configuration
         
         public IConfigurationSection Section { get; }
 
+        public static ConfigurationSectionDecoratorArgs ForSubSection(string key)
+            => ForSubSection(null, key);
+        
         public static ConfigurationSectionDecoratorArgs ForSubSection(
             ConfigurationSectionDecorator? parent, 
             string key)
         {
-            var path = new ConfigPath(key);
-            if (path.Count != 1) 
-                throw new ArgumentException($"Unexpected sub section key: '{key}'", nameof(key));
+            // if (parent is null)
+            // {
+            //     var conf = XpServices.GetRequired<IConfiguration>(); obsolete
+            //     section = conf.GetSubSection(key);
+            // }
+            // var path = new ConfigPath(key);
+            // if (path.Count != 1) 
+            //     throw new ArgumentException($"Unexpected sub section key: '{key}'", nameof(key));
             
             var section = parent is { }
-                ? parent.GetSection()
+                ? parent.GetSubSection(key)
                 : XpServices.GetRequired<IConfiguration>().GetSubSection(key);
             if (section is { })
                 return new ConfigurationSectionDecoratorArgs(

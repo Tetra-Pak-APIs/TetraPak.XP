@@ -6,7 +6,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
 {
     /// <summary>
     ///   Helps with adding support for the Client Credentials grant type
-    ///   (see <see cref="UseTetraPakClientCredentialsAuthentication"/>). 
+    ///   (see <see cref="AddTetraPakClientCredentialsGrant"/>). 
     /// </summary>
     public static class ClientCredentialsServiceHelper
     {
@@ -18,7 +18,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
         ///   (fluent api)<br/>
         ///   Adds support for OAuth Client Credentials grant to the application and returns the <paramref name="collection"/>. 
         /// </summary>
-        public static IServiceCollection UseTetraPakClientCredentialsAuthentication(this IServiceCollection collection)
+        public static IServiceCollection AddTetraPakClientCredentialsGrant(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -28,7 +28,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 s_isClientCredentialsAdded = true;
             }
             
-            collection.UseTetraPakConfiguration();
+            collection.AddTetraPakConfiguration();
             collection.UseTetraPakHttpClientProvider();
             collection.AddSingleton<IClientCredentialsGrantService,TetraPakClientCredentialsGrantService>();
             return collection;

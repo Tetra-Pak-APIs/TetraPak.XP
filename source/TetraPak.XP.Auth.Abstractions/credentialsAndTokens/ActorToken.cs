@@ -112,7 +112,7 @@ namespace TetraPak.XP.Auth.Abstractions
         public static implicit operator ActorToken?(string? stringValue) 
             => string.IsNullOrWhiteSpace(stringValue)
                 ? null
-                : new ActorToken(stringValue);
+                : new ActorToken(stringValue!);
 
         /// <summary>
         ///   Returns the token as a <see cref="ToJwtSecurityToken"/> (if applicable).
@@ -162,7 +162,7 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   (optional; default=<c>true</c>)<br/>
         ///   Specifies whether to automatically parse the textual representation.
         /// </param>
-        protected ActorToken(string stringValue, bool parse = true) 
+        public ActorToken(string stringValue, bool parse = true) 
         : this()
         {
             if (!parse)
@@ -171,7 +171,7 @@ namespace TetraPak.XP.Auth.Abstractions
                 return;
             }
             if (tryParse(stringValue, out var identity))
-                Identity = identity;
+                Identity = identity!;
         }
     }
 }

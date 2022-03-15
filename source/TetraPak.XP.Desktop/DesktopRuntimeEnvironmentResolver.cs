@@ -9,9 +9,9 @@ namespace TetraPak.XP.Desktop
 {
     public class DesktopRuntimeEnvironmentResolver : IRuntimeEnvironmentResolver
     {
-        const string TetraPakAppEnvironmentVariable = "TETRAPAK_ENVIRONMENT";
+        const string TetraPakAppEnvironmentVariable = "DOTNET_ENVIRONMENT";
 
-        public RuntimeEnvironment ResolveRuntimeEnvironment(RuntimeEnvironment useDefault = RuntimeEnvironment.Production)
+        public RuntimeEnvironment ResolveRuntimeEnvironment(RuntimeEnvironment useDefault = RuntimeEnvironment.Unknown)
         {
             var s = Environment.GetEnvironmentVariable(TetraPakAppEnvironmentVariable);
             if (!s.IsAssigned())

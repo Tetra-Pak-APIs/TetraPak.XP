@@ -6,7 +6,6 @@ namespace TetraPak.XP.Auth.Abstractions
     public class TetraPakConfiguration : AuthConfiguration, ITetraPakConfiguration
     {
         public const string SectionKey = "TetraPak";
-        RuntimeEnvironment? _runtimeEnvironment; 
 
         public string? MessageIdHeader => this.Get(getDerived:true, useDefault: Headers.MessageId);
         
@@ -14,8 +13,10 @@ namespace TetraPak.XP.Auth.Abstractions
         {
             get
             {
-                _runtimeEnvironment ??= RuntimeEnvironmentResolver.ResolveRuntimeEnvironment();
-                return _runtimeEnvironment.Value;
+                var configured = base.RuntimeEnvironment;
+                return configured != RuntimeEnvironment.Unknown 
+                    ? configured 
+                    : RuntimeEnvironment.Production;
             }
         }
 

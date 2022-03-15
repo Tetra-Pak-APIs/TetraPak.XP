@@ -18,7 +18,7 @@ namespace TetraPak.XP.Configuration
             [CallerMemberName] string? caller = null,
             bool getDerived = false)
             =>
-                conf.GetNamed(caller!, useDefault, getDerived);
+            conf.GetNamed(caller!, useDefault, getDerived);
 
         static T? getDerived<T>(
             this ConfigurationSectionDecorator conf,
@@ -62,8 +62,8 @@ namespace TetraPak.XP.Configuration
             var stringValue = conf[key];
             if (string.IsNullOrWhiteSpace(stringValue))
             {
-                if (getDerived && conf is ConfigurationSectionDecorator wrapper)
-                    return wrapper.getDerived(key, useDefault);
+                if (getDerived && conf is ConfigurationSectionDecorator decorator)
+                    return decorator.getDerived(key, useDefault);
 
                 return useDefault;
             }
@@ -93,7 +93,6 @@ namespace TetraPak.XP.Configuration
                 return wrapper.Parent.GetFromRoot(useDefault, parser, key);
                     
             return conf.GetNamed(key, useDefault, false, parser);
-
         }
 
         public static T? GetFromFieldThenSection<T>(
@@ -146,8 +145,10 @@ namespace TetraPak.XP.Configuration
         }
 
         public static IEnumerable<IConfigurationSection> GetSubSections(this IConfiguration conf)
-            =>
-                conf.GetChildren().Where(i => i.IsConfigurationSection());
+        {
+            var nisse = conf.GetChildren(); 
+            return conf.GetChildren().Where(i => i.IsConfigurationSection());
+        }
 
         public static IConfigurationSection? GetSubSection(this IConfiguration conf, string key)
         {
@@ -169,7 +170,7 @@ namespace TetraPak.XP.Configuration
 
         public static bool IsConfigurationSection(this IConfigurationSection section)
         {
-            return section.Value is null;
+            return section is ConfigurationSectionDecorator || section.Value is null;
         }
 
         /// <summary>

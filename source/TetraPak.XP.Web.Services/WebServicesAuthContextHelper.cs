@@ -1,48 +1,10 @@
 ﻿using System;
-using System.Threading;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.Web.Services;
 
-namespace TetraPak.XP.OAuth2
+namespace TetraPak.XP.Web.Services
 {
-    /// <summary>
-    ///   Used to describe an auth request context.
-    /// </summary>
-    public class AuthContext
-    {
-        /// <summary>
-        ///   Gets the <see cref="IAuthConfiguration"/> object.
-        /// </summary>
-        public IAuthConfiguration Configuration { get; }
-
-        public GrantOptions Options { get; }
-        
-        public GrantType GrantType { get; }
-
-        public CancellationToken CancellationToken => Options.CancellationTokenSource?.Token ?? CancellationToken.None;
-
-        /// <summary>
-        ///   Initializes the <see cref="AuthContext"/>.
-        /// </summary>
-        /// <param name="grantType">
-        ///   Initializes <see cref="GrantType"/>.
-        /// </param>
-        /// <param name="configuration">
-        ///   Initializes <see cref="Configuration"/>. 
-        /// </param>
-        /// <param name="options">
-        ///   Specifies options for the ongoing <see cref="Grant"/> request.
-        /// </param>
-        internal AuthContext(GrantType grantType, IAuthConfiguration configuration, GrantOptions options)
-        {
-            GrantType = grantType;
-            Options = options;
-            Configuration = configuration;
-        }
-    }
-    
-    public static class AuthContextHelper
+    public static class WebServicesAuthContextHelper
     {
         /// <summary>
         ///   Constructs and returns a <see cref="AuthContext"/>. 

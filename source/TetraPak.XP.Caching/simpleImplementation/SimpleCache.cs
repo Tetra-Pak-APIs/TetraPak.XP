@@ -38,6 +38,7 @@ namespace TetraPak.XP.Caching
         /// <summary>
         ///   Gets a logging provider.
         /// </summary>
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         protected ILog? Log { get; }
 
         /// <inheritdoc />
@@ -92,7 +93,7 @@ namespace TetraPak.XP.Caching
             spawnTimeUtc ??= DateTime.UtcNow;
             var resolvedRepository = repository.EnsureAssigned(nameof(repository), DefaultRepository);
             var path = new RepositoryPath(resolvedRepository, key);
-            var entry = new SimpleCacheEntry(this, path!, value, spawnTimeUtc.Value, customLifeSpan);
+            var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc.Value, customLifeSpan);
 
             setCurrentDelegates();
             foreach (var @delegate in s_currentDelegates)
@@ -150,8 +151,8 @@ namespace TetraPak.XP.Caching
             TimeSpan? customLifeSpan = null,
             DateTime? spawnTimeUtc = null)
         {
-            var path = new RepositoryPath(repository, key);
-            var entry = new SimpleCacheEntry(this, path!, value, spawnTimeUtc ?? DateTime.UtcNow, customLifeSpan);
+            var path = new RepositoryPath(resolveRepository(repository), key);
+            var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc ?? DateTime.UtcNow, customLifeSpan);
             foreach (var @delegate in _delegates)
             {
                 if (!await @delegate.UpdateAsync(entry, IsStrict))
@@ -169,8 +170,8 @@ namespace TetraPak.XP.Caching
             TimeSpan? customLifeSpan = null,
             DateTime? spawnTimeUtc = null)
         {
-            var path = new RepositoryPath(repository, key);
-            var entry = new SimpleCacheEntry(this, path!, value, spawnTimeUtc ?? DateTime.UtcNow, customLifeSpan);
+            var path = new RepositoryPath(resolveRepository(repository), key);
+            var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc ?? DateTime.UtcNow, customLifeSpan);
             foreach (var @delegate in _delegates)
             {
                 if (!await @delegate.CreateOrUpdateAsync(entry, IsStrict))
@@ -301,7 +302,8 @@ namespace TetraPak.XP.Caching
         /// <summary>
         ///   This method gets called from a background thread to allow selecting entries to be removed.
         ///   The default implementation simply returns a collection of entries that are "dead"
-        ///   (the <see cref="ITimeLimitedRepositoryEntry.IsLive"/> returns <c>false</c>).
+        ///   (the <see cref="ITimeLimitedRepositoryEntryExtensions.IsLive(ITimeLimitedRepositoryEntry)"/>
+        ///   returns <c>false</c>).
         /// </summary>
         /// <param name="entries">
         ///   A collection of entries that should be examined. 
@@ -328,9 +330,9 @@ namespace TetraPak.XP.Caching
         ///   A <see cref="string"/>.
         /// </returns>   
         protected virtual DynamicPath OnMakeItemPath(string key, string repository) 
-        => new RepositoryPath(repository, key).StringValue!;
+        => new RepositoryPath(repository, key).StringValue;
         
-        DynamicPath makeItemPath(string key, string? repository) => OnMakeItemPath(key, repository);
+        DynamicPath makeItemPath(string key, string? repository) => OnMakeItemPath(key, resolveRepository(repository));
 
         /// <summary>
         ///   (fluent api)<br/>
@@ -341,6 +343,12 @@ namespace TetraPak.XP.Caching
             _config = config;
             return this;
         }
+
+        string resolveRepository(string? repository)
+        {
+            return repository ?? DefaultRepository ?? throw new ArgumentNullException(nameof(repository),
+                $"{nameof(repository)} cannot be unassigned unless {DefaultRepository} is assigned");
+        }
         
         void purgeIfNeeded(string? repositoryName, IITimeLimitedRepositoriesDelegate @delegate)
         {
@@ -350,7 +358,7 @@ namespace TetraPak.XP.Caching
             if (string.IsNullOrWhiteSpace(repositoryName))
                 return;
 
-            var repository = repositoryName!;
+            var repository = repositoryName;
             var defaultInterval = SimpleTimeLimitedRepositoryOptions.DefaultPurgeInterval;
             var interval = _config?.GetRepositoryPurgeInterval(repository, defaultInterval) ?? defaultInterval;
             var nextPurgeAt = getLastPurge().Add(interval); 
@@ -382,7 +390,7 @@ namespace TetraPak.XP.Caching
         }
 
         public static async Task<Outcome<ITimeLimitedRepositoryEntry>> NextReadRawEntryAsync(SimpleCacheDelegate caller,
-            DynamicPath path, Func<IITimeLimitedRepositoriesDelegate, bool> filter)
+            DynamicPath path, Func<IITimeLimitedRepositoriesDelegate, bool>? filter)
         {
             s_currentDelegates.End();
             return caller.NextDelegate is null
@@ -391,7 +399,7 @@ namespace TetraPak.XP.Caching
         }
 
         public static async Task<Outcome> NextUpdateAsync(SimpleCacheDelegate caller, ITimeLimitedRepositoryEntry entry,
-            bool strict, Func<IITimeLimitedRepositoriesDelegate, bool> filter)
+            bool strict, Func<IITimeLimitedRepositoriesDelegate, bool>? filter)
         {
             s_currentDelegates.End();
             return caller.NextDelegate is null
@@ -399,8 +407,11 @@ namespace TetraPak.XP.Caching
                 : await caller.NextDelegate.UpdateAsync(entry, strict);
         }
 
-        public static async Task<Outcome> NextCreateOrUpdateAsync(SimpleCacheDelegate caller,
-            ITimeLimitedRepositoryEntry entry, bool strict, Func<IITimeLimitedRepositoriesDelegate, bool> filter)
+        public static async Task<Outcome> NextCreateOrUpdateAsync(
+            SimpleCacheDelegate caller,
+            ITimeLimitedRepositoryEntry entry, 
+            bool strict, 
+            Func<IITimeLimitedRepositoriesDelegate, bool>? filter)
         {
             s_currentDelegates.End();
             return caller.NextDelegate is null
@@ -408,8 +419,11 @@ namespace TetraPak.XP.Caching
                 : await caller.NextDelegate.CreateOrUpdateAsync(entry, strict);
         }
 
-        public static async Task<Outcome> NextDeleteAsync(SimpleCacheDelegate caller, DynamicPath path, bool strict,
-            Func<IITimeLimitedRepositoriesDelegate, bool> filter)
+        public static async Task<Outcome> NextDeleteAsync(
+            SimpleCacheDelegate caller, 
+            DynamicPath path,
+            bool strict,
+            Func<IITimeLimitedRepositoriesDelegate, bool>? filter)
         {
             s_currentDelegates.End();
             return caller.NextDelegate is null

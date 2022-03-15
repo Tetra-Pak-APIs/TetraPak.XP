@@ -52,14 +52,14 @@ namespace TetraPak.XP.OAuth2.OIDC
         ///   The <paramref name="collection"/> value.   
         /// </returns>
         /// <seealso cref="SetAuthApplication"/>
-        public static IServiceCollection UseTetraPakOidcAuthentication(
+        public static IServiceCollection AddTetraPakOidcGrant(
             this IServiceCollection collection,
             ILog? log = null)
         {
             // todo The OIDC browser should be provider thru DI, not as a type
             // todo The OIDC service should take its config from IConfiguration (provided by DI); not from AuthApplication
             XpServices.RegisterLiteral<DiscoveryDocumentCache>();
-            collection.UseTetraPakConfiguration();
+            collection.AddTetraPakConfiguration();
             collection.UseTetraPakHttpClientProvider();
             collection.RegisterXpServices(log);
             collection.AddSingleton(p => AuthConfig.Default(

@@ -7,7 +7,7 @@ namespace TetraPak.XP.Auth.Abstractions
     {
         internal IRuntimeEnvironmentResolver RuntimeEnvironmentResolver { get; }
 
-        public virtual RuntimeEnvironment RuntimeEnvironment => this.GetFromRoot(TetraPakAuthDefaults.RuntimeEnvironment);
+        public virtual RuntimeEnvironment RuntimeEnvironment => this.GetFromRoot<RuntimeEnvironment>();
 
         /// <inheritdoc />
         [StateDump]

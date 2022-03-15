@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.OAuth2
 {
@@ -8,7 +9,7 @@ namespace TetraPak.XP.OAuth2
         static readonly object s_syncRoot = new();
         static bool s_isAppCredentialsDelegateUsed;
         
-        public static IServiceCollection UseAppCredentialsDelegate<T>(this IServiceCollection collection)
+        public static IServiceCollection AddAppCredentialsDelegate<T>(this IServiceCollection collection)
         where T : class, IAppCredentialsDelegate 
         {
             lock (s_syncRoot)

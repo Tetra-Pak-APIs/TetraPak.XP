@@ -1,15 +1,14 @@
-﻿using Microsoft.Extensions.Configuration;
-using TetraPak.XP;
+﻿using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.OAuth2;
+using TetraPak.XP.Desktop;
 
 namespace authClient.console
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    class CustomAppCredentialsDelegate : IAppCredentialsDelegate
+    class CustomAppCredentialsDelegate : NativeAppCredentialsDelegate
     {
-        public Outcome<Credentials> GetAppCredentials(IConfiguration configuration, AuthContext context)
+        public override Outcome<Credentials> GetAppCredentials(AuthContext context)
         {
             var prefix = context.GrantType switch
             {

@@ -17,12 +17,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
       <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
       <ProjectReference Include="..\..\TetraPak.XP.OAuth2\TetraPak.XP.OAuth2.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="6.0.3" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     </ItemGroup>
 

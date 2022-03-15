@@ -218,7 +218,8 @@ namespace TetraPak.XP.Caching.Abstractions
         /// <exception cref="InvalidCastException">
         ///   A value with the same <paramref name="key"/> was already added but its value is incompatible with the new value.
         /// </exception>
-        Task CreateOrUpdateAsync(object value,
+        Task CreateOrUpdateAsync(
+            object value,
             string key,
             string? repository = null,
             TimeSpan? customLifeSpan = null,

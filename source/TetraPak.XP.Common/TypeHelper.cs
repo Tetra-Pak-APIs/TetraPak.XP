@@ -782,22 +782,25 @@ namespace TetraPak.XP
              return -1;
          }
 
-         public static bool TryParseEnum(this string self, Type enumType, out object? result, bool ignoreCare = false)
+         public static bool TryParseEnum(this string self, Type enumType, out object? result, bool ignoreCase = false)
          {
              if (enumType.IsNullable())
              {
                  enumType = enumType.GetGenericArguments()[0];
              }
-             
+
              if (!enumType.IsEnum)
-                 throw new InvalidOperationException($"{enumType} is not an Enum type");
+             {
+                 result = null;
+                 return false;
+             }
              
 #if NET5_0_OR_GREATER
-            return Enum.TryParse(enumType, self, ignoreCare, out result);
+            return Enum.TryParse(enumType, self, ignoreCase, out result);
 #else
             try
             {
-                result = Enum.Parse(enumType, self, ignoreCare);
+                result = Enum.Parse(enumType, self, ignoreCase);
                 return true;
             }
             catch

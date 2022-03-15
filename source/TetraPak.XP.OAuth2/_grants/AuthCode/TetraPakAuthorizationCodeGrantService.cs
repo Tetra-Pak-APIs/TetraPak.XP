@@ -12,19 +12,22 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
-using TetraPak.XP.Caching;
 using TetraPak.XP.Logging;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
+using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2.AuthCode
 {
-    class TetraPakAuthorizationCodeGrantService : GrantServiceBase, IAuthorizationCodeGrantService
+    /// <summary>
+    ///   Helps with adding support for the OAuth2 Authorization Code grant type
+    ///   (see <see cref="TetraPakAuthorizationCodeGrantService"/>). 
+    /// </summary>
+    sealed class TetraPakAuthorizationCodeGrantService : GrantServiceBase, IAuthorizationCodeGrantService
     {
         readonly ILoopbackBrowser _browser;
-        const string GrantCacheRepo = CacheRepositories.Tokens.OIDC;
         
         /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options)
@@ -35,7 +38,6 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             
             var ctx = authContextOutcome.Value!;
-            
             var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
@@ -49,7 +51,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString!);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString);
 
             var authorityUriString = conf.AuthorityUri;
             if (string.IsNullOrWhiteSpace(authorityUriString))
@@ -69,34 +71,44 @@ namespace TetraPak.XP.OAuth2.AuthCode
             var isPkceUsed = conf.OidcPkce;
             var authState = new AuthState(isStateUsed, isPkceUsed, clientId);
             
-            var cachedGrantOutcome = !string.IsNullOrWhiteSpace(options.ActorId) && IsCachingGrants(options)
-                ? await GetCachedGrantAsync(GrantCacheRepo, options.ActorId!)
-                : Outcome<Grant>.Fail("Cached grant not allowed/available");
-
+            var cachedGrantOutcome = await GetCachedGrantAsync(ctx);
             if (cachedGrantOutcome)
                 return cachedGrantOutcome;
             
-            await removeFromGrantCacheAsync(options.ActorId);
-            if (!await IsRefreshingGrantsAsync(clientId, options))
+            // await DeleteCachedGrantAsync(ctx); obsolete
+            if (!await IsRefreshingGrantsAsync(ctx))
                 return await onAuthorizationDone(
-                    await acquireTokenViaWebUIAsync(authorityUri,  tokenIssuerUri,authState, appCredentials, redirectUri, ctx, messageId));
+                    await acquireTokenViaWebUIAsync(authorityUri,  
+                        tokenIssuerUri,
+                        authState, 
+                        appCredentials, 
+                        redirectUri, 
+                        ctx,
+                        messageId));
 
             // attempt refresh token ...
-            var cachedRefreshTokenOutcome =
-                await GetCachedRefreshTokenAsync(clientId, options.ActorId!);
+            var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(ctx);
+            if (!cachedRefreshTokenOutcome)
+                return await onAuthorizationDone(
+                    await acquireTokenViaWebUIAsync(authorityUri,
+                        tokenIssuerUri,
+                        authState,
+                        appCredentials,
+                        redirectUri,
+                        ctx,
+                        messageId));
+            
+            var refreshToken = cachedRefreshTokenOutcome.Value!;
+            var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(
+                refreshToken, 
+                options.WithGrantCacheRepository(CacheRepositories.Tokens.OIDC));
 
-            if (cachedRefreshTokenOutcome)
-            {
-                var refreshToken = cachedRefreshTokenOutcome.Value!;
-                var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(refreshToken, options);
-                if (refreshOutcome)
-                    return await onAuthorizationDone(refreshOutcome);
-            }
+            if (refreshOutcome)
+                return await onAuthorizationDone(refreshOutcome);
 
             // run the OIDC 'dance' through a browser ... 
             return await onAuthorizationDone(
-                await acquireTokenViaWebUIAsync(
-                    authorityUri, 
+                await acquireTokenViaWebUIAsync(authorityUri, 
                     tokenIssuerUri, 
                     authState, 
                     appCredentials,  
@@ -106,33 +118,23 @@ namespace TetraPak.XP.OAuth2.AuthCode
             
             async Task<Outcome<Grant>> onAuthorizationDone(Outcome<Grant> outcome)
             {
-                if (outcome && isCachingTokens(options))
+                var grant = outcome.Value!;
+                await CacheGrantAsync(ctx, grant);
+                if (grant.RefreshToken is { })
                 {
-                    var grant = outcome.Value!;
-                    await CacheGrantAsync(GrantCacheRepo, options.ActorId!, grant);
-                    if (grant.RefreshToken is { })
-                    {
-                        await CacheRefreshTokenAsync(clientId, options.ActorId!, grant.RefreshToken);
-                    }
+                    await CacheRefreshTokenAsync(ctx, grant.RefreshToken);
                 }
                 return outcome;
             }
         }
         
-        Task removeFromGrantCacheAsync(string? key) 
-            => TokenCache?.AttemptDeleteAsync(key, GrantCacheRepo) 
-               ?? Task.CompletedTask;
-
-        bool isCachingTokens(GrantOptions options) =>
-            !string.IsNullOrWhiteSpace(options.ActorId) && IsCachingGrants(options);
-        
         async Task<Outcome<Grant>> acquireTokenViaWebUIAsync(
             Uri authorityUri,
             Uri tokenIssuerUri,
             AuthState authState,
-            Credentials appCredentials, 
+            Credentials appCredentials,
             Uri redirectUri,
-            AuthContext authContext, 
+            AuthContext authContext,
             LogMessageId? messageId)
         {
             Log.Debug("[BEGIN - Authorization Code request]", messageId);
@@ -164,7 +166,14 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return Outcome<Grant>.Fail(
                     new WebException($"Returned state was invalid: \"{inState}\". Expected state: \"{authState.State}\""));
             
-            var accessCodeOutcome = await getAccessCodeAsync(tokenIssuerUri, redirectUri, appCredentials, authCode, authState, authContext, messageId);
+            var accessCodeOutcome = await getAccessCodeAsync(
+                tokenIssuerUri,
+                redirectUri, 
+                appCredentials, 
+                authCode, 
+                authState, 
+                authContext, 
+                messageId);
             Log.Debug("[GET ACCESS CODE END]");
             return accessCodeOutcome;
 
@@ -213,7 +222,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
              Uri tokenIssuerUri,
              Uri redirectUri,
              Credentials appCredentials,
-             string authCode, 
+             string authCode,
              AuthState authState,
              AuthContext authContext,
              LogMessageId? messageId)
@@ -226,7 +235,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                         clientOutcome.Exception));
                 
             using var client = clientOutcome.Value!;
-            var bodyOutcome = await buildTokenRequestBodyAsync(authCode, appCredentials, redirectUri, authState);
+            var bodyOutcome = await makeTokenRequestBodyAsync(authCode, appCredentials, redirectUri, authState);
             if (!bodyOutcome)
                 return Outcome<Grant>.Fail(bodyOutcome.Exception!);
 
@@ -253,7 +262,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 }
                 if (!response.IsSuccessStatusCode)
                     return logFailedOutcome(response);
-
+                
                 return await buildGrantAsync(response);
             }
             catch (Exception ex)
@@ -275,18 +284,21 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 var expires = dict.TryGetValue("expires_in", out var exp) && int.TryParse(exp, out var seconds)
                     ? DateTime.Now.AddSeconds(seconds)
                     : (DateTime?)null;
-                var tokens = new List<TokenInfo>();
-                tokens.Add(new TokenInfo(accessToken!, TokenRole.AccessToken, expires));
+                var tokens = new List<TokenInfo>
+                {
+                    new(accessToken!, TokenRole.AccessToken, expires)
+                };
 
                 if (dict.TryGetValue("refresh_token", out var refreshToken) && !string.IsNullOrWhiteSpace(refreshToken))
                 {
                     tokens.Add(new TokenInfo(refreshToken!, TokenRole.RefreshToken));
                 }
 
-                if (!dict.TryGetValue("id_token", out var idToken) || string.IsNullOrWhiteSpace(idToken)) 
+                if (!dict.TryGetValue("id_token", out var idTokenString) || string.IsNullOrWhiteSpace(idTokenString)) 
                     return Outcome<Grant>.Success(new Grant(tokens.ToArray()));
-            
-                tokens.Add(new TokenInfo(idToken!, TokenRole.IdToken, null, validateIdTokenAsync));
+
+                var idToken = (ActorToken) idTokenString!;
+                tokens.Add(new TokenInfo(idToken, TokenRole.IdToken, null, validateIdTokenAsync));
                 return Outcome<Grant>.Success(new Grant(tokens.ToArray()));
             }
             
@@ -316,7 +328,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
             }
          }
 
-         static Task<Outcome<Dictionary<string,string>>> buildTokenRequestBodyAsync(
+         static Task<Outcome<Dictionary<string,string>>> makeTokenRequestBodyAsync(
              string authCode, 
              Credentials appCredentials,
              Uri redirectUri,

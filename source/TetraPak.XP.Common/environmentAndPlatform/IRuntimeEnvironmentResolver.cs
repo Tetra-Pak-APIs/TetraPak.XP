@@ -5,6 +5,6 @@
     /// </summary>
     public interface IRuntimeEnvironmentResolver
     {
-        RuntimeEnvironment ResolveRuntimeEnvironment(RuntimeEnvironment useDefault = RuntimeEnvironment.Production);
+        RuntimeEnvironment ResolveRuntimeEnvironment(RuntimeEnvironment useDefault = RuntimeEnvironment.Unknown);
     }
 }
