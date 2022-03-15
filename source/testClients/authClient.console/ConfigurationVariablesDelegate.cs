@@ -21,10 +21,10 @@ namespace authClient.console
             if (string.IsNullOrEmpty(value))
                 return Outcome<T>.Fail(new Exception($"No '{args.Key}' value found in configuration"));
 
-            if (!value.StartsWith("$(") || !value.EndsWith(')')) 
+            if (!value!.StartsWith("$(") || !value.EndsWith(')')) 
                 return Outcome<T>.Success((T) (object) value);
     
-            var ms = new DynamicPath(value[2..].TrimEnd(')'), "/");
+            var ms = new DynamicPath(value.Substring(2).TrimEnd(')'), "/");
             if (ms.Count == 1)
                 return getValueFromEnvironmentVariables<T>(ms);
 
@@ -49,7 +49,7 @@ namespace authClient.console
             var value = Environment.GetEnvironmentVariable(key)?.Trim();
             return string.IsNullOrEmpty(value)
                 ? Outcome<T>.Fail($"Environment variable not found: {path}")
-                : Outcome<T>.Success((T) (object) value);
+                : Outcome<T>.Success((T) (object) value!);
         }
     }
 }

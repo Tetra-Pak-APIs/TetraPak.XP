@@ -12,26 +12,19 @@ namespace authClient.console
         const string QuitCommand = "q";
         const string CancelCommand = "c";
         const string NewCcTokenCommand = "cc";
-        const string SilentCcCommand = "ccs";
+        const string SilentCcCommand = "scc";
         const string NewOidcTokenCommand = "ac";
-        const string SilentOidcCommand = "acs";
+        const string SilentOidcCommand = "sac";
         const string NewDcTokenCommand = "dc";
-        const string SilentDcCommand = "dcs";
+        const string SilentDcCommand = "sdc";
+        const string ClearCachedGrantsCommand = "-g";
+        const string ClearCachedRefreshTokensCommand = "-r";
+        const string HelpCommand = "?";
         static CancellationTokenSource s_cts = new();
 
         public static async Task Main(string[] args)
         {
-            Console.WriteLine("+----------------------------------------------------+");
-            Console.WriteLine("|  ac  = get new token using OIDC                    |");
-            Console.WriteLine("|  acs = get token silently (OIDC)                   |");
-            Console.WriteLine("|  cc  = get new token using Client Credentials      |");
-            Console.WriteLine("|  ccs = get new token silently (client credentials) |");
-            Console.WriteLine("|  dc  = get new token using Device Code             |");
-            Console.WriteLine("|  dcs = get new token silently (device code)        |");
-            Console.WriteLine("|  c  = cancel request                               |");
-            Console.WriteLine("|  q  = quit                                         |");
-            Console.WriteLine("+----------------------------------------------------+");
-
+            outHelp();
             var auth = new Auth(args);
             prompt();
             var command = getCommandFrom(args) ?? getCommandFromConsole();
@@ -47,6 +40,23 @@ namespace authClient.console
             }
         }
 
+        static void outHelp()
+        {
+            Console.WriteLine("+----------------------------------------------------+");
+            Console.WriteLine("|  ac  = get new token using OIDC                    |");
+            Console.WriteLine("|  sac = get token silently (OIDC)                   |");
+            Console.WriteLine("|  cc  = get new token using Client Credentials      |");
+            Console.WriteLine("|  scc = get new token silently (client credentials) |");
+            Console.WriteLine("|  dc  = get new token using Device Code             |");
+            Console.WriteLine("|  sdc = get new token silently (device code)        |");
+            Console.WriteLine("|  c  = cancel request                               |");
+            Console.WriteLine("|  -g = clear cached grants                          |");
+            Console.WriteLine("|  -r = clear cached refresh tokens                  |");
+            Console.WriteLine("|  ?  = print (this) help                            |");
+            Console.WriteLine("|  q  = quit                                         |");
+            Console.WriteLine("+----------------------------------------------------+");
+        }
+
         static void prompt() => Console.Write("Please specify action:");
 
         static string? getCommandFrom(IReadOnlyList<string> args)
@@ -59,32 +69,44 @@ namespace authClient.console
             return cmd.Length > 1 ? cmd.ToLower() : null;
         }
 
-        static Task doCommandAsync(string? command, Auth auth)
+        static async Task doCommandAsync(string? command, Auth auth)
         {
             switch (command)
             {
+                case HelpCommand:
+                    outHelp();
+                    break;
+                    
                 case NewOidcTokenCommand:
-                    auth.AcquireTokenAsync(GrantType.OIDC, s_cts, false);
+                    await auth.AcquireTokenAsync(GrantType.OIDC, s_cts, false);
                     break;
                 
                 case SilentOidcCommand:
-                    auth.AcquireTokenAsync(GrantType.OIDC, s_cts, true);
+                    await auth.AcquireTokenAsync(GrantType.OIDC, s_cts, true);
                     break;
-
+                
                 case NewCcTokenCommand:
-                    auth.AcquireTokenAsync(GrantType.CC, s_cts, false);
+                    await auth.AcquireTokenAsync(GrantType.CC, s_cts, false);
                     break;
                 
                 case SilentCcCommand:
-                    auth.AcquireTokenAsync(GrantType.CC, s_cts, true);
+                    await auth.AcquireTokenAsync(GrantType.CC, s_cts, true);
                     break;
                 
                 case NewDcTokenCommand:
-                    auth.AcquireTokenAsync(GrantType.DC, s_cts, false);
+                    await auth.AcquireTokenAsync(GrantType.DC, s_cts, false);
                     break;
 
                 case SilentDcCommand:
-                    auth.AcquireTokenAsync(GrantType.DC, s_cts, true);
+                    await auth.AcquireTokenAsync(GrantType.DC, s_cts, true);
+                    break;
+
+                case ClearCachedGrantsCommand:
+                    await auth.ClearCachedGrantsAsync();
+                    break;
+
+                case ClearCachedRefreshTokensCommand:
+                    await auth.ClearCachedRefreshTokensAsync();
                     break;
 
                 case CancelCommand:
@@ -95,8 +117,6 @@ namespace authClient.console
                     Console.WriteLine($"Unknown command: {command}");
                     break;
             }
-
-            return Task.CompletedTask;
         }
 
         static string? getCommandFromConsole() => Console.ReadLine()?.ToLower();

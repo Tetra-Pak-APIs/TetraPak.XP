@@ -22,6 +22,8 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
     /// </summary>
     sealed class TetraPakClientCredentialsGrantService : GrantServiceBase, IClientCredentialsGrantService
     {
+        protected override GrantType GetGrantType() => GrantType.ClientCredentials;
+        
         /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options)
         {

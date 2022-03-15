@@ -8,7 +8,7 @@ namespace TetraPak.XP.Auth.Abstractions
     /// <summary>
     ///   Represents a generic credentials value, typically used for authentication use purposes.
     /// </summary>
-    //[JsonConverter(typeof(DynamicEntityJsonConverter<Credentials>))]
+    [JsonConverter(typeof(DynamicEntityJsonConverter<Credentials>))]
     public class Credentials : DynamicIdentifiableEntity<string>, IDisposable
     {
         const string KeySecret = "secret";

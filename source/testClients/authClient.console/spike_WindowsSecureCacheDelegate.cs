@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection;
 using TetraPak.XP;
@@ -48,10 +49,7 @@ namespace authClient.console
         Outcome protect(ITimeLimitedRepositoryEntry entry)
         {
             var value = entry.GetValue();
-            var stringValue = value as string ?? (value as IStringValue)?.StringValue;
-            if (stringValue is null)
-                return Outcome.Fail("Not a string value");
-
+            var stringValue = (value as string ?? (value as IStringValue)?.StringValue) ?? JsonSerializer.Serialize(value);
             entry.UpdateValue(_protector.Protect(stringValue));
             return Outcome.Success();
         }
@@ -67,8 +65,32 @@ namespace authClient.console
                 throw new Exception("Not a string value");
 
             var unprotected = _protector.Unprotect(stringValue);
-            entry.UpdateValue(unprotected);
-            return Outcome<ITimeLimitedRepositoryEntry>.Success(entry);
+            var outEntry = entry.Clone();
+            outEntry.UpdateValue(unprotected);
+            return Outcome<ITimeLimitedRepositoryEntry>.Success(outEntry);
+        }
+
+        public override async Task<Outcome<CachedItem<T>>> GetValidItemAsync<T>(ITimeLimitedRepositoryEntry entry)
+        {
+            var value = entry.GetValue();
+            if (value is T)
+                return await base.GetValidItemAsync<T>(entry);
+
+            if (value is not string stringValue)
+                return Outcome<CachedItem<T>>.Fail($"Could not deserialize cached value '{entry.Path}'");
+
+            try
+            {
+                using var stream = stringValue.ToStream();
+                var tValue = (await JsonSerializer.DeserializeAsync<T>(stream) ?? default(T))!;
+                entry.UpdateValue(tValue);
+                return await base.GetValidItemAsync<T>(entry);
+            }
+            catch (Exception ex)
+            {
+                ex = new Exception($"Could not deserialize cached value '{entry.Path}' (see inner)", ex);
+                return Outcome<CachedItem<T>>.Fail(ex);
+            }
         }
 
         internal spike_WindowsSecureCacheDelegate(IDataProtectionProvider protector, ILog? log) : base(log)

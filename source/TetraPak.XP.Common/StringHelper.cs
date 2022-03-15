@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -779,6 +780,13 @@ namespace TetraPak.XP
         ///   Returns the string in its base-64 encoded form.
         /// </summary>
         public static string ToBase64String(this string self) => Convert.ToBase64String(Encoding.UTF8.GetBytes(self));
+
+        /// <summary>
+        ///   Produces and returns a <see cref="MemoryStream"/> from the string.
+        /// </summary>
+        /// <param name="self"></param>
+        /// <returns></returns>
+        public static Stream ToStream(this string self) => new MemoryStream(Encoding.ASCII.GetBytes(self));
 
         public static string GetMatchingPrefix(this string self, string compare)
         {

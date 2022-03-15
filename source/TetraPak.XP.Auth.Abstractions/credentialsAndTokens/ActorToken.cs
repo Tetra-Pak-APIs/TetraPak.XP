@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 #endif
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json.Serialization;
+using TetraPak.XP.DynamicEntities;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
@@ -11,7 +13,7 @@ namespace TetraPak.XP.Auth.Abstractions
     ///   Security token issued for an actor.
     /// </summary>
     [DebuggerDisplay("{ToString()}")]
-
+    [JsonConverter(typeof(DynamicEntityJsonConverter<ActorToken>))]
     public class ActorToken : Credentials, IStringValue
     {
         bool? _isJwt;

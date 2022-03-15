@@ -29,6 +29,8 @@ namespace TetraPak.XP.Caching
         
         public Type GetValueType() => _value.GetType();
 
+        public ITimeLimitedRepositoryEntry Clone() => new SimpleCacheEntry(Repositories, _path, _value, SpawnTimeUtc);
+
         public virtual T GetValue<T>() => (T)_value;
 
         public TimeSpan GetRemainingTime(DateTime? from = null)

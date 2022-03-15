@@ -21,6 +21,8 @@ namespace TetraPak.XP.OAuth2.DeviceCode
     {
         const string CacheRepository = CacheRepositories.Tokens.DeviceCode;
 
+        protected override GrantType GetGrantType() => GrantType.DeviceCode;
+        
         public async Task<Outcome<Grant>> AcquireTokenAsync(
             GrantOptions options,
             Action<VerificationArgs> verificationUriHandler)

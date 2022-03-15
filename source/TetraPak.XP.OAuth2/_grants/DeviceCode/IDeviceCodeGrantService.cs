@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.OAuth2.AuthCode;
 
 namespace TetraPak.XP.OAuth2.DeviceCode
 {
@@ -8,7 +9,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
     ///   Implementors of this interface are able to acquire a token using the
     ///   OAuth Device Code grant. 
     /// </summary>
-    public interface IDeviceCodeGrantService
+    public interface IDeviceCodeGrantService : IGrantService
     {
         /// <summary>
         ///   Requests a token using the OAuth Device Code grant.   

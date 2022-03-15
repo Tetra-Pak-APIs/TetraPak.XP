@@ -17,6 +17,8 @@ namespace TetraPak.XP.OAuth2.Refresh
 {
     class TetraPakRefreshTokenGrantService : GrantServiceBase, IRefreshTokenGrantService
     {
+        protected override GrantType GetGrantType() => GrantType.Refresh;
+        
         /// <inheritdoc />
         async Task<Outcome<Grant>> IRefreshTokenGrantService.AcquireTokenAsync(
             ActorToken refreshToken,

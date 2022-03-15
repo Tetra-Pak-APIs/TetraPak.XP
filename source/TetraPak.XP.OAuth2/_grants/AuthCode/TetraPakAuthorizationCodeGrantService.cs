@@ -28,7 +28,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
     sealed class TetraPakAuthorizationCodeGrantService : GrantServiceBase, IAuthorizationCodeGrantService
     {
         readonly ILoopbackBrowser _browser;
-        
+
+        protected override GrantType GetGrantType() => GrantType.AuthorizationCode;
+
         /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options)
         {
@@ -51,7 +53,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString!);
 
             var authorityUriString = conf.AuthorityUri;
             if (string.IsNullOrWhiteSpace(authorityUriString))
@@ -347,8 +349,8 @@ namespace TetraPak.XP.OAuth2.AuthCode
 
              return Task.FromResult(Outcome<Dictionary<string,string>>.Success(dictionary));
          }
-
-        public TetraPakAuthorizationCodeGrantService(
+         
+         public TetraPakAuthorizationCodeGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             ILoopbackBrowser browser,

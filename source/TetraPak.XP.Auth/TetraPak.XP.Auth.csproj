@@ -5,10 +5,10 @@
     <LangVersion>default</LangVersion>
     <Nullable>enable</Nullable>
 
-    <AssemblyVersion>0.1.8</AssemblyVersion>
-    <FileVersion>0.1.8</FileVersion>
-    <Version>0.1.8</Version>
-    <PackageVersion>1.0.0-alpha.8</PackageVersion>
+    <AssemblyVersion>0.1.9</AssemblyVersion>
+    <FileVersion>0.1.9</FileVersion>
+    <Version>0.1.9</Version>
+    <PackageVersion>1.0.0-alpha.9</PackageVersion>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Title>Tetra Pak SDK library for cross-platform (XP) applications</Title>
@@ -30,13 +30,6 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE;DEBUG;SIMULATED_AUTH;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Class1.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.8.1" />
-    <PackageReference Include="System.Text.Json" Version="4.8.1" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.Browsers\TetraPak.XP.Browsers.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Caching\TetraPak.XP.Caching.csproj" />

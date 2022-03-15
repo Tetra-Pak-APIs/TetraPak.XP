@@ -77,7 +77,7 @@ namespace TetraPak.XP.Caching
         }
 
         /// <inheritdoc />
-        public bool IsTypeStrict { get; set; } = true;
+        public virtual bool IsTypeStrict { get; set; } = true;
 
         /// <inheritdoc />
         public virtual async Task CreateAsync(object value,
@@ -449,7 +449,9 @@ namespace TetraPak.XP.Caching
             if (!delegates.Any())
             {
                 AddDelegates(new SimpleCacheDelegate(log));
+                return;
             }
+            _delegates.AddRange(delegates);
         }
 
         static SimpleCache() => s_currentDelegates = DelegatesCollection.Empty;

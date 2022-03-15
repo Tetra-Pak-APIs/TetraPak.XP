@@ -160,7 +160,7 @@ namespace TetraPak.XP.Caching
     [Serializable]
     class FileCacheEntry : ITimeLimitedRepositoryEntry
     {
-        public string CachePath { get; set; }
+        // public string CachePath { get; set; }
         
         public string FilePath { get; set; }
 
@@ -191,7 +191,16 @@ namespace TetraPak.XP.Caching
             throw new NotImplementedException();
         }
 
-        public ITimeLimitedRepositories Repositories { get; }
+        public ITimeLimitedRepositories Repositories { get; private set; }
+        
+        public ITimeLimitedRepositoryEntry Clone()
+        {
+            return new FileCacheEntry(Path, FilePath)
+            {
+                Repositories = Repositories,
+                SpawnTimeUtc = SpawnTimeUtc
+            };
+        }
 
         public TimeSpan? CustomLifeSpan { get; set; }
 
@@ -201,8 +210,8 @@ namespace TetraPak.XP.Caching
 
         public FileCacheEntry(string cachePath, string filePath)
         {
-            CachePath = cachePath;
-            filePath = filePath;
+            Path = cachePath;
+            FilePath = filePath;
         }
     }
     

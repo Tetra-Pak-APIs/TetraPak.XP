@@ -35,6 +35,8 @@ namespace TetraPak.XP.Caching.Abstractions
         void ExtendLifeSpan(DateTime? spawnTimeUtc = null);
         
         ITimeLimitedRepositories Repositories { get; }
+
+        ITimeLimitedRepositoryEntry Clone();
     }
     
     // ReSharper disable once InconsistentNaming

@@ -8,13 +8,15 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
+using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
+using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2
 {
-    public abstract class GrantServiceBase
+    public abstract class GrantServiceBase : IGrantService
     {
         readonly IAppCredentialsDelegate? _appCredentialsDelegate;
 
@@ -36,6 +38,8 @@ namespace TetraPak.XP.OAuth2
         ///   A logger provider.
         /// </summary>
         protected ILog? Log  { get; }
+
+        protected abstract GrantType GetGrantType();
 
         /// <summary>
         ///   Examines passed state and returns a value indicating whether the current <see cref="Grant"/> request
@@ -116,7 +120,7 @@ namespace TetraPak.XP.OAuth2
                     new ConfigurationException("Client credentials have not been provisioned")));
 
             var secret = context.Configuration.ClientSecret;
-            return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity, secret!)));
+            return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity!, secret!)));
         }
 
         /// <summary>
@@ -187,19 +191,19 @@ namespace TetraPak.XP.OAuth2
                 : cachedOutcome;
         }
 
-        // protected async Task DeleteCachedGrantAsync(AuthContext context) obsolete
-        // {
-        //     if (!IsGrantCachingEnabled(context))
-        //         return;
-        //
-        //     var appCredentialsOutcome = await GetAppCredentialsAsync(context);
-        //     if (!appCredentialsOutcome)
-        //         return;
-        //
-        //     var key = appCredentialsOutcome.Value!.Identity;
-        //     var cacheRepository = context.GetGrantCacheRepository();
-        //     await TokenCache!.DeleteAsync(key, cacheRepository);
-        // }
+        protected async Task DeleteCachedGrantAsync(AuthContext context) 
+        {
+            if (!IsGrantCachingEnabled(context, true))
+                return;
+        
+            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            if (!appCredentialsOutcome)
+                return;
+        
+            var key = appCredentialsOutcome.Value!.Identity;
+            var cacheRepository = context.GetGrantCacheRepository();
+            await TokenCache!.DeleteAsync(key, cacheRepository);
+        }
 
         /// <summary>
         ///   Caches a token.  
@@ -259,52 +263,40 @@ namespace TetraPak.XP.OAuth2
                 : cachedOutcome;
         }
 
-//         bool tryGetGrantCacheKey(
-//             AuthContext context,
-// #if NET5_0_OR_GREATER
-//             [NotNullWhen(true)]
-// #endif            
-//             out string? key)
-//         {
-//             var clientId = context.Configuration.ClientId;
-//             key = null;
-//             if (_appCredentialsDelegate is null)
-//             {
-//                 key = context.Configuration.ClientId!;
-//                 return !string.IsNullOrEmpty(key);
-//             }
-//
-//             var outcome = _appCredentialsDelegate.GetGrantCacheKey(context);
-//             if (!outcome)
-//                 return false;
-//
-//             key = string.IsNullOrEmpty(outcome.Value!) || outcome.Value == clientId
-//                 ? clientId
-//                 : new DynamicPath(clientId, key).StringValue;
-//             return !string.IsNullOrEmpty(key);
-//         }
+        protected async Task DeleteCachedRefreshTokenAsync(AuthContext context) 
+        {
+            if (!IsGrantCachingEnabled(context, true))
+                return;
+        
+            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            if (!appCredentialsOutcome)
+                return;
+        
+            var key = appCredentialsOutcome.Value!.Identity;
+            var cacheRepository = context.GetGrantCacheRepository();
+            await TokenCache!.DeleteAsync(key, cacheRepository);
+        }
 
 
-//         bool tryGetRefreshTokenCacheKey( obsolete
-//             AuthContext context,
-// #if NET5_0_OR_GREATER
-//             [NotNullWhen(true)]
-// #endif
-//             out string? key)
-//         {
-//             var clientId = context.Configuration.ClientId;
-//             key = null;
-//             if (_appCredentialsDelegate is null)
-//             {
-//                 key = context.Configuration.ClientId!;
-//                 return !string.IsNullOrEmpty(key);
-//             }
-//
-//             key = string.IsNullOrEmpty(outcome.Value!) || outcome.Value == clientId
-//                 ? clientId
-//                 : new DynamicPath(clientId, key).StringValue;
-//             return !string.IsNullOrEmpty(key);
-//         }
+        public async Task ClearCachedGrantsAsync()
+        {
+            var ctxOutcome = TetraPakConfig.GetAuthContext(GetGrantType(), new GrantOptions());
+            if (!ctxOutcome)
+                return;
+
+            var ctx = ctxOutcome.Value!;
+            await DeleteCachedGrantAsync(ctx);
+        }
+
+        public async Task ClearCachedRefreshTokensAsync()
+        {
+            var ctxOutcome = TetraPakConfig.GetAuthContext(GetGrantType(), new GrantOptions());
+            if (!ctxOutcome)
+                return;
+
+            var ctx = ctxOutcome.Value!;
+            await DeleteCachedRefreshTokenAsync(ctx);
+        }
 
         /// <summary>
         ///   Validates <see cref="Credentials"/> to be used as <see cref="BasicAuthCredentials"/>.

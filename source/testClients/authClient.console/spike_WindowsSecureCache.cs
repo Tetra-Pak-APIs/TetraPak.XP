@@ -8,8 +8,14 @@ namespace authClient.console
 {
     class spike_WindowsSecureCache : SimpleCache, ITokenCache
     {
+        public override bool IsTypeStrict
+        {
+            get => false; 
+            set { /* ignore */}
+        }
+
         public spike_WindowsSecureCache(IDataProtectionProvider protectionProvider,  ILog? log) 
-            : base(log, new spike_WindowsSecureCacheDelegate(protectionProvider, log))
+        : base(log, new spike_WindowsSecureCacheDelegate(protectionProvider, log))
         {
         }
     }

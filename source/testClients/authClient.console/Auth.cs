@@ -25,9 +25,9 @@ namespace authClient.console
         ILog? _log;
         IServiceProvider? _serviceProvider;
 
-        public void AcquireTokenAsync(GrantType grantType, CancellationTokenSource cts, bool silent)
+        public Task AcquireTokenAsync(GrantType grantType, CancellationTokenSource cts, bool silent)
         {
-            Task.Run(async () =>
+            return Task.Run(async () =>
             {
                 var options = silent 
                     ? GrantOptions.Silent(cts) 
@@ -60,7 +60,6 @@ namespace authClient.console
                         throw new ArgumentOutOfRangeException(nameof(grantType), grantType, null);
                 }
             });
-            
         }
 
         static void requestUSerCodeVerification(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
@@ -96,6 +95,24 @@ namespace authClient.console
             sb.AppendLine($"Scope={grant.Scope}");
             _log.Information(sb.ToString());
         }
+        
+        internal async Task ClearCachedGrantsAsync()
+        {
+            var p = _serviceProvider ?? throw new Exception("No service provider!");
+            await p.GetRequiredService<IAuthorizationCodeGrantService>().ClearCachedGrantsAsync();
+            await p.GetRequiredService<IClientCredentialsGrantService>().ClearCachedGrantsAsync();
+            await p.GetRequiredService<IDeviceCodeGrantService>().ClearCachedGrantsAsync();
+            // todo clear Token Exchange service cached grants
+        }
+
+        internal async Task ClearCachedRefreshTokensAsync()
+        {
+            var p = _serviceProvider ?? throw new Exception("No service provider!");
+            await p.GetRequiredService<IAuthorizationCodeGrantService>().ClearCachedRefreshTokensAsync();
+            await p.GetRequiredService<IClientCredentialsGrantService>().ClearCachedRefreshTokensAsync();
+            await p.GetRequiredService<IDeviceCodeGrantService>().ClearCachedRefreshTokensAsync();
+            // todo clear Token Exchange service refresh tokens
+        }
 
         public Auth(string[] args)
         {
@@ -129,7 +146,7 @@ namespace authClient.console
                 .ConfigureAppConfiguration((_, builder) => builder.Build())
                 .Build();
         }
-
+        
         static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)
         {
             var config = p.GetRequiredService<IConfiguration>();
