@@ -53,7 +53,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString!);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString);
 
             var authorityUriString = conf.AuthorityUri;
             if (string.IsNullOrWhiteSpace(authorityUriString))
@@ -120,6 +120,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
             
             async Task<Outcome<Grant>> onAuthorizationDone(Outcome<Grant> outcome)
             {
+                if (!outcome)
+                    return outcome;
+                    
                 var grant = outcome.Value!;
                 await CacheGrantAsync(ctx, grant);
                 if (grant.RefreshToken is { })

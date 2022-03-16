@@ -40,7 +40,7 @@
             /// <summary>
             ///   Identifies  cache repository used for refresh tokens. 
             /// </summary>
-            public const string Refresh = "RF_Tokens";
+            public const string Refresh = "RF";
 
         }
     }

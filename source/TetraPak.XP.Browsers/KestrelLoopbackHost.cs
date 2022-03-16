@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Web;
+using TetraPak.XP.Web.Http;
+using TetraPak.XP.Web.Http.Debugging;
 
 namespace TetraPak.XP.Browsers
 {
@@ -23,7 +25,6 @@ namespace TetraPak.XP.Browsers
 
         readonly IWebHost _host;
         readonly TaskCompletionSource<HttpRequest?> _loopbackTcs = new();
-        readonly ILog? _log;
         bool _isDisposed;
 
         public LoopbackFilter? LoopbackFilter { get; set; }
@@ -63,7 +64,6 @@ namespace TetraPak.XP.Browsers
         
         public LoopbackHost(Uri loopbackHost, ILog? log)
         {
-            _log = log;
             try
             {
                 var builder = new WebHostBuilder();
@@ -85,9 +85,13 @@ namespace TetraPak.XP.Browsers
                         }
                         app.Run(async ctx =>
                         {
-                            // todo add tracing with ILog
-                            
-                            
+                            log.Trace(() =>
+                            {
+                                var r = ctx.Request;
+                                var port = r.Host.Port ?? loopbackHost.Port;
+                                var uri = new UriBuilder(r.Scheme, r.Host.Host, port, r.PathBase + r.QueryString).Uri;
+                                return uri.ToStringBuilderAsync(null, direction:HttpDirection.In).Result.ToString();
+                            });
                             
                             var filter = LoopbackFilter ?? LoopbackBrowser.DefaultLoopbackFilter;
                             switch (await filter.Invoke(ctx.Request))
@@ -113,7 +117,7 @@ namespace TetraPak.XP.Browsers
             }
             catch (Exception ex)
             {
-                _log.Error(ex);
+                log.Error(ex);
                 throw;
             }
         }

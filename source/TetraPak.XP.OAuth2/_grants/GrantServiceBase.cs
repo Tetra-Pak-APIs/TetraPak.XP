@@ -114,7 +114,7 @@ namespace TetraPak.XP.OAuth2
                     new ConfigurationException("Client credentials have not been provisioned")));
 
             var secret = context.Configuration.ClientSecret;
-            return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity!, secret!)));
+            return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity, secret!)));
         }
 
         /// <summary>
@@ -225,10 +225,11 @@ namespace TetraPak.XP.OAuth2
                 return;
 
             var key = appCredentialsOutcome.Value!.Identity;
+            var cacheRepository = context.GetRefreshTokenCacheRepository();
             await TokenCache!.CreateOrUpdateAsync(
                 refreshToken,
                 key,
-                CacheRepositories.Tokens.Refresh,
+                cacheRepository,
                 spawnTimeUtc: DateTime.UtcNow);
         }
         
@@ -244,9 +245,10 @@ namespace TetraPak.XP.OAuth2
                 return Outcome<ActorToken>.Fail("Could not resolve app credentials");
 
             var key = appCredentialsOutcome.Value!.Identity;
+            var cacheRepository = context.GetRefreshTokenCacheRepository();
             var cachedOutcome = await TokenCache.ReadAsync<ActorToken>(
                 key,
-                CacheRepositories.Tokens.Refresh,
+                cacheRepository,
                 cancellationToken);
         
             if (!cachedOutcome)

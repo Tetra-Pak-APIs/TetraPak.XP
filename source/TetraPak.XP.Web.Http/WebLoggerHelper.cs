@@ -2,11 +2,14 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder.Internal;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Streaming;
 using TetraPak.XP.Web.Http.Debugging;
+using HttpMethod=Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpMethod;
 
 namespace TetraPak.XP.Web.Http
 {
@@ -71,7 +74,7 @@ namespace TetraPak.XP.Web.Http
         }
 
         // /// <summary>
-        // ///   Builds and a state dump from a <see cref="TetraPakConfig"/> object and writes it to the logger. 
+        // ///   Builds and a state dump from a <see cref="TetraPakConfig"/> object and writes it to the logger.  obsolete
         // /// </summary>
         // /// <param name="logger">
         // ///   The extended logger provider.
@@ -110,6 +113,22 @@ namespace TetraPak.XP.Web.Http
         //
         //     logger.LogLevel(await stateDump.BuildAsStringAsync(), logLevel);
         // }
+
+        public static Task<StringBuilder> ToStringBuilderAsync(
+            this Uri uri,
+            StringBuilder? stringBuilder,
+            HttpMethod httpMethod = HttpMethod.Get,
+            HttpDirection direction = HttpDirection.Out)
+        {
+            stringBuilder ??= new StringBuilder();
+            var qualifier = TraceRequest.GetTraceRequestQualifier(direction, null, null);
+            stringBuilder.Append(qualifier);
+            stringBuilder.Append("  ");
+            stringBuilder.Append(httpMethod.ToString());
+            stringBuilder.Append("  ");
+            stringBuilder.AppendLine(uri.ToString());
+            return Task.FromResult(stringBuilder);
+        }
         
         /// <summary>
         ///   Builds a textual representation of the <see cref="GenericHttpRequest"/>.

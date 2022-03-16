@@ -22,7 +22,7 @@ namespace TetraPak.XP.OAuth2
         
         public static string GetRefreshTokenCacheRepository(this AuthContext context)
         {
-            return $"{context.GetGrantCacheRepository()}/{CacheRepositories.Tokens.Refresh}"; 
+            return $"{context.GetGrantCacheRepository()}_{CacheRepositories.Tokens.Refresh}";
         }
 
     }

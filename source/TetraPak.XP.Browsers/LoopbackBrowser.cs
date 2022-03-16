@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +15,8 @@ namespace TetraPak.XP.Browsers
     public abstract class LoopbackBrowser : ILoopbackBrowser
     {
         LoopbackHost? _loopbackHost;
-        readonly ILog? _log;
+        
+        protected ILog? Log { get; }
 
         public LoopbackFilter? LoopbackFilter { get; set; }
 
@@ -64,7 +64,7 @@ namespace TetraPak.XP.Browsers
             TimeSpan? timeout = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _loopbackHost = new LoopbackHost(loopbackHostUri, _log);
+            _loopbackHost = new LoopbackHost(loopbackHostUri, Log);
             try
             {
                 _loopbackHost.LoopbackFilter = LoopbackFilter;
@@ -113,7 +113,7 @@ namespace TetraPak.XP.Browsers
 
         public LoopbackBrowser(ILog? log)
         {
-            _log = log;
+            Log = log;
         }
      }
 }

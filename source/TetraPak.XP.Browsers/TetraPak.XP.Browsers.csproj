@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.Web.Http\TetraPak.XP.Web.Http.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Web\TetraPak.XP.Web.csproj" />
   </ItemGroup>
 

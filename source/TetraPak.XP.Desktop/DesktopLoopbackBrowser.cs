@@ -5,6 +5,7 @@ using TetraPak.XP.Browsers;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;using TetraPak.XP.Web;
+using TetraPak.XP.Web.Http;
 
 [assembly:XpService(typeof(ILoopbackBrowser), typeof(DesktopLoopbackBrowser))]
 
@@ -14,6 +15,7 @@ namespace TetraPak.XP.Desktop
     {
         protected override void OnOpenBrowser(Uri uri) // todo redesign to support opening browsers on all (also mobile) platforms
         {
+            Log.Trace(uri.ToStringBuilderAsync(null).Result.ToString());
             var url = uri.AbsoluteUri;
             try
             {
