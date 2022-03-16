@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection;
 using TetraPak.XP;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
@@ -79,6 +80,9 @@ namespace authClient.console
             if (value is not string stringValue)
                 return Outcome<CachedItem<T>>.Fail($"Could not deserialize cached value '{entry.Path}'");
 
+            if (typeof(T) == typeof(string) || typeof(T).IsImplementingInterface<IStringValue>())
+                return await base.GetValidItemAsync<T>(entry);
+                
             try
             {
                 using var stream = stringValue.ToStream();

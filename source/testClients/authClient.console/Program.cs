@@ -71,7 +71,15 @@ namespace authClient.console
 
         static async Task doCommandAsync(string? command, Auth auth)
         {
-            switch (command)
+            var cmd = command?.Trim() ?? string.Empty;
+            if (isSequence(cmd, out var commandSequence))
+            {
+                await runSequenceAsync(commandSequence, auth);
+                return;
+            }
+            
+            Console.WriteLine($"--> {cmd}");
+            switch (cmd)
             {
                 case HelpCommand:
                     outHelp();
@@ -117,6 +125,27 @@ namespace authClient.console
                     Console.WriteLine($"Unknown command: {command}");
                     break;
             }
+        }
+
+        static async Task runSequenceAsync(string[] commands, Auth auth)
+        {
+            foreach (var command in commands)
+            {
+                await doCommandAsync(command, auth);
+            }
+        }
+
+        static bool isSequence(string command, out string[] commands)
+        {
+            if (!command.StartsWith("#"))
+            {
+                commands = Array.Empty<string>();
+                return false;
+            }
+
+            
+            commands = command.Substring(1).Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            return true;
         }
 
         static string? getCommandFromConsole() => Console.ReadLine()?.ToLower();

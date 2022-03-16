@@ -173,6 +173,9 @@ namespace TetraPak.XP
             return sb.ToString();
         }
 
+        /// <summary>
+        ///   Splits a camel-cased string at every capital letter and returns the individual words. 
+        /// </summary>
         public static string SplitCamelCase(this string self)
         {
             var ca = self.Trim().ToCharArray();

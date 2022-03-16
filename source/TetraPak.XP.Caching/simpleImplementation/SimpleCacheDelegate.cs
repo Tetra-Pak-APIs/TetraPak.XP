@@ -183,18 +183,40 @@ namespace TetraPak.XP.Caching
                         new InvalidOperationException($"Cache delegate expected repository of type {typeof(SimpleCache)}")));
             
             var path = (RepositoryPath)entry.Path;
-
-            var valueType = entry.GetValueType();
-            if (!typeof(T).IsAssignableFrom(valueType))
-                return Task.FromResult(Outcome<CachedItem<T>>.Fail(
-                    new InvalidCastException($"Cannot cast value of type {valueType} to {typeof(T)}")));
-            
             if (!entry.IsLive(out var expireTimeUtc))
                 return Task.FromResult(
                     Outcome<CachedItem<T>>.Fail(
-                        new ArgumentOutOfRangeException($"Cached value is not available: {entry.Path}")));
+                        new ArgumentOutOfRangeException($"Cached value is not available: {path}")));
 
-            var value = (T)entry.GetValue();
+            var obj = entry.GetValue();
+            T value = default!;
+            var valueType = entry.GetValueType();
+            if (obj is string)
+            {
+                // special case: string or IStringValue ...
+                if (typeof(T) == typeof(string))
+                {
+                    value = (T)obj;
+                }
+                else if (typeof(T).IsImplementingInterface<IStringValue>())
+                {
+                    var ctor = typeof(T).GetConstructor(new[] { typeof(string) });
+                    if (ctor is null)
+                        return Task.FromResult(Outcome<CachedItem<T>>.Fail(
+                            new InvalidCastException($"Cannot cast value of type {valueType} to {typeof(T)} because the string value type lacks the correct ctor")));
+
+                    value = (T) ctor.Invoke(new[] {obj});
+                }
+                else
+                {
+                    value = (T) obj;
+                }
+            }
+            else if (!typeof(T).IsAssignableFrom(valueType))
+                return Task.FromResult(Outcome<CachedItem<T>>.Fail(
+                    new InvalidCastException($"Cannot cast value of type {valueType} to {typeof(T)}")));
+            
+            // var value = (T)entry.GetValue();
             var extendedLifSpan = entry.Repositories.GetExtendedLifeSpan(path.Repository);
             if (extendedLifSpan != TimeSpan.Zero)
             {

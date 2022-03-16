@@ -1,6 +1,5 @@
 ﻿#if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 #endif
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
@@ -153,6 +152,12 @@ namespace TetraPak.XP.Auth.Abstractions
         public ActorToken()
         {
         }
+        
+        public ActorToken(string stringValue) 
+        // ReSharper disable once IntroduceOptionalParameters.Global
+        : this(stringValue, true)
+        {
+        }
 
         /// <summary>
         ///   Initializes an <see cref="ActorToken"/> from its textual representation.
@@ -164,7 +169,7 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   (optional; default=<c>true</c>)<br/>
         ///   Specifies whether to automatically parse the textual representation.
         /// </param>
-        public ActorToken(string stringValue, bool parse = true) 
+        public ActorToken(string stringValue, bool parse) 
         : this()
         {
             if (!parse)

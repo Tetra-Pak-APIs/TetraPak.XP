@@ -158,7 +158,7 @@ namespace authClient.console
             if (string.IsNullOrEmpty(s))
                 return useDefault;
             
-            return s.TryParseEnum(typeof(LogRank), out var obj) && obj is LogRank logRank
+            return s!.TryParseEnum(typeof(LogRank), out var obj) && obj is LogRank logRank
                 ? logRank
                 : useDefault;
         }

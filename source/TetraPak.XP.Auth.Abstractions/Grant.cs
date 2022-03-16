@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Caching.Abstractions;
@@ -80,7 +79,7 @@ namespace TetraPak.XP.Auth.Abstractions
         
         public bool IsExpired => Expires <= DateTime.UtcNow;
 
-        [JsonConstructor]
+        //[JsonConstructor]
         public Grant(params TokenInfo[] tokens)
         { 
             Tokens = tokens;
@@ -135,7 +134,7 @@ namespace TetraPak.XP.Auth.Abstractions
 
         bool isTokenExpired() => Expires.HasValue && Expires.Value <= DateTime.Now;
 
-        [JsonConstructor]
+        //[JsonConstructor]
         public TokenInfo(
             ActorToken token, 
             TokenRole role, 
@@ -210,7 +209,7 @@ namespace TetraPak.XP.Auth.Abstractions
             _accessToken = accessToken;
             _log = log;
             _tcs = new TaskCompletionSource<Outcome<UserInformation>>();
-            downloadAsync(new Uri(discoDoc.UserInformationEndpoint));
+            downloadAsync(new Uri(discoDoc.UserInformationEndpoint!));
         }
     }
 
