@@ -5,10 +5,10 @@
         <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>
 
-        <AssemblyVersion>0.1.11</AssemblyVersion>
-        <FileVersion>0.1.11</FileVersion>
-        <Version>0.1.11</Version>
-        <PackageVersion>1.0.0-alpha.11</PackageVersion>
+        <AssemblyVersion>0.1.12</AssemblyVersion>
+        <FileVersion>0.1.12</FileVersion>
+        <Version>0.1.12</Version>
+        <PackageVersion>1.0.0-alpha.12</PackageVersion>
 
         <Title>Tetra Pak SDK library for cross-platform (XP) applications</Title>
         <Description>A common set of code APIs and tools for Tetra Pak .NET development</Description>
