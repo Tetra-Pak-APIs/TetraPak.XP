@@ -19,5 +19,11 @@ namespace TetraPak.XP.OAuth2
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
+        
+        public static string GetRefreshTokenCacheRepository(this AuthContext context)
+        {
+            return $"{context.GetGrantCacheRepository()}/{CacheRepositories.Tokens.Refresh}"; 
+        }
+
     }
 }

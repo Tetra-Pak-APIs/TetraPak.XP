@@ -68,14 +68,8 @@ namespace TetraPak.XP.OAuth2
         /// <returns>
         ///   <c>true</c> if the Refresh Grant is currently available and possible; otherwise <c>false</c>.
         /// </returns>
-        protected async Task<Outcome<ActorToken>> IsRefreshingGrantsAsync(AuthContext context)
-        {
-            if (RefreshTokenGrantService is null || !context.Options.IsRefreshAllowed)
-                return Outcome<ActorToken>.Fail("Refresh not allowed or no refresh token service available");
-                    
-            return await GetCachedRefreshTokenAsync(context);
-        }
-        
+        protected bool IsRefreshingGrants(AuthContext context) => RefreshTokenGrantService is {} && context.Options.IsRefreshAllowed;
+
         /// <summary>
         ///   A (secure) cache to be used fo caching <see cref="Grant"/>s or individual tokens.
         /// </summary>
@@ -273,10 +267,9 @@ namespace TetraPak.XP.OAuth2
                 return;
         
             var key = appCredentialsOutcome.Value!.Identity;
-            var cacheRepository = context.GetGrantCacheRepository();
+            var cacheRepository = context.GetRefreshTokenCacheRepository();
             await TokenCache!.DeleteAsync(key, cacheRepository);
         }
-
 
         public async Task ClearCachedGrantsAsync()
         {

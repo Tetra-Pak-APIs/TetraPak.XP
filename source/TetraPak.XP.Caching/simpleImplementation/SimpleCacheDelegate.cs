@@ -189,7 +189,7 @@ namespace TetraPak.XP.Caching
                         new ArgumentOutOfRangeException($"Cached value is not available: {path}")));
 
             var obj = entry.GetValue();
-            T value = default!;
+            T value;
             var valueType = entry.GetValueType();
             if (obj is string)
             {
@@ -215,6 +215,10 @@ namespace TetraPak.XP.Caching
             else if (!typeof(T).IsAssignableFrom(valueType))
                 return Task.FromResult(Outcome<CachedItem<T>>.Fail(
                     new InvalidCastException($"Cannot cast value of type {valueType} to {typeof(T)}")));
+            else
+            {
+                value = (T) obj;
+            }
             
             // var value = (T)entry.GetValue();
             var extendedLifSpan = entry.Repositories.GetExtendedLifeSpan(path.Repository);

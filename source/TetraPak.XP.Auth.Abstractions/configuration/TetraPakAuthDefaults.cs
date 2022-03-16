@@ -6,7 +6,7 @@
     public static class TetraPakAuthDefaults
     {
         internal const RuntimeEnvironment RuntimeEnvironment = XP.RuntimeEnvironment.Production;
-        internal const string ProductionDomain = "https://api-dev.tetrapak.com";
+        internal const string ProductionDomain = "https://api.tetrapak.com";
         internal const string MigrationDomain = "https://api-mig.tetrapak.com";
         internal const string DevelopmentDomain = "https://api-dev.tetrapak.com";
         internal const string SandboxDomain = "https://api-sb.tetrapak.com";

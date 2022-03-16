@@ -22,8 +22,4 @@
       <ProjectReference Include="..\TetraPak.XP.Serialization\TetraPak.XP.Serialization.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    </ItemGroup>
-
 </Project>

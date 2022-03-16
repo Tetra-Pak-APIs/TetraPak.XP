@@ -78,7 +78,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return cachedGrantOutcome;
             
             // await DeleteCachedGrantAsync(ctx); obsolete
-            if (!await IsRefreshingGrantsAsync(ctx))
+            if (!IsRefreshingGrants(ctx))
                 return await onAuthorizationDone(
                     await acquireTokenViaWebUIAsync(authorityUri,  
                         tokenIssuerUri,

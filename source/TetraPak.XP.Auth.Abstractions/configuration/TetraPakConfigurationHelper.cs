@@ -54,7 +54,7 @@ namespace TetraPak.XP.Auth.Abstractions
                     return Outcome<T>.Success(tEnvironment);
 
                 var resolver = tpConf.RuntimeEnvironmentResolver;
-                env = resolver.ResolveRuntimeEnvironment(RuntimeEnvironment.Unknown);
+                env = resolver.ResolveRuntimeEnvironment();
                 return env is T tv
                     ? Outcome<T>.Success(tv)
                     : Outcome<T>.Fail(new Exception("Cannot resolve runtime environment"));
