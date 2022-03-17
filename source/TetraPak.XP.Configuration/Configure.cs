@@ -310,15 +310,6 @@ namespace TetraPak.XP.Configuration
             ConfigurationSectionDecorator? parent, 
             string key)
         {
-            // if (parent is null)
-            // {
-            //     var conf = XpServices.GetRequired<IConfiguration>(); obsolete
-            //     section = conf.GetSubSection(key);
-            // }
-            // var path = new ConfigPath(key);
-            // if (path.Count != 1) 
-            //     throw new ArgumentException($"Unexpected sub section key: '{key}'", nameof(key));
-            
             var section = parent is { }
                 ? parent.GetSubSection(key)
                 : XpServices.GetRequired<IConfiguration>().GetSubSection(key);

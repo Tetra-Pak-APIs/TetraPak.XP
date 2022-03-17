@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using TetraPak.XP.Logging;

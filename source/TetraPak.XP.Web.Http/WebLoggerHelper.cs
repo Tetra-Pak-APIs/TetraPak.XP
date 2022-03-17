@@ -116,12 +116,13 @@ namespace TetraPak.XP.Web.Http
 
         public static Task<StringBuilder> ToStringBuilderAsync(
             this Uri uri,
+            string? initiator,
             StringBuilder? stringBuilder,
             HttpMethod httpMethod = HttpMethod.Get,
             HttpDirection direction = HttpDirection.Out)
         {
             stringBuilder ??= new StringBuilder();
-            var qualifier = TraceRequest.GetTraceRequestQualifier(direction, null, null);
+            var qualifier = TraceRequest.GetTraceRequestQualifier(direction, initiator, null);
             stringBuilder.Append(qualifier);
             stringBuilder.Append("  ");
             stringBuilder.Append(httpMethod.ToString());

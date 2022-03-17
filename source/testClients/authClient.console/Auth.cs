@@ -121,8 +121,7 @@ namespace authClient.console
                 .ConfigureServices(collection =>
                 {
                     _serviceProvider = XpServices
-                        .BuildFor().Desktop()
-                        .AddServiceCollection(collection)
+                        .BuildFor().Desktop().WithServiceCollection(collection)
                         .AddTetraPakConfiguration()
                         .AddTetraPakWebServices()
                         .AddTokenCaching() 

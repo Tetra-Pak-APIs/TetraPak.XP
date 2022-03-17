@@ -77,9 +77,8 @@ namespace TetraPak.XP.OAuth2.AuthCode
             if (cachedGrantOutcome)
                 return cachedGrantOutcome;
             
-            // await DeleteCachedGrantAsync(ctx); obsolete
             if (!IsRefreshingGrants(ctx))
-                return await onAuthorizationDone(
+                return await onAuthorizationDoneAsync(
                     await acquireTokenViaWebUIAsync(authorityUri,  
                         tokenIssuerUri,
                         authState, 
@@ -91,7 +90,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
             // attempt refresh token ...
             var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(ctx);
             if (!cachedRefreshTokenOutcome)
-                return await onAuthorizationDone(
+                return await onAuthorizationDoneAsync(
                     await acquireTokenViaWebUIAsync(authorityUri,
                         tokenIssuerUri,
                         authState,
@@ -101,15 +100,12 @@ namespace TetraPak.XP.OAuth2.AuthCode
                         messageId));
             
             var refreshToken = cachedRefreshTokenOutcome.Value!;
-            var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(
-                refreshToken, 
-                options.WithGrantCacheRepository(CacheRepositories.Tokens.OIDC));
-
+            var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(refreshToken, options);
             if (refreshOutcome)
-                return await onAuthorizationDone(refreshOutcome);
+                return await onAuthorizationDoneAsync(refreshOutcome);
 
             // run the OIDC 'dance' through a browser ... 
-            return await onAuthorizationDone(
+            return await onAuthorizationDoneAsync(
                 await acquireTokenViaWebUIAsync(authorityUri, 
                     tokenIssuerUri, 
                     authState, 
@@ -118,7 +114,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     ctx, 
                     messageId));
             
-            async Task<Outcome<Grant>> onAuthorizationDone(Outcome<Grant> outcome)
+            async Task<Outcome<Grant>> onAuthorizationDoneAsync(Outcome<Grant> outcome)
             {
                 if (!outcome)
                     return outcome;

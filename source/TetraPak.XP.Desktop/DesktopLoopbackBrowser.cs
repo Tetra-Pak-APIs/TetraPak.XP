@@ -15,7 +15,7 @@ namespace TetraPak.XP.Desktop
     {
         protected override void OnOpenBrowser(Uri uri) // todo redesign to support opening browsers on all (also mobile) platforms
         {
-            Log.Trace(uri.ToStringBuilderAsync(null).Result.ToString());
+            Log.Trace(uri.ToStringBuilderAsync(ToString(), null).Result.ToString());
             var url = uri.AbsoluteUri;
             try
             {

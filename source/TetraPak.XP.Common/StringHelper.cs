@@ -787,8 +787,6 @@ namespace TetraPak.XP
         /// <summary>
         ///   Produces and returns a <see cref="MemoryStream"/> from the string.
         /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
         public static Stream ToStream(this string self) => new MemoryStream(Encoding.ASCII.GetBytes(self));
 
         public static string GetMatchingPrefix(this string self, string compare)

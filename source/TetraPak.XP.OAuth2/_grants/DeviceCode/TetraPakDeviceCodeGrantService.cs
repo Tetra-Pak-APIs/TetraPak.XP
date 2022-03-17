@@ -19,8 +19,6 @@ namespace TetraPak.XP.OAuth2.DeviceCode
 {
     sealed class TetraPakDeviceCodeGrantService : GrantServiceBase, IDeviceCodeGrantService
     {
-        const string CacheRepository = CacheRepositories.Tokens.DeviceCode;
-
         protected override GrantType GetGrantType() => GrantType.DeviceCode;
         
         public async Task<Outcome<Grant>> AcquireTokenAsync(
@@ -33,7 +31,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.DeviceCode, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
-            
+
             var ctx = authContextOutcome.Value!;
             var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
             if (!appCredentialsOutcome)
@@ -51,11 +49,20 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                         return cachedOutcome;
                 }
 
+                var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(ctx);
+                if (cachedRefreshTokenOutcome)
+                {
+                    var refreshToken = cachedRefreshTokenOutcome.Value!;
+                    var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(refreshToken, options);
+                    if (refreshOutcome)
+                        return await onAuthorizationDoneAsync(refreshOutcome, ctx);
+                }
+
                 var clientOutcome = await GetHttpClientAsync();
                 if (!clientOutcome)
                     return Outcome<Grant>.Fail(
                         new HttpServerConfigurationException(
-                            "Client credentials service failed to obtain a HTTP client (see inner exception)",
+                            "Device code grant service failed to obtain a HTTP client (see inner exception)",
                             clientOutcome.Exception));
 
                 using var client = clientOutcome.Value!;
@@ -90,7 +97,6 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                     : null;
 
                 var response = await client.SendAsync(request, cts.Token);
-
                 if (sb is { })
                 {
                     sb.AppendLine();
@@ -132,7 +138,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                     if (codeVerificationOutcome.Value?.IsPendingVerification() ?? false)
                         continue;
 
-                    return codeVerificationOutcome;
+                    return await onAuthorizationDoneAsync(codeVerificationOutcome, ctx);
                 }
 
                 return cts.Token.IsCancellationRequested
@@ -146,7 +152,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             }
             catch (Exception ex)
             {
-                ex = new Exception($"Failed to acquire token using client credentials. {ex.Message}", ex);
+                ex = new Exception($"Failed to acquire token using Device Code grant. {ex.Message}", ex);
                 Log.Error(ex);
                 return Outcome<Grant>.Fail(ex);
             }
@@ -249,7 +255,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                     return outcome;
                 }
 
-                message.AppendLine("Client credentials failure (state dump to follow if DEBUG log level is enabled)");
+                message.AppendLine("Device Code grant failure (state dump to follow if DEBUG log level is enabled)");
                 if (Log?.IsEnabled(LogRank.Debug) ?? false)
                 {
                     var dump = new StateDump().WithStackTrace();
@@ -260,6 +266,20 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 Log.Error(outcome.Exception!, message.ToString(), messageId);
                 return Outcome<Grant>.Fail(outcome.Exception!);
             }
+        }
+        
+        async Task<Outcome<Grant>> onAuthorizationDoneAsync(Outcome<Grant> outcome, AuthContext ctx)
+        {
+            if (!outcome)
+                return outcome;
+                    
+            var grant = outcome.Value!;
+            await CacheGrantAsync(ctx, grant);
+            if (grant.RefreshToken is { })
+            {
+                await CacheRefreshTokenAsync(ctx, grant.RefreshToken);
+            }
+            return outcome;
         }
         
         static Outcome<FormUrlEncodedContent> makeTokenRequestBody(
@@ -276,8 +296,8 @@ namespace TetraPak.XP.OAuth2.DeviceCode
         
             var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
             return string.IsNullOrWhiteSpace(tokenIssuerUri) 
-                ? ctx.Configuration.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(IAuthConfiguration.TokenIssuerUri)) 
-                : Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(formsValues));
+                ? ctx.Configuration.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(IAuthConfiguration.TokenIssuerUri))
+                : Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(formsValues!));
         }
 
         static async Task<bool> isPendingUserCodeAsync(HttpResponseMessage response, CancellationToken cancellationToken)

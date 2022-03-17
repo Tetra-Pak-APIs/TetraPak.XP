@@ -90,7 +90,7 @@ namespace TetraPak.XP.Browsers
                                 var r = ctx.Request;
                                 var port = r.Host.Port ?? loopbackHost.Port;
                                 var uri = new UriBuilder(r.Scheme, r.Host.Host, port, r.PathBase + r.QueryString).Uri;
-                                return uri.ToStringBuilderAsync(null, direction:HttpDirection.In).Result.ToString();
+                                return uri.ToStringBuilderAsync(ToString(), null, direction:HttpDirection.In).Result.ToString();
                             });
                             
                             var filter = LoopbackFilter ?? LoopbackBrowser.DefaultLoopbackFilter;

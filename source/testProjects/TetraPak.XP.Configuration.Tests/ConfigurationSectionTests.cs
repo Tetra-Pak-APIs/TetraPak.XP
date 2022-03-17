@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -28,8 +27,7 @@ namespace TetraPak.XP.Desktop.Tests
                     if (environmentResolver is {})
                     {
                         provider = XpServices
-                            .BuildFor().Desktop()
-                            .AddServiceCollection(collection)
+                            .BuildFor().Desktop().WithServiceCollection(collection)
                             .AddSingleton<IRuntimeEnvironmentResolver>(p => environmentResolver)
                             .AddTetraPakConfiguration()
                             .BuildXpServices();
@@ -37,8 +35,7 @@ namespace TetraPak.XP.Desktop.Tests
                     else
                     {
                         provider = XpServices
-                            .BuildFor().Desktop()
-                            .AddServiceCollection(collection)
+                            .BuildFor().Desktop().WithServiceCollection(collection)
                             .AddTetraPakConfiguration()
                             .BuildXpServices();
                     }

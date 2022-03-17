@@ -31,14 +31,14 @@ namespace TetraPak.XP.OAuth2.Refresh
             return collection;
         }
 
-        public static GrantOptions WithGrantCacheRepository(this GrantOptions options, string grantCacheRepository)
-        {
-            return options.WithData(GrantCacheRepoKey, grantCacheRepository);
-        }
-        
-        public static string GetGrantCacheRepository(this GrantOptions options)
-        {
-            return options.GetData<string>(GrantCacheRepoKey);
-        }
+        // public static GrantOptions WithGrantCacheRepository(this GrantOptions options, string grantCacheRepository) obsolete
+        // {
+        //     return options.WithData(GrantCacheRepoKey, grantCacheRepository);
+        // }
+        //
+        // public static string GetGrantCacheRepository(this GrantOptions options)
+        // {
+        //     return options.GetData<string>(GrantCacheRepoKey);
+        // }
     }
 }

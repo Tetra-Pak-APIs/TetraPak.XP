@@ -509,7 +509,7 @@ namespace TetraPak.XP.DependencyInjection
             
         public IServiceCollection GetServiceCollection() => XpServices.GetServiceCollection();
 
-        public IServiceCollection AddServiceCollection(IServiceCollection collection) 
+        public IServiceCollection WithServiceCollection(IServiceCollection collection) 
             =>
             XpServices.UseServiceCollection(collection);
 
