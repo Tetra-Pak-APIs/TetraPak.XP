@@ -176,10 +176,20 @@ namespace TetraPak.XP.Configuration
                     return false;
                 },
                 
+                // numeric
+                (string? stringValue, Type tgtType, out object? o, object useDefault) =>
+                {
+                    if (tgtType.IsNumeric() && stringValue.TryParseNumeric(tgtType, out o)) 
+                        return true;
+                    
+                    o = null!;
+                    return false;
+                },
+                
                 // enum
                 (string? stringValue, Type tgtType, out object? o, object useDefault) =>
                 {
-                    if (tgtType.IsEnum)
+                    if (!tgtType.IsEnum)
                     {
                         o = null!;
                         return false;

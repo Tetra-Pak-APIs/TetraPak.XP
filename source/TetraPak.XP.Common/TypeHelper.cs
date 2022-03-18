@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 #if NET5_0_OR_GREATER
@@ -250,6 +251,91 @@ namespace TetraPak.XP
             }
         }
 
+        public static bool TryParseNumeric(
+            this string? stringValue,
+            Type targetType, 
+            out object? value,
+            NumberStyles numberStyles = NumberStyles.Integer,
+            IFormatProvider? provider = null)
+        {
+            value = null;
+            if (string.IsNullOrEmpty(stringValue))
+                return false;
+            
+            provider ??= NumberFormatInfo.CurrentInfo;
+            switch (Type.GetTypeCode(targetType))
+            {
+                case TypeCode.Byte:
+                    if (!byte.TryParse(stringValue, numberStyles, provider, out var byteValue))
+                        return false;
+                    value = byteValue;
+                    return true;
+                    
+                case TypeCode.SByte:
+                    if (!sbyte.TryParse(stringValue, numberStyles, provider, out var sbyteValue))
+                        return false;
+                    value = sbyteValue;
+                    return true;
+                    
+                case TypeCode.Int16:
+                    if (!short.TryParse(stringValue, numberStyles, provider, out var shortValue))
+                        return false;
+                    value = shortValue;
+                    return true;
+                    
+                case TypeCode.Int32:
+                    if (!int.TryParse(stringValue, numberStyles, provider, out var intValue))
+                        return false;
+                    value = intValue;
+                    return true;
+                    
+                case TypeCode.Int64:
+                    if (!long.TryParse(stringValue, numberStyles, provider, out var longValue))
+                        return false;
+                    value = longValue;
+                    return true;
+                    
+                case TypeCode.UInt16:
+                    if (!ushort.TryParse(stringValue, numberStyles, provider, out var ushortValue))
+                        return false;
+                    value = ushortValue;
+                    return true;
+                    
+                case TypeCode.UInt32:
+                    if (!uint.TryParse(stringValue, numberStyles, provider, out var uintValue))
+                        return false;
+                    value = uintValue;
+                    return true;
+                    
+                case TypeCode.UInt64:
+                    if (!ulong.TryParse(stringValue, numberStyles, provider, out var ulongValue))
+                        return false;
+                    value = ulongValue;
+                    return true;
+                    
+                case TypeCode.Decimal:
+                    if (!decimal.TryParse(stringValue, numberStyles, provider, out var decimalValue))
+                        return false;
+                    value = decimalValue;
+                    return true;
+                    
+                case TypeCode.Single:
+                    if (!float.TryParse(stringValue, numberStyles, provider, out var floatValue))
+                        return false;
+                    value = floatValue;
+                    return true;
+                    
+                case TypeCode.Double:
+                    if (!double.TryParse(stringValue, numberStyles, provider, out var doubleValue))
+                        return false;
+                    value = doubleValue;
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         public static bool IsZero(this object? self, bool nullIsZero = false)
         {
             if (self is null)
@@ -310,7 +396,10 @@ namespace TetraPak.XP
         public static bool TryGetGenericBase(
             this Type self,
             Type genericType, 
-            /*[NotNullWhen(true)]*/ out Type? type, 
+#if NET5_0_OR_GREATER            
+            [NotNullWhen(true)]
+#endif            
+            out Type? type, 
             bool inherited = true)
         {
             if (!genericType.IsGenericType || genericType.GenericTypeArguments.Length != 0) 

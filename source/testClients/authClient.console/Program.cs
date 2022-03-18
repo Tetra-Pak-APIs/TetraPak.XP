@@ -11,12 +11,12 @@ namespace authClient.console
     {
         const string QuitCommand = "q";
         const string CancelCommand = "c";
-        const string NewCcTokenCommand = "cc";
-        const string SilentCcCommand = "scc";
-        const string NewOidcTokenCommand = "ac";
-        const string SilentOidcCommand = "sac";
-        const string NewDcTokenCommand = "dc";
-        const string SilentDcCommand = "sdc";
+        const string CcCommand = "cc";
+        const string ForcedCcCommand = "fcc";
+        const string OidcCommand = "ac";
+        const string ForcedOidcCommand = "fac";
+        const string DcCommand = "dc";
+        const string ForcedDcCommand = "fdc";
         const string ClearCachedGrantsCommand = "-g";
         const string ClearCachedRefreshTokensCommand = "-r";
         const string HelpCommand = "?";
@@ -85,27 +85,27 @@ namespace authClient.console
                     outHelp();
                     break;
                     
-                case NewOidcTokenCommand:
-                    await auth.AcquireTokenAsync(GrantType.OIDC, s_cts, false);
+                case OidcCommand:
+                    await auth.AcquireTokenAsync(GrantType.OIDC, s_cts);
                     break;
                 
-                case SilentOidcCommand:
+                case ForcedOidcCommand:
                     await auth.AcquireTokenAsync(GrantType.OIDC, s_cts, true);
                     break;
                 
-                case NewCcTokenCommand:
-                    await auth.AcquireTokenAsync(GrantType.CC, s_cts, false);
+                case CcCommand:
+                    await auth.AcquireTokenAsync(GrantType.CC, s_cts);
                     break;
                 
-                case SilentCcCommand:
+                case ForcedCcCommand:
                     await auth.AcquireTokenAsync(GrantType.CC, s_cts, true);
                     break;
                 
-                case NewDcTokenCommand:
-                    await auth.AcquireTokenAsync(GrantType.DC, s_cts, false);
+                case DcCommand:
+                    await auth.AcquireTokenAsync(GrantType.DC, s_cts);
                     break;
 
-                case SilentDcCommand:
+                case ForcedDcCommand:
                     await auth.AcquireTokenAsync(GrantType.DC, s_cts, true);
                     break;
 

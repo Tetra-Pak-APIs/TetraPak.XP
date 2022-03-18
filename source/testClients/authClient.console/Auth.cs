@@ -25,13 +25,13 @@ namespace authClient.console
         ILog? _log;
         IServiceProvider? _serviceProvider;
 
-        public Task AcquireTokenAsync(GrantType grantType, CancellationTokenSource cts, bool silent)
+        public Task AcquireTokenAsync(GrantType grantType, CancellationTokenSource cts, bool forced = false)
         {
             return Task.Run(async () =>
             {
-                var options = silent 
-                    ? GrantOptions.Silent(cts) 
-                    : GrantOptions.Forced(cts);
+                var options = forced 
+                    ? GrantOptions.Forced(cts)
+                    : GrantOptions.Silent(cts);
                 var provider = _serviceProvider ?? throw new Exception("No service provider!");
                 switch (grantType)
                 {
