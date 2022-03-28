@@ -2,7 +2,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using JsonWebKeySet = TetraPak.XP.Auth.Abstractions.OIDC.JsonWebKeySet;
 
 namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
@@ -11,6 +10,8 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
     /// </summary>
     public class IdTokenValidator
     {
+        readonly IDiscoveryDocumentProvider _discoveryDocumentProvider;
+
         /// <summary>
         ///   Gets or sets the policy used for discovery.
         /// </summary>
@@ -20,18 +21,26 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         {
             try
             {
-                var downloadOutcome = await DiscoveryDocument.DownloadAsync(idToken.StringValue);
-                if (!downloadOutcome)
-                    return Outcome<ClaimsPrincipal>.Fail(downloadOutcome.Exception!);
+                var discoOutcome = await _discoveryDocumentProvider.GetDiscoveryDocument(idToken);
+                if (!discoOutcome)
+                    return Outcome<ClaimsPrincipal>.Fail(discoOutcome.Exception!);
 
-                var jwksOutcome = await JsonWebKeySet.DownloadAsync(downloadOutcome.Value!.JwksUri);
+                // var downloadOutcome = await DiscoveryDocument.DownloadAsync(idToken.StringValue); obsolete
+                // if (!downloadOutcome)
+                //     return Outcome<ClaimsPrincipal>.Fail(downloadOutcome.Exception!);
+
+                var disco = discoOutcome.Value!;
+                if (string.IsNullOrEmpty(disco.JwksUri))
+                    return Outcome<ClaimsPrincipal>.Fail("Discovery document does not specify a JWKS uri");
+                    
+                var jwksOutcome = await JsonWebKeySet.DownloadAsync(discoOutcome.Value!.JwksUri!);
                 if (!jwksOutcome)
                     return Outcome<ClaimsPrincipal>.Fail(jwksOutcome.Exception!);
 
                 options ??= new JwtTokenValidationOptions();
                 var parameters = options.ToTokenValidationParameters(
                     new JwtSecurityToken(idToken), 
-                    downloadOutcome.Value, 
+                    discoOutcome.Value, 
                     jwksOutcome.Value!);
                 var handler = new JwtSecurityTokenHandler();
                 handler.InboundClaimTypeMap.Clear();
@@ -64,7 +73,8 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         ///   Initializes a new instance of the <seealso cref="IdTokenValidator"/>
         ///   using the default discovery policy.
         /// </summary>
-        public IdTokenValidator() : this(new DiscoveryPolicy())
+        public IdTokenValidator(IDiscoveryDocumentProvider discoveryDocumentProvider) 
+        : this(discoveryDocumentProvider, new DiscoveryPolicy())
         {
         }
 
@@ -72,8 +82,9 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         ///   Initializes a new instance of the <seealso cref="IdTokenValidator"/>
         ///   while specifying the discovery policy.
         /// </summary>
-        public IdTokenValidator(DiscoveryPolicy discoveryPolicy)
+        public IdTokenValidator(IDiscoveryDocumentProvider discoveryDocumentProvider, DiscoveryPolicy discoveryPolicy)
         {
+            _discoveryDocumentProvider = discoveryDocumentProvider;
             DiscoveryPolicy = discoveryPolicy;
         }
     }

@@ -17,6 +17,8 @@ namespace TetraPak.XP.OAuth2.Refresh
 {
     class TetraPakRefreshTokenGrantService : GrantServiceBase, IRefreshTokenGrantService
     {
+        readonly IDiscoveryDocumentProvider _discoveryDocumentProvider;
+        
         protected override GrantType GetGrantType() => GrantType.Refresh;
         
         /// <inheritdoc />
@@ -120,9 +122,9 @@ namespace TetraPak.XP.OAuth2.Refresh
                 return Outcome<Grant>.Success(new Grant(tokens.ToArray()));
             }
             
-            static async Task<Outcome<ActorToken>> validateIdTokenAsync(ActorToken idToken)
+             async Task<Outcome<ActorToken>> validateIdTokenAsync(ActorToken idToken)
             {
-                var validator = new IdTokenValidator();
+                var validator = new IdTokenValidator(_discoveryDocumentProvider);
                 var validateOutcome = await validator.ValidateAsync(idToken);
                 return validateOutcome 
                     ? Outcome<ActorToken>.Success(idToken) 
@@ -182,12 +184,14 @@ namespace TetraPak.XP.OAuth2.Refresh
         public TetraPakRefreshTokenGrantService(
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
+            IDiscoveryDocumentProvider discoveryDocumentProvider,
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
         : base(tetraPakConfig, httpClientProvider, null, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
+            _discoveryDocumentProvider = discoveryDocumentProvider;
         }
     }
 }

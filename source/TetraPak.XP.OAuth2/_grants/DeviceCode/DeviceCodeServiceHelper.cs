@@ -38,11 +38,11 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             }
             
             collection.AddTetraPakConfiguration();
-            collection.UseTetraPakHttpClientProvider();
+            collection.AddTetraPakHttpClientProvider();
             collection.AddSingleton<IDeviceCodeGrantService,TetraPakDeviceCodeGrantService>();
             if (isSilentModeAllowed)
             {
-                collection.UseTetraPakRefreshTokenGrant();
+                collection.AddTetraPakRefreshTokenGrant();
             }
             return collection;
         }

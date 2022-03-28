@@ -1,7 +1,11 @@
-﻿namespace TetraPak.XP.OAuth2.TokenExchange
+﻿using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
+
+namespace TetraPak.XP.OAuth2.TokenExchange
 {
-    interface ITokenExchangeGrantService
+    public interface ITokenExchangeGrantService
     {
         // todo
+        Task<Outcome<Grant>> AcquireTokenAsync(ActorToken token, GrantOptions options);
     }
 }

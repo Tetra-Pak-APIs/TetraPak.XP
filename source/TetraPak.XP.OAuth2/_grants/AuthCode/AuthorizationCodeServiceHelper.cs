@@ -34,11 +34,11 @@ namespace TetraPak.XP.OAuth2.AuthCode
             }
             
             collection.AddTetraPakConfiguration();
-            collection.UseTetraPakHttpClientProvider();
+            collection.AddTetraPakHttpClientProvider();
             collection.AddSingleton<IAuthorizationCodeGrantService,TetraPakAuthorizationCodeGrantService>();
             if (isSilentModeAllowed)
             {
-                collection.UseTetraPakRefreshTokenGrant();
+                collection.AddTetraPakRefreshTokenGrant();
             }
             return collection;
         }

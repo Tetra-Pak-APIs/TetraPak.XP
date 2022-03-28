@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.OAuth2.DeviceCode
@@ -29,7 +28,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 expires = DateTime.UtcNow.Add(TimeSpan.FromSeconds(dValue));
             }
              
-            var tokens = new List<TokenInfo>()
+            var tokens = new List<TokenInfo>
             {
                 new(pollVerificationResponse.AccessToken!, TokenRole.AccessToken, expires), 
             };

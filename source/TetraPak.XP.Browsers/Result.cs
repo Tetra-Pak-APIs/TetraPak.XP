@@ -23,7 +23,7 @@ namespace TetraPak.XP.Browsers
         /// <value>
         /// The error.
         /// </value>
-        public virtual string Error { get; set; }
+        public virtual string? Error { get; set; }
 
         /// <summary>
         /// Gets or sets the error description.
@@ -31,6 +31,6 @@ namespace TetraPak.XP.Browsers
         /// <value>
         /// The error description.
         /// </value>
-        public virtual string ErrorDescription { get; set; }
+        public virtual string? ErrorDescription { get; set; }
     }
 }

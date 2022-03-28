@@ -12,10 +12,19 @@ namespace TetraPak.XP
     /// </summary>
     public static class StringHelper
     {
-        public static bool StartsWith(this string self, char c) => self.IsAssigned() && self[0] == c;
-        
-        public static bool EndsWith(this string self, char c) => self.IsAssigned() && self[self.Length-1] == c;
-        
+        public static bool StartsWith(this string self, char c, bool ignoreCase = false) 
+        => self.IsAssigned() && self[0].Equals(c, ignoreCase);
+
+        public static bool StartsWithAny(this string self, IEnumerable<char> chars, bool ignoreCase = false) 
+        => chars.Any(c => self.StartsWith(c, ignoreCase));
+
+        public static bool EndsWith(this string self, char c, bool ignoreCase = false) 
+        => self.IsAssigned() && self[self.Length-1].Equals(c, ignoreCase);
+
+        public static bool EndsWithAny(this string self, IEnumerable<char> chars, bool ignoreCase = false) 
+        => chars.Any(c => self.EndsWith(c, ignoreCase));
+
+
         // todo Copy to TetraPak.Common (.NET 5+ / Core)
         public static string EnsureAssigned(
             this string? self,
@@ -258,10 +267,10 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        /// <seealso cref="RejectPrefix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPrefix(string,char,bool)"/>
-        /// <seealso cref="RejectPostfix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPostfix(string,char,bool)"/>
+        /// <seealso cref="TrimPrefix"/>
+        /// <seealso cref="TrimPrefix(string,char,bool)"/>
+        /// <seealso cref="TrimPostfix"/>
+        /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePrefix(
             this string self, 
             string prefix,
@@ -291,10 +300,10 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        /// <seealso cref="RejectPrefix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPrefix(string,char,bool)"/>
-        /// <seealso cref="RejectPostfix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPostfix(string,char,bool)"/>
+        /// <seealso cref="TrimPrefix"/>
+        /// <seealso cref="TrimPrefix(string,char,bool)"/>
+        /// <seealso cref="TrimPostfix"/>
+        /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePrefix(
             this string self, 
             char prefix,
@@ -327,10 +336,10 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        /// <seealso cref="RejectPrefix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPrefix(string,char,bool)"/>
-        /// <seealso cref="RejectPostfix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPostfix(string,char,bool)"/>
+        /// <seealso cref="TrimPrefix"/>
+        /// <seealso cref="TrimPrefix(string,char,bool)"/>
+        /// <seealso cref="TrimPostfix"/>
+        /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePostfix(
             this string self, 
             string postfix,
@@ -360,10 +369,10 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPrefix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPrefix(string,char,bool)"/>
-        /// <seealso cref="RejectPostfix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPostfix(string,char,bool)"/>
+        /// <seealso cref="TrimPrefix"/>
+        /// <seealso cref="TrimPrefix(string,char,bool)"/>
+        /// <seealso cref="TrimPostfix"/>
+        /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePostfix(
             this string self, 
             char postfix,
@@ -393,14 +402,14 @@ namespace TetraPak.XP
         /// <returns>
         ///   The <see cref="string"/> without the specified prefix.
         /// </returns>
-        /// <seealso cref="RejectPrefix(string,char,bool)"/>
-        /// <seealso cref="RejectPostfix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPostfix(string,char,bool)"/>
+        /// <seealso cref="TrimPrefix(string,char,bool)"/>
+        /// <seealso cref="TrimPostfix"/>
+        /// <seealso cref="TrimPostfix(string,char,bool)"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        public static string RejectPrefix(
+        public static string TrimPrefix(
             this string self, 
             string prefix,
             StringComparison comparison = StringComparison.Ordinal)
@@ -426,14 +435,14 @@ namespace TetraPak.XP
         /// <returns>
         ///   The <see cref="string"/> without the specified prefix.
         /// </returns>
-        /// <seealso cref="RejectPrefix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPostfix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPostfix(string,char,bool)"/>
+        /// <seealso cref="TrimPrefix"/>
+        /// <seealso cref="TrimPostfix"/>
+        /// <seealso cref="TrimPostfix(string,char,bool)"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        public static string RejectPrefix(
+        public static string TrimPrefix(
             this string self, 
             char prefix,
             bool ignoreCase = false)
@@ -459,21 +468,21 @@ namespace TetraPak.XP
         /// <returns>
         ///   The <see cref="string"/> without the specified postfix.
         /// </returns>
-        /// <seealso cref="RejectPrefix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPrefix(string,char,bool)"/>
-        /// <seealso cref="RejectPostfix(string,char,bool)"/>
+        /// <seealso cref="TrimPrefix"/>
+        /// <seealso cref="TrimPrefix(string,char,bool)"/>
+        /// <seealso cref="TrimPostfix(string,char,bool)"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        public static string RejectPostfix(
+        public static string TrimPostfix(
             this string self, 
             string postfix,
             StringComparison comparison = StringComparison.Ordinal)
         {
             return !self.EndsWith(postfix, comparison)
                 ? self 
-                : self.Substring(self.Length - postfix.Length);
+                : self.Substring(0, self.Length - postfix.Length);
         }
         
         /// <summary>
@@ -492,14 +501,14 @@ namespace TetraPak.XP
         /// <returns>
         ///   The <see cref="string"/> without the specified postfix.
         /// </returns>
-        /// <seealso cref="RejectPrefix(string,string,StringComparison)"/>
-        /// <seealso cref="RejectPrefix(string,char,bool)"/>
-        /// <seealso cref="RejectPostfix(string,string,StringComparison)"/>
+        /// <seealso cref="TrimPrefix"/>
+        /// <seealso cref="TrimPrefix(string,char,bool)"/>
+        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        public static string RejectPostfix(
+        public static string TrimPostfix(
             this string self, 
             char postfix,
             bool ignoreCase = false)

@@ -29,7 +29,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
             }
             
             collection.AddTetraPakConfiguration();
-            collection.UseTetraPakHttpClientProvider();
+            collection.AddTetraPakHttpClientProvider();
             collection.AddSingleton<IClientCredentialsGrantService,TetraPakClientCredentialsGrantService>();
             return collection;
         }

@@ -318,7 +318,7 @@ namespace TetraPak.XP.Caching
             // to be overridden
         }
 
-        public SimpleCacheDelegate(ILog? log)
+        public SimpleCacheDelegate(ILog? log = null)
         {
             _values = new Dictionary<string, SimpleCacheEntry>();
             _log = log;

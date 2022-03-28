@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
@@ -16,6 +15,7 @@ using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.OIDC;
+using TetraPak.XP.OAuth2.TokenExchange;
 using TetraPak.XP.Web.Services;
 
 namespace authClient.console
@@ -23,7 +23,8 @@ namespace authClient.console
     public class Auth
     {
         ILog? _log;
-        IServiceProvider? _serviceProvider;
+        readonly IServiceProvider? _serviceProvider;
+        Grant? _lastGrant;
 
         public Task AcquireTokenAsync(GrantType grantType, CancellationTokenSource cts, bool forced = false)
         {
@@ -39,21 +40,33 @@ namespace authClient.console
                         var ac = provider.GetRequiredService<IAuthorizationCodeGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("OIDC grant requested ...");
-                        writeToLog(await ac.AcquireTokenAsync(options)); 
+                        onOutcome(await ac.AcquireTokenAsync(options)); 
                         break;
                 
                     case GrantType.CC:
                         var cc = provider.GetRequiredService<IClientCredentialsGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("Client Credentials grant requested ...");
-                        writeToLog(await cc.AcquireTokenAsync(options));
+                        onOutcome(await cc.AcquireTokenAsync(options));
                         break;
                 
                     case GrantType.DC:
                         var dc = provider.GetRequiredService<IDeviceCodeGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("Device Code grant requested ...");
-                        writeToLog(await dc.AcquireTokenAsync(options, requestUSerCodeVerification));
+                        onOutcome(await dc.AcquireTokenAsync(options, requestUSerCodeVerification));
+                        break;
+                
+                    case GrantType.TX:
+                        Console.WriteLine();
+                        if (_lastGrant?.AccessToken is null)
+                        {
+                            Console.WriteLine("Token Exchange requires an existing token. Please execute other grant first");
+                            break;
+                        }
+                        var tx = provider.GetRequiredService<ITokenExchangeGrantService>();
+                        Console.WriteLine("Token Exchange grant requested ...");
+                        onOutcome(await tx.AcquireTokenAsync(_lastGrant.AccessToken, options));
                         break;
                 
                     default:
@@ -64,7 +77,7 @@ namespace authClient.console
 
         static void requestUSerCodeVerification(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
 
-        void writeToLog(Outcome<Grant> outcome)
+        void onOutcome(Outcome<Grant> outcome)
         {
             if (!outcome)
             {
@@ -83,6 +96,8 @@ namespace authClient.console
                 return;
             }
 
+            _lastGrant = outcome.Value;
+            
             var sb = new StringBuilder();
             sb.AppendLine("SUCCESS!");
             var grant = outcome.Value!;
@@ -113,37 +128,29 @@ namespace authClient.console
             await p.GetRequiredService<IDeviceCodeGrantService>().ClearCachedRefreshTokensAsync();
             // todo clear Token Exchange service refresh tokens
         }
-
+        
         public Auth(string[] args)
         {
-            Configure.InsertValueDelegate(new ConfigurationVariablesDelegate());
-            Host.CreateDefaultBuilder(args)
-                .ConfigureServices(collection =>
-                {
-                    _serviceProvider = XpServices
-                        .BuildFor().Desktop().WithServiceCollection(collection)
-                        .AddTetraPakConfiguration()
-                        .AddTetraPakWebServices()
-                        .AddTokenCaching() 
-                         .AddSingleton( p =>
-                         {
-                             var rank = resolveLogRank(p, LogRank.Information);
-                             var log = new BasicLog { Rank = rank } .WithConsoleLogging();
-                             return log;
-                         })
-                        .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
-                        .AddTetraPakOidcGrant()
-                        .AddTetraPakClientCredentialsGrant()
-                        .AddTetraPakDeviceCodeGrant()
-                        .BuildXpServices();
-                    _log = _serviceProvider.GetService<ILog>();
-                })
-                .ConfigureHostConfiguration(builder =>
-                {
-                    builder.AddEnvironmentVariables();
-                })
-                .ConfigureAppConfiguration((_, builder) => builder.Build())
-                .Build();
+            var info = args.BuildTetraPakDesktopHost(collection =>
+            {
+                collection
+                    .AddTetraPakWebServices()
+                    .AddDesktopTokenCache() 
+                    .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
+                    .AddTetraPakOidcGrant()
+                    .AddTetraPakClientCredentialsGrant()
+                    .AddTetraPakDeviceCodeGrant()
+                    .AddTetraPakTokenExchangeGrant()
+                    .AddSingleton(p =>
+                    {
+                        // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog or whatever)
+                        var rank = resolveLogRank(p, LogRank.Information);
+                        var log = new BasicLog { Rank = rank }.WithConsoleLogging();
+                        return log;
+                    });
+            });
+            _serviceProvider = info.ServiceServiceCollection.BuildXpServiceProvider();
+            _log = _serviceProvider.GetService<ILog>();
         }
         
         static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)
@@ -162,4 +169,63 @@ namespace authClient.console
                 : useDefault;
         }
     }
+
+    // public static class TetraPakHostBuilderHelper
+    // {
+    //     
+    //     public static TetraPakHostInformation BuildTetraPakDesktopHost(this string[] args, 
+    //         Action<IServiceCollection>? configureServices = null)
+    //     {
+    //         var tcs = new TaskCompletionSource<IServiceCollection>();
+    //         var host = Host.CreateDefaultBuilder(args)
+    //             .ConfigureServices(collection =>
+    //             {
+    //                 XpServices
+    //                     .BuildFor().Desktop().WithServiceCollection(collection)
+    //                     .AddTetraPakConfiguration();
+    //                 configureServices?.Invoke(collection);
+    //                 tcs.SetResult(collection);
+    //             })
+    //             .ConfigureHostConfiguration(builder =>
+    //             {
+    //                 builder.AddEnvironmentVariables();
+    //             })
+    //             .ConfigureAppConfiguration((_, builder) => builder.Build())
+    //             .Build();
+    //         
+    //          var collection = tcs.Task.Result;
+    //          return new TetraPakHostInformation(host, collection);
+    //     }
+    //     
+    //     static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)
+    //     {
+    //         var config = p.GetRequiredService<IConfiguration>();
+    //         var logLevelSection = config.GetSubSection(new ConfigPath(new[] { "Logging", "LogLevel" }));
+    //         if (logLevelSection is null)
+    //             return useDefault;
+    //
+    //         var s = logLevelSection.GetNamed<string>("Default");
+    //         if (string.IsNullOrEmpty(s))
+    //             return useDefault;
+    //         
+    //         return s!.TryParseEnum(typeof(LogRank), out var obj) && obj is LogRank logRank
+    //             ? logRank
+    //             : useDefault;
+    //     }
+    //     
+    // }
+    //
+    // public class TetraPakHostInformation
+    // {
+    //     public IHost Host { get; }
+    //
+    //     public IServiceCollection ServiceServiceCollection { get; }
+    //
+    //     internal TetraPakHostInformation(IHost host, IServiceCollection serviceCollection)
+    //     {
+    //         Host = host;
+    //         ServiceServiceCollection = serviceCollection;
+    //     }
+    // }
+    
 }

@@ -8,7 +8,7 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
     /// </summary>
     public class DiscoveryEndpoint
     {
-        const string WellKnownEndpoint = ".well-known/openid-configuration";
+        internal const string WellKnownEndpoint = ".well-known/openid-configuration";
 
         /// <summary>
         /// Gets or sets the authority.
@@ -26,93 +26,7 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         /// </value>
         public string Url { get; }
 
-        /// <summary>
-        ///   Parses a URL and turns it into authority and discovery endpoint URL.
-        /// </summary>
-        /// <param name="input">
-        ///   The input.
-        /// </param>
-        /// <returns>
-        ///   
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        ///   Url is malformed.
-        /// </exception>
-        public static DiscoveryEndpoint ParseUrl(string input)
-        {
-            var parseOutcome = TryParseUrl(input);
-            if (parseOutcome)
-                return parseOutcome.Value!;
-
-            throw parseOutcome.Exception!;
-        }
-
-        public static Outcome<DiscoveryEndpoint> TryParseUrl(string input)
-        {
-            var success = Uri.TryCreate(input, UriKind.Absolute, out var uri);
-            if (success == false)
-            {
-                var msg = $"Malformed URL: {input}";
-                return Outcome<DiscoveryEndpoint>.Fail(new FormatException(msg));
-            }
-
-            if (!IsValidScheme(uri!))
-            {
-                var msg = $"Invalid scheme in URL: {input}";
-                return Outcome<DiscoveryEndpoint>.Fail(new InvalidOperationException(msg));
-            }
-
-            var url = input.RemoveTrailingSlash();
-            var authority = url.EndsWith(WellKnownEndpoint, StringComparison.OrdinalIgnoreCase)
-                ? url.Substring(0, url.Length - WellKnownEndpoint.Length - 1)
-                : url;
-            url = url.EndsWith(WellKnownEndpoint, StringComparison.OrdinalIgnoreCase)
-                ? url
-                : $"{url.EnsurePostfix("/")}{WellKnownEndpoint}";
-
-
-            return Outcome<DiscoveryEndpoint>.Success(new DiscoveryEndpoint(authority, url));
-        }
-
-        public static Outcome<DiscoveryEndpoint> TryResolveUrl(string input)
-        {
-            return Uri.TryCreate(input, UriKind.Absolute, out var uri) 
-                ? TryParseUrl(uri.AbsoluteUri) 
-                : tryResolveUrlFromAssumedJwtToken(input);
-        }
-
-        static Outcome<DiscoveryEndpoint> tryResolveUrlFromAssumedJwtToken(string input)
-        {
-            try
-            {
-                var jwtToken = new JwtSecurityToken(input);
-                return TryParseUrl(jwtToken.Issuer);
-            }
-            catch (Exception ex)
-            {
-                return Outcome<DiscoveryEndpoint>.Fail( new Exception($"Cannot resolve discovery endpoint from: \"{input}\"", ex));
-            }
-        }
-
-        /// <summary>
-        /// Determines whether the URL uses http or https.
-        /// </summary>
-        /// <param name="url">The URL.</param>
-        /// <returns>
-        ///   <c>true</c> if [is valid scheme] [the specified URL]; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool IsValidScheme(Uri url)
-        {
-            if (string.Equals(url.Scheme, "http", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(url.Scheme, "https", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            return false;
-        }
-        
-        /// <summary>
+ /// <summary>
         ///   Determines whether a url uses a secure scheme according to the policy.
         /// </summary>
         /// <param name="url">The URL.</param>

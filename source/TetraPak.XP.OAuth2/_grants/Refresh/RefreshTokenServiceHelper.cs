@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Web.Http;
 
@@ -6,8 +7,6 @@ namespace TetraPak.XP.OAuth2.Refresh
 {
     public static class RefreshTokenServiceHelper
     {
-        const string GrantCacheRepoKey = "__grantCacheRepository";
-
         static bool s_isRefreshTokenAdded;
         static readonly object s_syncRoot = new();
         
@@ -15,7 +14,7 @@ namespace TetraPak.XP.OAuth2.Refresh
         ///   (fluent api)<br/>
         ///   Adds support for OAuth Authorization Code grant to the application and returns the <paramref name="collection"/>. 
         /// </summary>
-        public static IServiceCollection UseTetraPakRefreshTokenGrant(this IServiceCollection collection)
+        public static IServiceCollection AddTetraPakRefreshTokenGrant(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -26,19 +25,10 @@ namespace TetraPak.XP.OAuth2.Refresh
             }
             
             collection.AddTetraPakConfiguration();
-            collection.UseTetraPakHttpClientProvider();
+            collection.AddTetraPakHttpClientProvider();
+            collection.AddTetraPakDiscoveryDocument();
             collection.AddSingleton<IRefreshTokenGrantService,TetraPakRefreshTokenGrantService>();
             return collection;
         }
-
-        // public static GrantOptions WithGrantCacheRepository(this GrantOptions options, string grantCacheRepository) obsolete
-        // {
-        //     return options.WithData(GrantCacheRepoKey, grantCacheRepository);
-        // }
-        //
-        // public static string GetGrantCacheRepository(this GrantOptions options)
-        // {
-        //     return options.GetData<string>(GrantCacheRepoKey);
-        // }
     }
 }

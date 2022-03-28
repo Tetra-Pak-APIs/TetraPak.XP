@@ -84,6 +84,21 @@ namespace TetraPak.XP.Auth.Abstractions
         public bool IsRefreshAllowed => (Flags & GrantFlags.Refresh) == GrantFlags.Refresh;
 
         /// <summary>
+        ///   Constructs and returns a default <see cref="GrantOptions"/> for use when requesting a grant.
+        /// </summary>
+        /// <param name="cancellationTokenSource">
+        ///   (optional)<br/>
+        ///   Allows cancelling the operation.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="GrantOptions"/> object.
+        /// </returns>
+        /// <seealso cref="IGrant"/>
+        public static GrantOptions Default(
+            CancellationTokenSource? cancellationTokenSource = null) 
+            => Silent(cancellationTokenSource);
+        
+        /// <summary>
         ///   Constructs and returns a <see cref="GrantOptions"/> object to force the grant request.
         /// </summary>
         /// <param name="cancellationTokenSource">

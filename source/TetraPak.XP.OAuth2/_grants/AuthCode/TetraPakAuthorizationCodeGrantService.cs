@@ -28,6 +28,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
     sealed class TetraPakAuthorizationCodeGrantService : GrantServiceBase, IAuthorizationCodeGrantService
     {
         readonly ILoopbackBrowser _browser;
+        readonly IDiscoveryDocumentProvider _discoveryDocumentProvider;
 
         protected override GrantType GetGrantType() => GrantType.AuthorizationCode;
 
@@ -303,9 +304,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return Outcome<Grant>.Success(new Grant(tokens.ToArray()));
             }
             
-            static async Task<Outcome<ActorToken>> validateIdTokenAsync(ActorToken idToken)
+            async Task<Outcome<ActorToken>> validateIdTokenAsync(ActorToken idToken)
             {
-                var validator = new IdTokenValidator();
+                var validator = new IdTokenValidator(_discoveryDocumentProvider);
                 var validateOutcome = await validator.ValidateAsync(idToken);
                 return validateOutcome 
                     ? Outcome<ActorToken>.Success(idToken) 
@@ -353,13 +354,15 @@ namespace TetraPak.XP.OAuth2.AuthCode
             ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             ILoopbackBrowser browser,
+            IDiscoveryDocumentProvider discoveryDocumentProvider,
             IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
         : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
-        {
+         {
+             _discoveryDocumentProvider = discoveryDocumentProvider;
             _browser = browser;
         }
     }

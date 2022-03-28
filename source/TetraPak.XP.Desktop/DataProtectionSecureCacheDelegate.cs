@@ -2,16 +2,14 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.DataProtection;
-using TetraPak.XP;
-using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
 
-namespace authClient.console
+namespace TetraPak.XP.Desktop
 {
-    class spike_WindowsSecureCacheDelegate : SimpleCacheDelegate
+    class DataProtectionSecureCacheDelegate : SimpleCacheDelegate
     {
         readonly IDataProtector _protector;
 
@@ -97,9 +95,10 @@ namespace authClient.console
             }
         }
 
-        internal spike_WindowsSecureCacheDelegate(IDataProtectionProvider protector, ILog? log) : base(log)
+        internal DataProtectionSecureCacheDelegate(IDataProtectionProvider protector, ILog? log = null) 
+        : base(log)
         {
-            _protector = protector.CreateProtector(nameof(spike_WindowsSecureCache));
+            _protector = protector.CreateProtector(nameof(DataProtectionTokenCache));
         }
     }
 }

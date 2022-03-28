@@ -12,7 +12,7 @@
   &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\microsoft.aspnetcore.http\2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\microsoft.aspnetcore.http\2.2.2\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1df9f9fe_002D345f_002D4132_002Daf97_002D5cd635d76646/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Ensure_can_only_register_concrete_types" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1df9f9fe_002D345f_002D4132_002Daf97_002D5cd635d76646/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Ensure_can_only_register_concrete_types" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.UnitTest1.Load_configuration_from_specified_file&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Nisse&lt;/TestId&gt;&#xD;
@@ -23,11 +23,15 @@
     &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_comparison_works&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_increasing_version&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_adjusting_version&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7d0a0724_002D101d_002D4d21_002D91b9_002D8699c58c5be8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Load_configuration_from_specified_file_and_assert_paths" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7d0a0724_002D101d_002D4d21_002D91b9_002D8699c58c5be8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Load_configuration_from_specified_file_and_assert_paths" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_comparison_works&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=13499e8a_002Df932_002D42c4_002Db0b8_002D1360cdb0d575_0023authClient_002Eandroid/@EntryIndexedValue">True</s:Boolean>

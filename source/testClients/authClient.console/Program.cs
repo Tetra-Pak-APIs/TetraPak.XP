@@ -10,13 +10,15 @@ namespace authClient.console
     class Program
     {
         const string QuitCommand = "q";
-        const string CancelCommand = "c";
+        const string CancelCommand = "q";
         const string CcCommand = "cc";
         const string ForcedCcCommand = "fcc";
         const string OidcCommand = "ac";
         const string ForcedOidcCommand = "fac";
         const string DcCommand = "dc";
         const string ForcedDcCommand = "fdc";
+        const string TxCommand = "tx";
+        const string ForcedTxCommand = "ftx";
         const string ClearCachedGrantsCommand = "-g";
         const string ClearCachedRefreshTokensCommand = "-r";
         const string HelpCommand = "?";
@@ -43,13 +45,16 @@ namespace authClient.console
         static void outHelp()
         {
             Console.WriteLine("+----------------------------------------------------+");
-            Console.WriteLine("|  ac  = get new token using OIDC                    |");
-            Console.WriteLine("|  sac = get token silently (OIDC)                   |");
-            Console.WriteLine("|  cc  = get new token using Client Credentials      |");
-            Console.WriteLine("|  scc = get new token silently (client credentials) |");
-            Console.WriteLine("|  dc  = get new token using Device Code             |");
-            Console.WriteLine("|  sdc = get new token silently (device code)        |");
-            Console.WriteLine("|  c  = cancel request                               |");
+            Console.WriteLine("|  ac  = OIDC grant (silently)                       |");
+            Console.WriteLine("|  fac = force new OIDC grant                        |");
+            Console.WriteLine("|  cc  = Client Credentials grant (silent)           |");
+            Console.WriteLine("|  fcc = force new Client Credentials grant          |");
+            Console.WriteLine("|  dc  = Device Code grant                           |");
+            Console.WriteLine("|  fdc = force new Device Code grant                 |");
+            Console.WriteLine("|  tx  = Token Exchange grant                        |");
+            Console.WriteLine("|  ftx = force new Token Exchange grant              |");
+            Console.WriteLine("|  ------------------------------------------------  |");
+            //Console.WriteLine("|  c  = cancel request                               |");
             Console.WriteLine("|  -g = clear cached grants                          |");
             Console.WriteLine("|  -r = clear cached refresh tokens                  |");
             Console.WriteLine("|  ?  = print (this) help                            |");
@@ -107,6 +112,14 @@ namespace authClient.console
 
                 case ForcedDcCommand:
                     await auth.AcquireTokenAsync(GrantType.DC, s_cts, true);
+                    break;
+
+                case TxCommand:
+                    await auth.AcquireTokenAsync(GrantType.TX, s_cts);
+                    break;
+
+                case ForcedTxCommand:
+                    await auth.AcquireTokenAsync(GrantType.TX, s_cts, true);
                     break;
 
                 case ClearCachedGrantsCommand:

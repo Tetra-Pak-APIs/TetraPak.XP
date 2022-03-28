@@ -199,12 +199,12 @@ namespace TetraPak.XP
         }
     }
 
-    public class StringValueParseResult
+    public sealed class StringValueParseResult
     {
-        public string StringValue { get; }
+        public string StringValue { get; set; }
 
         public int HashCode { get; }
-
+        
         public static StringValueParseResult Empty => new(string.Empty, string.Empty.GetHashCode());
 
         public StringValueParseResult(string stringValue, int hashCode)

@@ -26,7 +26,6 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             Action<VerificationArgs> verificationUriHandler)
         {
             // todo Consider breaking up this method (it's too big) 
-            // todo Honor the GrantOptions.Flags value (silent/forced request etc.)
             var messageId = GetMessageId();
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.DeviceCode, options);
             if (!authContextOutcome)

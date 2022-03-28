@@ -17,13 +17,7 @@ namespace TetraPak.XP.OAuth2.TokenExchange
         /// <param name="collection">
         ///   The extended service collection.
         /// </param>
-        /// <param name="isSilentModeAllowed">
-        ///   (optional; default=<c>true</c>)<br/>
-        ///   When set the service collection is also configured for token caching and the OAuth2 Refresh Token grant. 
-        /// </param> 
-        public static IServiceCollection UseTetraPakTokenExchangeGrant(
-            this IServiceCollection collection, 
-            bool isSilentModeAllowed = true)
+        public static IServiceCollection AddTetraPakTokenExchangeGrant(this IServiceCollection collection)
         {
             lock (s_syncRoot)
             {
@@ -34,7 +28,7 @@ namespace TetraPak.XP.OAuth2.TokenExchange
             }
             
             collection.AddTetraPakConfiguration();
-            collection.UseTetraPakHttpClientProvider();
+            collection.AddTetraPakHttpClientProvider();
             collection.AddSingleton<ITokenExchangeGrantService,TetraPakTokenExchangeGrantService>();
             return collection;
         }

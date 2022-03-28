@@ -871,6 +871,19 @@ namespace TetraPak.XP
              return -1;
          }
 
+         public static bool TryParseEnum<T>(this string self, out T? result, bool ignoreCase = false) 
+         where T : Enum
+         {
+             if (self.TryParseEnum(typeof(T), out var obj, ignoreCase) && obj is T tv)
+             {
+                 result = tv;
+                 return true;
+             }
+
+             result = default;
+             return false;
+         }
+         
          public static bool TryParseEnum(this string self, Type enumType, out object? result, bool ignoreCase = false)
          {
              if (enumType.IsNullable())

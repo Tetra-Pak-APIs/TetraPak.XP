@@ -12,7 +12,7 @@ namespace TetraPak.XP.OAuth2.OIDC
     public static class OidcServiceHelper
     {
         static readonly object s_syncRoot = new();
-        static bool s_isAuthApplicationAdded;
+        // static bool s_isAuthApplicationAdded; obsolete
         static AuthApplication? s_authApplication;
 
         /// <summary>
@@ -23,19 +23,19 @@ namespace TetraPak.XP.OAuth2.OIDC
         /// </param>
         public static void SetAuthApplication(AuthApplication authApplication) => s_authApplication = authApplication;
 
-        public static IServiceCollection AddAuthApplication(this IServiceCollection services, AuthApplication authApplication)
-        {
-            lock (s_syncRoot)
-            {
-                if (s_isAuthApplicationAdded)
-                    return services;
-
-                SetAuthApplication(authApplication);
-                services.AddTransient(_ => s_authApplication!);
-                s_isAuthApplicationAdded = true;
-                return services;
-            }
-        }
+        // public static IServiceCollection AddAuthApplication(this IServiceCollection services, AuthApplication authApplication) obsolete 
+        // {
+        //     lock (s_syncRoot)
+        //     {
+        //         if (s_isAuthApplicationAdded)
+        //             return services;
+        //
+        //         SetAuthApplication(authApplication);
+        //         services.AddTransient(_ => s_authApplication!);
+        //         s_isAuthApplicationAdded = true;
+        //         return services;
+        //     }
+        // }
 
         /// <summary>
         ///   (fluent api)<br/>
@@ -60,7 +60,8 @@ namespace TetraPak.XP.OAuth2.OIDC
             // todo The OIDC service should take its config from IConfiguration (provided by DI); not from AuthApplication
             XpServices.RegisterLiteral<DiscoveryDocumentCache>();
             collection.AddTetraPakConfiguration();
-            collection.UseTetraPakHttpClientProvider();
+            collection.AddTetraPakDiscoveryDocument();
+            collection.AddTetraPakHttpClientProvider();
             collection.RegisterXpServices(log);
             collection.AddSingleton(p => AuthConfig.Default(
                 p.GetRequiredService<AuthApplication>(),

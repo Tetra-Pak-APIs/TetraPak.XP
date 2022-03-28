@@ -5,11 +5,14 @@
         <TargetFramework>net5.0</TargetFramework>
         <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>
+        <AssemblyName>nugt</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
       <ProjectReference Include="..\..\TetraPak.XP.DynamicEntities\TetraPak.XP.DynamicEntities.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Nuget\TetraPak.XP.Nuget.csproj" />
     </ItemGroup>
 
 </Project>
