@@ -1,4 +1,5 @@
-﻿using TetraPak.XP.Configuration;
+﻿using TetraPak.XP.Auth.Abstractions.OIDC;
+using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Auth.Abstractions
@@ -70,6 +71,16 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <inheritdoc />
         [StateDump]
         public string? RedirectUri => this.Get<string>(getDerived:true);
+
+        /// <inheritdoc />
+        public string DiscoveryDocumentUrl
+        {
+            get
+            {
+                var value = this.Get<string>(getDerived: true);
+                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{DiscoveryDocument.DefaultPath}" : value!;
+            }
+        }
 
         /// <inheritdoc />
         [StateDump]

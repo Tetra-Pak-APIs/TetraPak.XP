@@ -7,7 +7,7 @@ using TetraPak.XP.Auth.Abstractions;
 
 namespace authClient.console
 {
-    class Program
+    sealed class Program
     {
         const string QuitCommand = "q";
         const string CancelCommand = "q";
@@ -19,6 +19,7 @@ namespace authClient.console
         const string ForcedDcCommand = "fdc";
         const string TxCommand = "tx";
         const string ForcedTxCommand = "ftx";
+        const string UserInformationCommand = "ui";
         const string ClearCachedGrantsCommand = "-g";
         const string ClearCachedRefreshTokensCommand = "-r";
         const string HelpCommand = "?";
@@ -53,6 +54,7 @@ namespace authClient.console
             Console.WriteLine("|  fdc = force new Device Code grant                 |");
             Console.WriteLine("|  tx  = Token Exchange grant                        |");
             Console.WriteLine("|  ftx = force new Token Exchange grant              |");
+            Console.WriteLine("|  ui  = user information (using latest token)       |");
             Console.WriteLine("|  ------------------------------------------------  |");
             //Console.WriteLine("|  c  = cancel request                               |");
             Console.WriteLine("|  -g = clear cached grants                          |");
@@ -122,6 +124,10 @@ namespace authClient.console
                     await auth.AcquireTokenAsync(GrantType.TX, s_cts, true);
                     break;
 
+                case UserInformationCommand:
+                    await auth.GetUserInformationAsync(s_cts);
+                    break;
+                
                 case ClearCachedGrantsCommand:
                     await auth.ClearCachedGrantsAsync();
                     break;

@@ -21,8 +21,8 @@ namespace TetraPak.XP.Auth.Abstractions
         internal string? Service { get; set; }
 
         /// <summary>
-        ///   A (unique) id used to identify the actor requesting authorization.
-        ///   This information is needed for caching purposed by some grant flows.  
+        ///   A (unique) id used to identify the requesting actor.
+        ///   This information is needed for caching purposed by some flows.  
         /// </summary>
         public string? ActorId { get; set; }
 
@@ -93,7 +93,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <returns>
         ///   A <see cref="GrantOptions"/> object.
         /// </returns>
-        /// <seealso cref="IGrant"/>
+        /// <seealso cref="Grant"/>
         public static GrantOptions Default(
             CancellationTokenSource? cancellationTokenSource = null) 
             => Silent(cancellationTokenSource);

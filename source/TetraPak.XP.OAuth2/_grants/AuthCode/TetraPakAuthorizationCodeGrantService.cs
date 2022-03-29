@@ -307,7 +307,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
             async Task<Outcome<ActorToken>> validateIdTokenAsync(ActorToken idToken)
             {
                 var validator = new IdTokenValidator(_discoveryDocumentProvider);
-                var validateOutcome = await validator.ValidateAsync(idToken);
+                var validateOutcome = await validator.ValidateIdTokenAsync(idToken);
                 return validateOutcome 
                     ? Outcome<ActorToken>.Success(idToken) 
                     : Outcome<ActorToken>.Fail(validateOutcome.Exception!);

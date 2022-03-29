@@ -8,7 +8,7 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
     /// <summary>
     ///   Used to validate a JWT (id) token.
     /// </summary>
-    public class IdTokenValidator
+    public sealed class IdTokenValidator
     {
         readonly IDiscoveryDocumentProvider _discoveryDocumentProvider;
 
@@ -17,17 +17,16 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         /// </summary>
         public DiscoveryPolicy DiscoveryPolicy { get; set; }
         
-        public async Task<Outcome<ClaimsPrincipal>> ValidateAsync(ActorToken idToken, JwtTokenValidationOptions? options = null)
+        public async Task<Outcome<ClaimsPrincipal>> ValidateIdTokenAsync(ActorToken idToken, JwtTokenValidationOptions? options = null)
         {
+            if (string.IsNullOrEmpty(idToken))
+                return Outcome<ClaimsPrincipal>.Fail("Id token is unassigned");
+            
             try
             {
-                var discoOutcome = await _discoveryDocumentProvider.GetDiscoveryDocument(idToken);
+                var discoOutcome = await _discoveryDocumentProvider.GetDiscoveryDocumentAsync(idToken);
                 if (!discoOutcome)
                     return Outcome<ClaimsPrincipal>.Fail(discoOutcome.Exception!);
-
-                // var downloadOutcome = await DiscoveryDocument.DownloadAsync(idToken.StringValue); obsolete
-                // if (!downloadOutcome)
-                //     return Outcome<ClaimsPrincipal>.Fail(downloadOutcome.Exception!);
 
                 var disco = discoOutcome.Value!;
                 if (string.IsNullOrEmpty(disco.JwksUri))

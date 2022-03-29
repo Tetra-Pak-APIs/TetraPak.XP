@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using TetraPak.XP.Caching;
-using TetraPak.XP.Caching.Abstractions;
 
 namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
@@ -11,12 +8,16 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
     /// <summary>
     ///   A discovery document obtained from a well-known OIDC endpoint.  
     /// </summary>
-    public class DiscoveryDocument
+    public sealed class DiscoveryDocument
     {
+        /// <summary>
+        ///   The default path for a well known open id discovery document (a.k.a 'metadata document').
+        /// </summary>
+        public const string DefaultPath = "/.well-known/openid-configuration";
+        
         /// <summary>
         ///   Gets the cached <see cref="DiscoveryDocument"/>, if available.
         /// </summary>
-        /// <seealso cref="DownloadAsync"/>
         public static DiscoveryDocument? Current { get; private set; }
 
         /// <summary>

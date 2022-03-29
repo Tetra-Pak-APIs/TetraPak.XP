@@ -10,7 +10,7 @@ using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Auth
 {
-    class TetraPakDiscoveryDocumentProvider : IDiscoveryDocumentProvider
+    sealed class TetraPakDiscoveryDocumentProvider : IDiscoveryDocumentProvider
     {
         const string CacheKey = "DiscoveryDocument";
         
@@ -19,55 +19,36 @@ namespace TetraPak.XP.Auth
         readonly IDiscoveryDocumentCache? _cache;
         readonly IHttpClientProvider _httpClientProvider;
 
-        public async Task<Outcome<DiscoveryDocument>> GetDiscoveryDocument(ActorToken? idToken)
+        public async Task<Outcome<DiscoveryDocument>> GetDiscoveryDocumentAsync(IStringValue? idToken, GrantOptions? options = null)
         {
             lock (_syncRoot)
             {
-                if (DiscoveryDocument.Current is { })
+                if (DiscoveryDocument.Current is { } && (options?.IsCachingAllowed ?? true))
                     return Outcome<DiscoveryDocument>.Success(DiscoveryDocument.Current);
             }
+            
             return await downloadAndSetCurrentAsync(idToken);
         }
         
-        async Task<Outcome<DiscoveryDocument>> downloadAndSetCurrentAsync(ActorToken? idToken, bool force = false)
+        async Task<Outcome<DiscoveryDocument>> downloadAndSetCurrentAsync(IStringValue? idToken)
         {
-            if (!force && DiscoveryDocument.Current is {})
-                return Outcome<DiscoveryDocument>.Success(DiscoveryDocument.Current);
+            var outcome = await downloadAsync(idToken!.StringValue);
+            if (!outcome && _cache is {})
+            {
+                outcome = await tryLoadCachedAsync();
+                if (!outcome)
+                    return Outcome<DiscoveryDocument>.Fail(new Exception("Failed downloading discovery document"));
+            }
             
-            // var idToken = grant?.IdToken;
-            DiscoveryDocument? disco = null;
-            if (!string.IsNullOrEmpty(idToken?.Value))
-            {
-                var downloadOutcome = await downloadAsync(idToken!.Value, true);
-                if (downloadOutcome)
-                {
-                    disco = downloadOutcome.Value!;
-                }
-            }
+            if (!outcome)
+                return Outcome<DiscoveryDocument>.Fail(outcome.Exception!);
 
-            if (disco is null)
-            {
-                if (_cache is null)
-                    return Outcome<DiscoveryDocument>.Fail(new Exception("Failed downloading discovery document"));
-
-                var cacheOutcome = await tryLoadCachedAsync();
-                if (!cacheOutcome)
-                    return Outcome<DiscoveryDocument>.Fail(new Exception("Failed downloading discovery document"));
-
-                disco = cacheOutcome.Value!;
-            }
-
-            try
-            {
-                if (DiscoveryDocument.Current is null || DiscoveryDocument.Current.LastUpdated < disco.LastUpdated)
-                    DiscoveryDocument.SetCurrent(disco);
-
-                return Outcome<DiscoveryDocument>.Success(disco);
-            }
-            catch (Exception ex)
-            {
-                return Outcome<DiscoveryDocument>.Fail(new Exception($"Failed while deserializing cached discovery document. {ex.Message}", ex));
-            }
+            var disco = outcome.Value!;
+            if (DiscoveryDocument.Current is null || DiscoveryDocument.Current.LastUpdated < disco.LastUpdated)
+                DiscoveryDocument.SetCurrent(disco);
+            
+            saveToCache(disco);
+            return Outcome<DiscoveryDocument>.Success(disco);
         }
 
         async void saveToCache(DiscoveryDocument discoDocument)
@@ -87,27 +68,13 @@ namespace TetraPak.XP.Auth
         ///   Either a URL for the well-known discovery endpoint or a (serialized) JWT token to be used for
         ///   resolving the URL.
         /// </param>
-        /// <param name="refreshCurrent">
-        ///   (optional; default = <c>false</c>)
-        ///   Specifies whether to use the (cached) <seealso cref="DiscoveryDocument.Current"/> value or download
-        ///   a new document and set it as the <seealso cref="DiscoveryDocument.Current"/> one.
-        /// </param>
-        /// <param name="cache">
-        ///   (optional)<br/>
-        ///   Cache to be use to cache the downloaded <see cref="DiscoveryDocument"/> upon success.
-        /// </param>
         /// <returns>
         ///   Please note that when there is a <seealso cref="DiscoveryDocument.Current"/> document already, passing a <c>false</c>
         ///   value will have the method simply return the <seealso cref="DiscoveryDocument.Current"/> one if assigned or, automatically,
         ///   download a new one and then set that as the <seealso cref="DiscoveryDocument.Current"/> document.
         /// </returns>
-        async Task<Outcome<DiscoveryDocument>> downloadAsync(
-            string input, 
-            bool refreshCurrent = false)
+        async Task<Outcome<DiscoveryDocument>> downloadAsync(string? input)
         {
-            if (DiscoveryDocument.Current is { } && !refreshCurrent)
-                return Outcome<DiscoveryDocument>.Success(DiscoveryDocument.Current);
-
             var resolvedEndpointUrlOutcome = tryResolveUrl(input);
             if (!resolvedEndpointUrlOutcome)
                 return Outcome<DiscoveryDocument>.Fail(resolvedEndpointUrlOutcome.Exception!);
@@ -128,7 +95,7 @@ namespace TetraPak.XP.Auth
                 var content = await response.Content.ReadAsStringAsync();
                 var discoDocument = JsonSerializer.Deserialize<DiscoveryDocument>(content)!;
                 discoDocument.LastUpdated = DateTime.UtcNow;
-                DiscoveryDocument.SetCurrent(discoDocument);
+                // DiscoveryDocument.SetCurrent(discoDocument); obsolete
                 saveToCache(discoDocument);
                 return Outcome<DiscoveryDocument>.Success(discoDocument);
             }
@@ -151,11 +118,16 @@ namespace TetraPak.XP.Auth
 
         static RepositoryPath getCachePath() => new(CacheNames.FileCache, CacheKey);
 
-        static Outcome<DiscoveryEndpoint> tryResolveUrl(string input)
+        Outcome<DiscoveryEndpoint> tryResolveUrl(string? input)
         {
-            return Uri.TryCreate(input, UriKind.Absolute, out var uri) 
+            if (string.IsNullOrEmpty(input))
+            {
+                input = _conf.DiscoveryDocumentUrl;
+            } 
+            
+            return input is {} && Uri.TryCreate(input, UriKind.Absolute, out var uri) 
                 ? tryParseUrl(uri.AbsoluteUri) 
-                : tryResolveUrlFromAssumedJwtToken(input);
+                : tryResolveUrlFromAssumedJwtToken(input!);
         }
 
         static Outcome<DiscoveryEndpoint> tryResolveUrlFromAssumedJwtToken(string input)

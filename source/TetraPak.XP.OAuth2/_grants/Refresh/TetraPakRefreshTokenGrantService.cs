@@ -15,7 +15,7 @@ using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2.Refresh
 {
-    class TetraPakRefreshTokenGrantService : GrantServiceBase, IRefreshTokenGrantService
+    sealed class TetraPakRefreshTokenGrantService : GrantServiceBase, IRefreshTokenGrantService
     {
         readonly IDiscoveryDocumentProvider _discoveryDocumentProvider;
         
@@ -125,7 +125,7 @@ namespace TetraPak.XP.OAuth2.Refresh
              async Task<Outcome<ActorToken>> validateIdTokenAsync(ActorToken idToken)
             {
                 var validator = new IdTokenValidator(_discoveryDocumentProvider);
-                var validateOutcome = await validator.ValidateAsync(idToken);
+                var validateOutcome = await validator.ValidateIdTokenAsync(idToken);
                 return validateOutcome 
                     ? Outcome<ActorToken>.Success(idToken) 
                     : Outcome<ActorToken>.Fail(validateOutcome.Exception!);

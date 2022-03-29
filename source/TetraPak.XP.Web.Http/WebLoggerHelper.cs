@@ -2,10 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder.Internal;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Streaming;
 using TetraPak.XP.Web.Http.Debugging;

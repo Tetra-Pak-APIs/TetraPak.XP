@@ -9,6 +9,7 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
+using TetraPak.XP.Identity;
 using TetraPak.XP.Logging;
 using TetraPak.XP.OAuth2;
 using TetraPak.XP.OAuth2.AuthCode;
@@ -17,12 +18,13 @@ using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.OIDC;
 using TetraPak.XP.OAuth2.TokenExchange;
 using TetraPak.XP.Web.Services;
+using UserInformation = TetraPak.XP.Identity.UserInformation;
 
 namespace authClient.console
 {
-    public class Auth
+    sealed class Auth
     {
-        ILog? _log;
+        readonly ILog? _log;
         readonly IServiceProvider? _serviceProvider;
         Grant? _lastGrant;
 
@@ -75,6 +77,19 @@ namespace authClient.console
             });
         }
 
+        public async Task GetUserInformationAsync(CancellationTokenSource cts)
+        {
+            if (_lastGrant?.AccessToken is null)
+            {
+                Console.WriteLine("Please obtain a grant and try again!");
+                return;
+            }
+            
+            var provider = _serviceProvider ?? throw new Exception("No service provider!");
+            var ui = provider.GetRequiredService<IUserInformationService>();
+            onOutcome(await ui.GetUserInformationAsync(_lastGrant, GrantOptions.Default()));
+        }
+
         static void requestUSerCodeVerification(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
 
         void onOutcome(Outcome<Grant> outcome)
@@ -110,7 +125,36 @@ namespace authClient.console
             sb.AppendLine($"Scope={grant.Scope}");
             _log.Information(sb.ToString());
         }
-        
+
+        void onOutcome(Outcome<UserInformation> outcome)
+        {
+            if (!outcome)
+            {
+                if (!string.IsNullOrWhiteSpace(outcome.Message))
+                {
+                    _log.Warning(outcome.Message);
+                }
+                else if (outcome.Exception is { })
+                {
+                    _log.Warning(outcome.Exception.Message);
+                }
+                else
+                {
+                    _log.Warning("Could not get user information (no error message available)");
+                }
+                return;
+            }
+            
+            var sb = new StringBuilder();
+            sb.AppendLine("SUCCESS!");
+            var information = outcome.Value!;
+            foreach (var pair in information.ToDictionary())
+            {
+                sb.AppendLine($"  {pair.Key} = {pair.Value}");
+            }
+            _log.Information(sb.ToString);
+        }
+
         internal async Task ClearCachedGrantsAsync()
         {
             var p = _serviceProvider ?? throw new Exception("No service provider!");
@@ -141,6 +185,7 @@ namespace authClient.console
                     .AddTetraPakClientCredentialsGrant()
                     .AddTetraPakDeviceCodeGrant()
                     .AddTetraPakTokenExchangeGrant()
+                    .AddTetraPakUserInformation()
                     .AddSingleton(p =>
                     {
                         // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog or whatever)
@@ -169,63 +214,4 @@ namespace authClient.console
                 : useDefault;
         }
     }
-
-    // public static class TetraPakHostBuilderHelper
-    // {
-    //     
-    //     public static TetraPakHostInformation BuildTetraPakDesktopHost(this string[] args, 
-    //         Action<IServiceCollection>? configureServices = null)
-    //     {
-    //         var tcs = new TaskCompletionSource<IServiceCollection>();
-    //         var host = Host.CreateDefaultBuilder(args)
-    //             .ConfigureServices(collection =>
-    //             {
-    //                 XpServices
-    //                     .BuildFor().Desktop().WithServiceCollection(collection)
-    //                     .AddTetraPakConfiguration();
-    //                 configureServices?.Invoke(collection);
-    //                 tcs.SetResult(collection);
-    //             })
-    //             .ConfigureHostConfiguration(builder =>
-    //             {
-    //                 builder.AddEnvironmentVariables();
-    //             })
-    //             .ConfigureAppConfiguration((_, builder) => builder.Build())
-    //             .Build();
-    //         
-    //          var collection = tcs.Task.Result;
-    //          return new TetraPakHostInformation(host, collection);
-    //     }
-    //     
-    //     static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)
-    //     {
-    //         var config = p.GetRequiredService<IConfiguration>();
-    //         var logLevelSection = config.GetSubSection(new ConfigPath(new[] { "Logging", "LogLevel" }));
-    //         if (logLevelSection is null)
-    //             return useDefault;
-    //
-    //         var s = logLevelSection.GetNamed<string>("Default");
-    //         if (string.IsNullOrEmpty(s))
-    //             return useDefault;
-    //         
-    //         return s!.TryParseEnum(typeof(LogRank), out var obj) && obj is LogRank logRank
-    //             ? logRank
-    //             : useDefault;
-    //     }
-    //     
-    // }
-    //
-    // public class TetraPakHostInformation
-    // {
-    //     public IHost Host { get; }
-    //
-    //     public IServiceCollection ServiceServiceCollection { get; }
-    //
-    //     internal TetraPakHostInformation(IHost host, IServiceCollection serviceCollection)
-    //     {
-    //         Host = host;
-    //         ServiceServiceCollection = serviceCollection;
-    //     }
-    // }
-    
 }

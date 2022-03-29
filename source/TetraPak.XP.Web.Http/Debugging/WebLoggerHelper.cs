@@ -34,24 +34,27 @@ namespace TetraPak.XP.Web.Http
             Encoding encoding, 
             AbstractTraceHttpMessageOptions? options = null)
         {
+            var canSeek = stream!.CanSeek;
+            if (!canSeek)
+                return "[*** BODY UNAVAILABLE (stream not seekable) ***]";
+
             var lengthOutcome = await stream.GetLengthAsync(options?.ForceTraceBody ?? AbstractTraceHttpMessageOptions.DefaultForceTraceBody);
             var length = lengthOutcome.Value;
             if (length == 0)
                 return string.Empty;
-
-            if (!stream!.CanSeek)
-                return "[*** BODY UNAVAILABLE ***]";
                 
-            var bufferSize = options?.BufferSize ?? AbstractTraceHttpMessageOptions.DefaultBuffersSize;
-
+            var bufferSize = (int) Math.Min(options?.BufferSize ?? AbstractTraceHttpMessageOptions.DefaultBuffersSize, length);
             string body;
             if (options is null || length <= options.MaxSize)
             {
                 // no need to read in chunks, just get and return the whole body ...
-                using var bodyReader = new StreamReader(stream, encoding, true, 
+                using var smallBodyReader = new StreamReader(
+                    stream, 
+                    encoding, 
+                    true, 
                     bufferSize, 
                     true);
-                body = await bodyReader.ReadToEndAsync();
+                body = await smallBodyReader.ReadToEndAsync();
                 stream.Position = 0;
                 return body;
             }
@@ -59,34 +62,37 @@ namespace TetraPak.XP.Web.Http
             // read body in chunks of buffer size and truncate if there's a max length
             // (to avoid performance issues with very large bodies, such as media or binaries) ... 
             var buffer = new char[bufferSize];
-            var remaining = options.MaxSize;
-            var isTruncated = false;
-
+            var isTruncated = options.MaxSize < length;
             var bodyStream = new MemoryStream();
-            using var writer = new StreamWriter(bodyStream);
-            using var reader = new StreamReader(stream, encoding, true, bufferSize, true);
-
-            var index = 0;
-            while (await reader.ReadBlockAsync(buffer, index, bufferSize) != 0 && !isTruncated)
+            var writer = new StreamWriter(bodyStream);
+            StreamReader? memoryReader = null;
+            try
             {
-                await writer.WriteAsync(buffer);
-                remaining -= bufferSize;
-                index += bufferSize;
-                isTruncated = remaining <= 0; 
-            }
-            bodyStream.Position = 0;
-#if NET5_0_OR_GREATER
-            using (var memoryReader = new StreamReader(bodyStream, leaveOpen:true)) // leave open (`writer` will close)
-#else
-            using (var memoryReader = new StreamReader(bodyStream)) // leave open (`writer` will close)
-#endif            
-            {
+                var largeBodyReader = new StreamReader(stream, encoding, true, bufferSize, true);
+                int readCount;
+                do
+                {
+                    readCount = await largeBodyReader.ReadBlockAsync(buffer, 0, bufferSize);
+                    await writer.WriteAsync(buffer);
+                
+                } while (readCount == bufferSize);
+                stream.Position = 0; 
+                bodyStream.Position = 0;
+                memoryReader = new StreamReader(bodyStream); // leave open (`writer` will close)
                 body = await memoryReader.ReadToEndAsync();
+                return isTruncated
+                    ? $"{body}...[--TRUNCATED--]"
+                    : body;
             }
-            stream.Position = 0;
-            return isTruncated
-                ? $"{body}...[--TRUNCATED--]"
-                : body;
+            finally
+            {
+#if NET5_0_OR_GREATER                
+                await writer.DisposeAsync();
+#else
+                writer.Dispose();
+#endif
+                memoryReader?.Dispose();
+            }
         }
         
         static void addHeaders(

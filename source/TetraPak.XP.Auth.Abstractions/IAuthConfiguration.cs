@@ -40,6 +40,11 @@ namespace TetraPak.XP.Auth.Abstractions
         public string? RedirectUri { get; }
 
         /// <summary>
+        ///   Gets the URI for the well-known discovery document (<see cref="DiscoveryDocumentUrl"/>).
+        /// </summary>
+        public string DiscoveryDocumentUrl { get; }
+
+        /// <summary>
         ///   Gets a configured client id at this configuration level.
         /// </summary>
         string? ClientId { get; }
