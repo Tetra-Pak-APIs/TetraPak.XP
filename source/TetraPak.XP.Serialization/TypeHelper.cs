@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.StringValues;
 #if NET5_0_OR_GREATER
@@ -74,7 +73,7 @@ namespace TetraPak.XP.Serialization
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex, messageId: (string) null!);
+                    log.Error(ex);
                     throw;
                 }
             }

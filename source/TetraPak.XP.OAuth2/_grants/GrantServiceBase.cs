@@ -7,7 +7,6 @@ using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;

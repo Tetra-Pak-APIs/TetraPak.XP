@@ -6,12 +6,11 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Caching
 {
-    class FileCacheDelegate : IITimeLimitedRepositoriesDelegate // todo implement FileCacheDelegate
+    sealed class FileCacheDelegate : IITimeLimitedRepositoriesDelegate // todo implement FileCacheDelegate
     {
         readonly string _targetRepository;
         readonly ILog? _log;

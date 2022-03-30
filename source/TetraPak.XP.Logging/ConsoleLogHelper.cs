@@ -11,7 +11,7 @@ namespace TetraPak.XP.Logging
     {
         /// <summary>
         ///   (fluent api)<br/>
-        ///   Adds a logger provider to write all events to the <see cref="Console"/> and then return the log instance.
+        ///   Adds a logger provider to output all events to the <see cref="Console"/> and then return the log instance.
         /// </summary>
         public static ILog WithConsoleLogging(this ILog log)
         {

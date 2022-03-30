@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.Logging.Abstractions\TetraPak.XP.Logging.Abstractions.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Serialization\TetraPak.XP.Serialization.csproj" />
     <ProjectReference Include="..\TetraPak.XP.StringValues\TetraPak.XP.StringValues.csproj" />
   </ItemGroup>

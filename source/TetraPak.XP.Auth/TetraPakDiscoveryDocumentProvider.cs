@@ -121,12 +121,11 @@ namespace TetraPak.XP.Auth
 
         Outcome<DiscoveryEndpoint> tryResolveUrl(string? input)
         {
-            if (string.IsNullOrEmpty(input))
-            {
-                input = _conf.DiscoveryDocumentUrl;
-            } 
+            input = string.IsNullOrEmpty(input)
+                ? _conf.DiscoveryDocumentUrl
+                : input;
             
-            return input is {} && Uri.TryCreate(input, UriKind.Absolute, out var uri) 
+            return Uri.TryCreate(input, UriKind.Absolute, out var uri) 
                 ? tryParseUrl(uri.AbsoluteUri) 
                 : tryResolveUrlFromAssumedJwtToken(input!);
         }

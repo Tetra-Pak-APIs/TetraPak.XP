@@ -68,7 +68,7 @@ namespace TetraPak.XP.Auth.Debugging
         static string simulatedJwtToken()
         {
             var key = new RandomString();
-            var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key.StringValue));
             var credentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
@@ -98,7 +98,7 @@ namespace TetraPak.XP.Auth.Debugging
 
     static class AuthConfigExtensions
     {
-        static readonly Dictionary<string,Grant> s_authResults = new Dictionary<string, Grant>();
+        static readonly Dictionary<string,Grant> s_authResults = new();
 
         public static async Task<Outcome<Grant>> CacheAsync(this AuthConfig config, Grant grant, string cacheKey)
         {
@@ -108,9 +108,9 @@ namespace TetraPak.XP.Auth.Debugging
                 await config.TokenCache.AttemptCreateOrUpdateAsync(grant, cacheKey);
             }
 
-            var refreshToken = grant.Tokens?.FirstOrDefault(i => i.Role == TokenRole.RefreshToken);
-            if (refreshToken != null)
-                s_authResults.Add(refreshToken.Token, grant);
+            var tokenInfo = grant.Tokens?.FirstOrDefault(i => i.Role == TokenRole.RefreshToken);
+            if (tokenInfo != null)
+                s_authResults.Add(tokenInfo.Token, grant);
             
             return Outcome<Grant>.Success(grant);
         }

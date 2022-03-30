@@ -17,6 +17,10 @@
     <ProjectReference Include="..\TetraPak.XP.Caching.Abstractions\TetraPak.XP.Caching.Abstractions.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Configuration\TetraPak.XP.Configuration.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.Logging.Abstractions\TetraPak.XP.Logging.Abstractions.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Logging\TetraPak.XP.Logging.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="TetraPak.XP.Caching.csproj.DotSettings" />
   </ItemGroup>
 </Project>

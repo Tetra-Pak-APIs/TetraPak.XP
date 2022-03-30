@@ -1,9 +1,8 @@
-﻿using System;
-using TetraPak.XP.DynamicEntities;
+﻿using TetraPak.XP.DynamicEntities;
 
 namespace TetraPak.XP.Caching
 {
-    public class RepositoryPath : DynamicPath
+    public sealed class RepositoryPath : DynamicPath
     {
         public new const string DefaultSeparator = "://";
 

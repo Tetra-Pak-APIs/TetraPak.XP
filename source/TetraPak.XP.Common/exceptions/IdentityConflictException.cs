@@ -5,7 +5,7 @@ namespace TetraPak.XP
     /// <summary>
     ///   To be thrown when there is a conflict of identities.
     /// </summary>
-    public class IdentityConflictException : Exception
+    public sealed class IdentityConflictException : Exception
     {
         /// <summary>
         ///   Gets the conflicting identity.

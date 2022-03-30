@@ -6,10 +6,10 @@ namespace TetraPak.XP.Caching
 {
     public static class TimeLimitedRepositoriesHelper
     {
-        public static RepositoryPath? GetValidPath(this ITimeLimitedRepositories? self, string? key, string? repository)
+        public static RepositoryPath GetValidPath(this ITimeLimitedRepositories? self, string? key, string? repository)
         {
             if (self is null)
-                return null;
+                throw new ArgumentNullException(nameof(self));
                 
             var useKey = key 
                          ?? self.DefaultKey 
@@ -27,44 +27,40 @@ namespace TetraPak.XP.Caching
             object value,
             RepositoryPath path, 
             TimeSpan? customLifeSpan = null,
-            DateTime? spawnTimeUtc = null)
-        {
-            return self is null 
+            DateTime? spawnTimeUtc = null) 
+            =>
+            self is null 
                 ? Task.CompletedTask 
                 : self.CreateAsync(value, path.Key, path.Repository, customLifeSpan, spawnTimeUtc);
-        }
 
-        public static Task<Outcome<T>> ReadAsync<T>(this ITimeLimitedRepositories? self, RepositoryPath path)
-        {
-            return self is { } 
+        public static Task<Outcome<T>> ReadAsync<T>(this ITimeLimitedRepositories? self, RepositoryPath path) 
+            =>
+            self is { } 
                 ? self.ReadAsync<T>(path.Key, path.Repository) 
                 : failRepositoryUnavailable<T>();
-        }
-        
+
         public static Task UpdateAsync(
             this ITimeLimitedRepositories? self, 
             object value,
             RepositoryPath path,
             TimeSpan? customLifeSpan = null,
-            DateTime? spawnTimeUtc = null)
-        {
-            return self is { } 
+            DateTime? spawnTimeUtc = null) 
+            =>
+            self is { } 
                 ? self.UpdateAsync(value, path.Key, path.Repository, customLifeSpan, spawnTimeUtc) 
                 : Task.CompletedTask;
-        }
-        
+
         public static Task CreateOrUpdateAsync(
             this ITimeLimitedRepositories? self, 
             object value,
             RepositoryPath path,
             TimeSpan? customLifeSpan = null,
-            DateTime? spawnTimeUtc = null)
-        {
-            return self is { } 
+            DateTime? spawnTimeUtc = null) 
+            =>
+            self is { } 
                 ? self.CreateOrUpdateAsync(value, path.Key, path.Repository, customLifeSpan, spawnTimeUtc) 
                 : Task.CompletedTask;
-        }
-        
+
         public static Task DeleteAsync(this ITimeLimitedRepositories? self, RepositoryPath path) 
             =>
             self is { } 
@@ -83,13 +79,17 @@ namespace TetraPak.XP.Caching
             TimeSpan? customLifeSpan = null,
             DateTime? spawnTimeUtc = null) 
             =>
-            self.CreateAsync(value, self!.GetValidPath(key, repository), customLifeSpan, spawnTimeUtc);
+            self is { }
+                ? self.CreateAsync(value, self.GetValidPath(key, repository), customLifeSpan, spawnTimeUtc)
+                : Task.CompletedTask;
 
         public static Task<Outcome<T>> AttemptReadAsync<T>(
             this ITimeLimitedRepositories? self, 
             string? key = null, string? repository = null) 
             =>
-            self.ReadAsync<T>(self!.GetValidPath(key, repository));
+            self is { }
+                ? self.ReadAsync<T>(self.GetValidPath(key, repository))
+                : Task.FromResult(Outcome<T>.Fail($"{nameof(ITimeLimitedRepositories)} is unassigned"));
 
         public static Task AttemptUpdateAsync(
             this ITimeLimitedRepositories? self, 
@@ -99,7 +99,9 @@ namespace TetraPak.XP.Caching
             TimeSpan? customLifeSpan = null,
             DateTime? spawnTimeUtc = null) 
             =>
-            self.UpdateAsync(value, self!.GetValidPath(key, repository), customLifeSpan, spawnTimeUtc);
+            self is { }
+                ? self.UpdateAsync(value, self.GetValidPath(key, repository), customLifeSpan, spawnTimeUtc)
+                : Task.CompletedTask;
 
         public static Task AttemptCreateOrUpdateAsync(
             this ITimeLimitedRepositories? self, 
@@ -109,14 +111,18 @@ namespace TetraPak.XP.Caching
             TimeSpan? customLifeSpan = null,
             DateTime? spawnTimeUtc = null) 
             =>
-            self.CreateOrUpdateAsync(value, self?.GetValidPath(key, repository), customLifeSpan, spawnTimeUtc);
+            self is { }
+                ? self.CreateOrUpdateAsync(value, self.GetValidPath(key, repository), customLifeSpan, spawnTimeUtc)
+                : Task.CompletedTask;
 
         public static Task AttemptDeleteAsync(
             this ITimeLimitedRepositories? self, 
             string? key = null,
             string? repository = null) 
             =>
-            DeleteAsync(self, self!.GetValidPath(key, repository));
+            self is { }
+                ? DeleteAsync(self, self.GetValidPath(key, repository))
+                : Task.CompletedTask;
 
         #endregion
 
@@ -264,7 +270,8 @@ namespace TetraPak.XP.Caching
         
         #endregion
         
-        static Task<Outcome<T>> failRepositoryUnavailable<T>() => Task.FromResult(Outcome<T>.Fail(new Exception( "Cache is unavailable")));
+        static Task<Outcome<T>> failRepositoryUnavailable<T>() 
+            => Task.FromResult(Outcome<T>.Fail(new Exception( "Cache is unavailable")));
 
         public static ITimeLimitedRepositories WithDefaultRepository(this ITimeLimitedRepositories self, string repository)
         {

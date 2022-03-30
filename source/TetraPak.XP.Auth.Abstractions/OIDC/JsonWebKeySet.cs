@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
-    public class JsonWebKeySet
+    public sealed class JsonWebKeySet
     {
         [JsonPropertyName("keys")]
         public IList<JsonWebKey> Keys { get; set; }

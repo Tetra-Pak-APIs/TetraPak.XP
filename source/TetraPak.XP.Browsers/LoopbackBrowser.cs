@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web;
 
@@ -69,7 +68,7 @@ namespace TetraPak.XP.Browsers
             try
             {
                 _loopbackHost.LoopbackFilter = LoopbackFilter;
-                timeout ??= LoopbackHost.DefaultTimeout;
+                timeout ??= LoopbackHost.s_defaultTimeout;
                 OnOpenBrowser(targetUri);
                 var request = await _loopbackHost.WaitForCallbackUrlAsync(timeout.Value);
                 return request is { }

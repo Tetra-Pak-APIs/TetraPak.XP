@@ -146,7 +146,6 @@ namespace TetraPak.XP.Configuration
 
         public static IEnumerable<IConfigurationSection> GetSubSections(this IConfiguration conf)
         {
-            var nisse = conf.GetChildren(); 
             return conf.GetChildren().Where(i => i.IsConfigurationSection());
         }
 

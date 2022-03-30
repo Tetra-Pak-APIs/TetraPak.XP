@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 
 [assembly:InternalsVisibleTo("TetraPak.XP.DependencyInjection.Tests")]
@@ -25,7 +24,7 @@ namespace TetraPak.XP.DependencyInjection
 
         // public static bool IsDefaultImplementingSingleInterface { get; set; } = true; // Experiment concept 
 
-        class ResolutionInfo
+        sealed class ResolutionInfo
         {
             /// <summary>
             ///   Specifies whether the service is a singleton.

@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using TetraPak.XP.Browsers;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web;
 using TetraPak.XP.Web.Http;

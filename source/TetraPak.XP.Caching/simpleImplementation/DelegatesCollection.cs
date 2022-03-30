@@ -10,7 +10,7 @@ namespace TetraPak.XP.Caching
     ///   Used internally to enumerate a thread-static collection of <see cref="IITimeLimitedRepositoriesDelegate"/>s,
     ///   that can be cut short when a delegate opts to call a successive delegate.
     /// </summary>
-    class DelegatesCollection : IEnumerable<IITimeLimitedRepositoriesDelegate>
+    sealed class DelegatesCollection : IEnumerable<IITimeLimitedRepositoriesDelegate>
     {
         readonly IITimeLimitedRepositoriesDelegate[] _delegates;
         bool _isDone;

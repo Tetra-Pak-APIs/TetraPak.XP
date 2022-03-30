@@ -8,7 +8,7 @@ namespace TetraPak.XP.StringValues
     {
         public string StringValue { get; }
 
-        public static implicit operator string(LogMessageId messageId) => messageId.StringValue;
+        public static implicit operator string?(LogMessageId? messageId) => messageId?.StringValue;
 
         public static implicit operator LogMessageId?(string? stringValue) => string.IsNullOrEmpty(stringValue) 
             ? null 

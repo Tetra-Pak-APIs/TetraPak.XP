@@ -5,10 +5,11 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
     /// <summary>
     /// Security policy for retrieving a discovery document
     /// </summary>
-    public class DiscoveryPolicy
+    public sealed class DiscoveryPolicy
     {
         internal IEnumerable<string> LoopbackAddresses { get; } = new [] { "localhost", "127.0.0.1" };
 
+        // ReSharper disable once InconsistentNaming
         internal static readonly IAuthorityValidationStrategy DefaultAuthorityValidationStrategy = new StringComparisonAuthorityValidationStrategy();
 
         /// <summary>
@@ -20,7 +21,7 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         /// Strategy used to validate issuer name and endpoints based on expected authority.
         /// Defaults to <see cref="AuthorityUrlValidationStrategy"/>.
         /// </summary>
-        public IAuthorityValidationStrategy AuthorityValidationStrategy { get; set; } = DefaultAuthorityValidationStrategy;
+        public IAuthorityValidationStrategy? AuthorityValidationStrategy { get; set; } = DefaultAuthorityValidationStrategy;
 
         /// <summary>
         /// Specifies if HTTPS is enforced on all endpoints. Defaults to true.

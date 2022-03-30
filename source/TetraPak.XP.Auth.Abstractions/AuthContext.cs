@@ -5,7 +5,7 @@ namespace TetraPak.XP.Auth.Abstractions
     /// <summary>
     ///   Used to describe an auth request context.
     /// </summary>
-    public class AuthContext
+    public sealed class AuthContext
     {
         /// <summary>
         ///   Gets the <see cref="IAuthConfiguration"/> object.

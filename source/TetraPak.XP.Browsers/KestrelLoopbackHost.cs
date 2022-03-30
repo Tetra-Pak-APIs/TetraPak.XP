@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web;
 using TetraPak.XP.Web.Http;
@@ -17,7 +16,7 @@ namespace TetraPak.XP.Browsers
     {
         readonly object _syncRoot = new();
         
-        internal static readonly TimeSpan DefaultTimeout =
+        internal static readonly TimeSpan s_defaultTimeout =
 #if DEBUG 
             TimeSpan.FromMinutes(1);
 #else        

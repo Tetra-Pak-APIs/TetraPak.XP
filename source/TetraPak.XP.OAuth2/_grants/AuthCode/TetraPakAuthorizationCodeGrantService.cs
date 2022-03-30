@@ -56,7 +56,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString!);
 
             var authorityUriString = conf.AuthorityUri;
             if (string.IsNullOrWhiteSpace(authorityUriString))

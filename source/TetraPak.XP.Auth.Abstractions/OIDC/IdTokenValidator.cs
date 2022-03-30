@@ -61,9 +61,9 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
                 throw new InvalidOperationException($"Error connecting to {discoveryEndpoint.Url}. HTTPS required.");
 
             var strategy = DiscoveryPolicy.AuthorityValidationStrategy ?? DiscoveryPolicy.DefaultAuthorityValidationStrategy;
-            var issuerValidationResult = strategy.IsIssuerNameValid(issuer, discoveryEndpoint.Authority);
-            if (!issuerValidationResult.Success)
-                throw  new InvalidOperationException($"Error connecting to {discoveryEndpoint.Url}. {issuerValidationResult.ErrorMessage}.");
+            var validationOutcome = strategy.IsIssuerNameValid(issuer, discoveryEndpoint.Authority);
+            if (!validationOutcome)
+                throw  new InvalidOperationException($"Error connecting to {discoveryEndpoint.Url}. {validationOutcome.Message}.");
 
             return discoveryEndpoint;
         }

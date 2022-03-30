@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
@@ -9,7 +10,7 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
     /// <seealso cref="AuthorityUrlValidationStrategy"/>
     public sealed class StringComparisonAuthorityValidationStrategy : IAuthorityValidationStrategy
     {
-        private readonly StringComparison _stringComparison;
+        readonly StringComparison _stringComparison;
 
         /// <summary>
         /// Constructor with <see cref="StringComparison"/> argument.
@@ -26,14 +27,14 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         /// <param name="issuerName"></param>
         /// <param name="expectedAuthority"></param>
         /// <returns></returns>
-        public AuthorityValidationResult IsIssuerNameValid(string issuerName, string expectedAuthority)
+        public Outcome IsIssuerNameValid(string issuerName, string expectedAuthority)
         {
-            if (string.IsNullOrWhiteSpace(issuerName)) return AuthorityValidationResult.CreateError("Issuer name is missing");
+            if (string.IsNullOrWhiteSpace(issuerName)) 
+                return Outcome.Fail("Issuer name is missing");
 
-            if (string.Equals(issuerName.RemoveTrailingSlash(), expectedAuthority.RemoveTrailingSlash(), _stringComparison))
-                return AuthorityValidationResult.SuccessResult;
-
-            return AuthorityValidationResult.CreateError("Issuer name does not match authority: " + issuerName);
+            return string.Equals(issuerName.RemoveTrailingSlash(), expectedAuthority.RemoveTrailingSlash(), _stringComparison) 
+                ? Outcome.Success() 
+                : Outcome.Fail($"Issuer name does not match authority: {issuerName}");
         }
 
         /// <summary>
@@ -42,18 +43,14 @@ namespace TetraPak.XP.Auth.Abstractions.OIDC
         /// <param name="endpoint"></param>
         /// <param name="allowedAuthorities"></param>
         /// <returns></returns>
-        public AuthorityValidationResult IsEndpointValid(string endpoint, IEnumerable<string> allowedAuthorities)
+        public Outcome IsEndpointValid(string endpoint, IEnumerable<string> allowedAuthorities)
         {
             if (string.IsNullOrEmpty(endpoint))
-                return AuthorityValidationResult.CreateError("endpoint is empty");
+                return Outcome.Fail("endpoint is empty");
 
-            foreach (string authority in allowedAuthorities)
-            {
-                if (endpoint.StartsWith(authority, _stringComparison))
-                    return AuthorityValidationResult.SuccessResult;
-            }
-
-            return AuthorityValidationResult.CreateError($"Endpoint belongs to different authority: {endpoint}");
+            return allowedAuthorities.Any(authority => endpoint.StartsWith(authority, _stringComparison)) 
+                ? Outcome.Success() 
+                : Outcome.Fail($"Endpoint belongs to different authority: {endpoint}");
         }
     }
 }

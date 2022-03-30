@@ -23,7 +23,8 @@ namespace TetraPak.XP.Logging
         /// <summary>
         ///   Gets or sets the currently enabled <see cref="LogRank"/> level.
         /// </summary>
-        public LogRank Rank { get; set; } = LogRank.Trace;
+        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
+        public LogRank Rank { get; set; }
 
         /// <inheritdoc />
         public virtual void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null)

@@ -1,7 +1,7 @@
 ﻿using System;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Caching
 {
@@ -10,7 +10,7 @@ namespace TetraPak.XP.Caching
     /// </summary>
     /// <seealso cref="SimpleCache"/>
     /// <seealso cref="SimpleCacheConfig"/>
-    public class SimpleTimeLimitedRepositoryOptions : ConfigurationSectionDecorator, ITimeLimitedRepositoryOptions
+    public sealed class SimpleTimeLimitedRepositoryOptions : ConfigurationSectionDecorator, ITimeLimitedRepositoryOptions
     {
         SimpleCache? _cache;
         // ReSharper disable NotAccessedField.Local
@@ -64,7 +64,7 @@ namespace TetraPak.XP.Caching
                         return false;
                     }
                 
-                    if (value!.TryParseConfiguredTimeSpan(out span))
+                    if (value.TryParseConfiguredTimeSpan(out span))
                         return true;
                 
                     Log.Warning($"Invalid value for {nameof(PurgeInterval)}: \"{value}\"");
@@ -87,7 +87,7 @@ namespace TetraPak.XP.Caching
                     return false;
                 }
                 
-                if (value!.TryParseConfiguredTimeSpan(out span))
+                if (value.TryParseConfiguredTimeSpan(out span))
                     return true;
                 
                 Log.Warning($"Invalid value for {nameof(LifeSpan)}: \"{value}\"");
@@ -121,7 +121,7 @@ namespace TetraPak.XP.Caching
                     return true;
                 }
 
-                if (value!.TryParseConfiguredTimeSpan(out span))
+                if (value.TryParseConfiguredTimeSpan(out span))
                     return true;
                     
                 Log.Warning($"Invalid value for {nameof(ExtendedLifeSpan)}: \"{value}\"");
@@ -147,7 +147,7 @@ namespace TetraPak.XP.Caching
                     span = TimeSpan.Zero;
                     return false;
                 }
-                if (value!.TryParseConfiguredTimeSpan(out span))
+                if (value.TryParseConfiguredTimeSpan(out span))
                 {
                     span = span == TimeSpan.Zero ? TimeSpan.MaxValue : span;
                     return true;
@@ -191,7 +191,7 @@ namespace TetraPak.XP.Caching
                     return false;
                 }
                 
-                if (value!.TryParseConfiguredTimeSpan(out span))
+                if (value.TryParseConfiguredTimeSpan(out span))
                 {
                     span = span == TimeSpan.Zero ? TimeSpan.MaxValue : span;
                     return true;

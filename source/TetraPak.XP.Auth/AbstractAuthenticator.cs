@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Auth

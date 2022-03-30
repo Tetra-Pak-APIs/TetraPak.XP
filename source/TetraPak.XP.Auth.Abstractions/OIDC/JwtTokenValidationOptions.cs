@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace TetraPak.XP.Auth.Abstractions.OIDC
 {
-    public class JwtTokenValidationOptions
+    public sealed class JwtTokenValidationOptions
     {
         public bool ValidateLifetime { get; set; }
 
