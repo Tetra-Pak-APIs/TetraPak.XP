@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.Json.Serialization;
 using TetraPak.XP.Serialization;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.DynamicEntities
 {

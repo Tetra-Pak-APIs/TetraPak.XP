@@ -151,7 +151,7 @@ namespace TetraPak.XP.Web.Http
         ///   into an <see cref="GenericHttpRequest"/> or 
         /// </remarks>
         public static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ToKeyValuePairs(
-            this IDictionary<string, StringValues> dict)
+            this IDictionary<string, global::Microsoft.Extensions.Primitives.StringValues> dict)
         {
             return dict.Select(pair => new KeyValuePair<string, IEnumerable<string>>(pair.Key, pair.Value));
         }

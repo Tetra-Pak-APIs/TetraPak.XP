@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web;
 
 namespace TetraPak.XP.Browsers

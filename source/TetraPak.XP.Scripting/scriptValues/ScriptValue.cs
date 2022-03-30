@@ -1,4 +1,5 @@
 ﻿using System;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Scripting
 {

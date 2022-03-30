@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace TetraPak.XP
 {
-    class ArrayEnumerator<T> : IEnumerator<T>
+    public sealed class ArrayEnumerator<T> : IEnumerator<T>
     {
         int _index;
         readonly T[]? _items;

@@ -25,6 +25,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Logging\TetraPak.XP.Logging.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.StringValues\TetraPak.XP.StringValues.csproj" />
     </ItemGroup>
 
 </Project>

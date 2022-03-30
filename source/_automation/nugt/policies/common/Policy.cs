@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using TetraPak.XP;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace nugt.policies
 {

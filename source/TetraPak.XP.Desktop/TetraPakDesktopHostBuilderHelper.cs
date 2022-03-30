@@ -7,6 +7,7 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Desktop
 {

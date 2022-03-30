@@ -6,10 +6,12 @@ using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Desktop
 {
-    class DataProtectionSecureCacheDelegate : SimpleCacheDelegate
+    sealed class DataProtectionSecureCacheDelegate : SimpleCacheDelegate
     {
         readonly IDataProtector _protector;
 

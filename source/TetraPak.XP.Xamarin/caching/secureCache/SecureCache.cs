@@ -4,11 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
-using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Xamarin
 {
-    class SecureCache : SimpleCache, ISecureCache
+    sealed class SecureCache : SimpleCache, ISecureCache
     {
         readonly SimpleCache _implementation;
 

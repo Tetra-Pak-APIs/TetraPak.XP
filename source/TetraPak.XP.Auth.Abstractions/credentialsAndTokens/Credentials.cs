@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Auth.Abstractions
 {

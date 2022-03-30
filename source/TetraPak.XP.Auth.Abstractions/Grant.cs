@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Auth.Abstractions
 {

@@ -6,6 +6,7 @@ using Microsoft.Extensions.FileProviders;
 using nugt.policies;
 using TetraPak.XP;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace nugt
 {

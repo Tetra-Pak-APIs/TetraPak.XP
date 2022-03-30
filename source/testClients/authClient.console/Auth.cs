@@ -6,11 +6,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Identity;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2;
 using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
@@ -186,32 +186,11 @@ namespace authClient.console
                     .AddTetraPakDeviceCodeGrant()
                     .AddTetraPakTokenExchangeGrant()
                     .AddTetraPakUserInformation()
-                    .AddSingleton(p =>
-                    {
-                        // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog or whatever)
-                        var rank = resolveLogRank(p, LogRank.Information);
-                        var log = new BasicLog { Rank = rank }.WithConsoleLogging();
-                        return log;
-                    });
+                    // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog, SemiLog, Log4Net or whatever)
+                    .AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging());
             });
             _serviceProvider = info.ServiceServiceCollection.BuildXpServiceProvider();
             _log = _serviceProvider.GetService<ILog>();
-        }
-        
-        static LogRank resolveLogRank(IServiceProvider p, LogRank useDefault)
-        {
-            var config = p.GetRequiredService<IConfiguration>();
-            var logLevelSection = config.GetSubSection(new ConfigPath(new[] { "Logging", "LogLevel" }));
-            if (logLevelSection is null)
-                return useDefault;
-
-            var s = logLevelSection.GetNamed<string>("Default");
-            if (string.IsNullOrEmpty(s))
-                return useDefault;
-            
-            return s!.TryParseEnum(typeof(LogRank), out var obj) && obj is LogRank logRank
-                ? logRank
-                : useDefault;
         }
     }
 }

@@ -7,10 +7,11 @@ using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Auth
 {
-    class TokenCache : SimpleCache, ITokenCache
+    sealed class TokenCache : SimpleCache, ITokenCache
     {
         const string DefaultTokenCacheRepository = "securityTokens"; // note example: secureStore://securityTokens/SEREMRATTJ 
 

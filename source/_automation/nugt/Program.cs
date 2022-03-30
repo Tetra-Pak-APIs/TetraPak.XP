@@ -9,6 +9,7 @@ using TetraPak.XP;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace nugt
 {
@@ -35,7 +36,7 @@ namespace nugt
                 collection.AddSingleton<PolicyDispatcher>();
                 if (IsInteractive)
                 {
-                    collection.AddSingleton(_ => new BasicLog().WithConsoleLogging());
+                    collection.AddSingleton(_ => new LogBase().WithConsoleLogging());
                 }
             });
             var p = info.ServiceServiceCollection.BuildXpServices();

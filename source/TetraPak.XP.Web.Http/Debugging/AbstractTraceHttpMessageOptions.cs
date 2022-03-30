@@ -4,6 +4,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Web.Http.Debugging
 {

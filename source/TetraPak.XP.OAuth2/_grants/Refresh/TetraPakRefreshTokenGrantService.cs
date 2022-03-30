@@ -9,6 +9,8 @@ using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
 using TetraPak.XP.Web.Services;
@@ -107,12 +109,11 @@ namespace TetraPak.XP.OAuth2.Refresh
                 var expires = dict.TryGetValue("expires_in", out var exp) && int.TryParse(exp, out var seconds)
                     ? DateTime.Now.AddSeconds(seconds)
                     : (DateTime?)null;
-                var tokens = new List<TokenInfo>();
-                tokens.Add(new TokenInfo(accessToken!, TokenRole.AccessToken, expires));
+                var tokens = new List<TokenInfo> { new(accessToken!, TokenRole.AccessToken, expires) };
 
-                if (dict.TryGetValue("refresh_token", out var refreshToken) && !string.IsNullOrWhiteSpace(refreshToken))
+                if (dict.TryGetValue("refresh_token", out var refreshTokenValue) && !string.IsNullOrWhiteSpace(refreshTokenValue))
                 {
-                    tokens.Add(new TokenInfo(refreshToken!, TokenRole.RefreshToken));
+                    tokens.Add(new TokenInfo(refreshTokenValue!, TokenRole.RefreshToken));
                 }
 
                 if (!dict.TryGetValue("id_token", out var idToken) || string.IsNullOrWhiteSpace(idToken)) 
@@ -171,14 +172,14 @@ namespace TetraPak.XP.OAuth2.Refresh
             };
             
             if (clientId is null)
-                return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict!));
+                return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict));
 
             var conf = authContext.Configuration;
             if (string.IsNullOrWhiteSpace(clientId))
                 return conf.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(AuthContext.Configuration.ClientId));
 
             dict["client_id"] = clientId;
-            return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict!));
+            return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict));
         }
         
         public TetraPakRefreshTokenGrantService(

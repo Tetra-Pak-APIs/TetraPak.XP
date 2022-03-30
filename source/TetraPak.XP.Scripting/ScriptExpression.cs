@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Scripting
 {
@@ -26,11 +27,6 @@ namespace TetraPak.XP.Scripting
             return comparisonExpressionOutcome
                 ? Outcome<ScriptExpression>.Success(comparisonExpressionOutcome.Value!)
                 : Outcome<ScriptExpression>.Fail(comparisonExpressionOutcome.Exception!);
-            
-            // return ! expression.IsError 
-            //     ? Outcome<ScriptExpression>.Success(expression) 
-            //     : Outcome<ScriptExpression>.Fail(
-            //         new FormatException($"Invalid HTTP criteria expression: {stringValue}"));
         }
 
         internal abstract ScriptExpression Invert();

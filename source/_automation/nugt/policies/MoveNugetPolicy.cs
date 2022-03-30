@@ -1,4 +1,5 @@
 ﻿using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace nugt.policies
 {

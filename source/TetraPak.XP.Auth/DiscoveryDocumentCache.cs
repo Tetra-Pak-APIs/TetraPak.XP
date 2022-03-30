@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Auth
 {
-    public class DiscoveryDocumentCache : SimpleFileCache
+    public sealed class DiscoveryDocumentCache : SimpleFileCache
     {
         internal const string DiscoFileSuffix = ".taxDiscoDocument";
 

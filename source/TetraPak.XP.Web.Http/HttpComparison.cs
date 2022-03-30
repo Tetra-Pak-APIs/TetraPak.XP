@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Web.Http
 {

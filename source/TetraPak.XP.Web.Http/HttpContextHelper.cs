@@ -6,6 +6,8 @@ using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Abstractions;
 using HttpMethod = Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpMethod;
 

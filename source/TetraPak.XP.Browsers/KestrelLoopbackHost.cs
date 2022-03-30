@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;

@@ -8,9 +8,11 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.Refresh;
+using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Services;
 
@@ -114,7 +116,7 @@ namespace TetraPak.XP.OAuth2
                     new ConfigurationException("Client credentials have not been provisioned")));
 
             var secret = context.Configuration.ClientSecret;
-            return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity, secret!)));
+            return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity!, secret!)));
         }
 
         /// <summary>

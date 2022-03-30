@@ -3,6 +3,7 @@ using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DynamicEntities;
+using TetraPak.XP.StringValues;
 
 namespace authClient.console
 {

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Desktop
 {

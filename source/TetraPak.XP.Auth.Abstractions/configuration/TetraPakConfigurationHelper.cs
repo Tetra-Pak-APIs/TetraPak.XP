@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
@@ -36,8 +37,8 @@ namespace TetraPak.XP.Auth.Abstractions
             });
             return collection;
         }
-        
-        class TetraPakConfigurationValueDelegate : IConfigurationValueDelegate
+
+        sealed class TetraPakConfigurationValueDelegate : IConfigurationValueDelegate
         {
             public bool IsFallbackDelegate => true;
 
@@ -126,8 +127,8 @@ namespace TetraPak.XP.Auth.Abstractions
                 new ConfigurationException($"Invalid configuration: {new ConfigPath(cfg.Path).Push(key)}: {value}");
 
     }
-    
-    class FallbackConfigurationDecoratorDelegate : IConfigurationDecoratorDelegate
+
+    sealed class FallbackConfigurationDecoratorDelegate : IConfigurationDecoratorDelegate
     {
         public bool IsFallbackDecorator => true;
         public Outcome<ConfigurationSectionDecorator> WrapSection(ConfigurationSectionDecoratorArgs args)

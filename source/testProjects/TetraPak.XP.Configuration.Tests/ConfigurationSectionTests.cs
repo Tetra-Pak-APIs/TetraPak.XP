@@ -11,7 +11,7 @@ using Xunit;
 
 namespace TetraPak.XP.Desktop.Tests
 {
-    public class ConfigurationSectionTests
+    public sealed class ConfigurationSectionTests
     {
         static IServiceProvider initServices(params string[] configFiles)
         {
@@ -28,7 +28,7 @@ namespace TetraPak.XP.Desktop.Tests
                     {
                         provider = XpServices
                             .BuildFor().Desktop().WithServiceCollection(collection)
-                            .AddSingleton<IRuntimeEnvironmentResolver>(p => environmentResolver)
+                            .AddSingleton<IRuntimeEnvironmentResolver>(_ => environmentResolver)
                             .AddTetraPakConfiguration()
                             .BuildXpServices();
                     }
@@ -55,7 +55,7 @@ namespace TetraPak.XP.Desktop.Tests
         }
         
         [Fact]
-        public async Task Load_config_from_specified_file_and_assert_paths()
+        public void Load_config_from_specified_file_and_assert_paths()
         {
             var provider = initServices("../../../_files/appsettings.json");
             

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.OAuth2.TokenExchange

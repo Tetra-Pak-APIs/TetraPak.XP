@@ -4,6 +4,8 @@ using System.Linq;
 using Microsoft.Extensions.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Configuration
 {

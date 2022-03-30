@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
+using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Abstractions;
 
 namespace TetraPak.XP.Web.Http

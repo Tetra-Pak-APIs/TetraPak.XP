@@ -1,8 +1,9 @@
-﻿using Xunit;
+﻿using TetraPak.XP.StringValues;
+using Xunit;
 
 namespace TetraPak.XP.Common.Tests
 {
-    public class MultiStringValueTests
+    public sealed class MultiStringValueTests
     {
         [Fact]
         public void Test_initialization()

@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using TetraPak.XP;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Nuget;
+using TetraPak.XP.StringValues;
 
 namespace nugt.policies
 {

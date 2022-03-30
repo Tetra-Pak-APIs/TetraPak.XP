@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 [assembly:InternalsVisibleTo("TetraPak.XP.DependencyInjection.Tests")]
 
@@ -388,7 +389,7 @@ namespace TetraPak.XP.DependencyInjection
         ///   configuration as well as the declarative approach (using assembly-level
         ///   <see cref="XpServiceAttribute"/>s) you need a mechanism to ensure the required assemblies
         ///   are loaded prior to calling any of the configuration methods
-        ///   (such as <see cref="BuildXpServices()"/> or (<see cref="RegisterXpServices(TetraPak.XP.Logging.ILog?)"/>
+        ///   (such as <see cref="BuildXpServices()"/> or (<see cref="RegisterXpServices(ILog?)"/>
         /// </remarks>
         public static XpServicesBuilder Include(params Type[] types) =>new(types);
 
@@ -496,7 +497,7 @@ namespace TetraPak.XP.DependencyInjection
         Type[] _triggerAssemblyLoading;
 
         /// <summary>
-        ///   Simply invokes the <see cref="XpServices.RegisterXpServices(TetraPak.XP.Logging.ILog?)"/> method.
+        ///   Simply invokes the <see cref="XpServices.RegisterXpServices(ILog?)"/> method.
         /// </summary>
         public IServiceCollection RegisterXpServices(IServiceCollection? collection) 
             => collection.RegisterXpServices();

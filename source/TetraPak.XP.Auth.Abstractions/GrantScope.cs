@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using TetraPak.XP.Auth.Abstractions.OIDC;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
@@ -11,7 +12,7 @@ namespace TetraPak.XP.Auth.Abstractions
     ///   Represents supported OAuth/OIDC scopes.
     /// </summary>
     [DebuggerDisplay("{ToString()}")]
-    public class GrantScope : MultiStringValue
+    public sealed class GrantScope : MultiStringValue
     {
         // todo Add documentation/explanations for all scopes
         public const string OpenId = "openid";

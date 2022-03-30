@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Caching
 {

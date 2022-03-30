@@ -4,11 +4,12 @@ using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using Xamarin.Essentials;
 
 namespace TetraPak.XP.Xamarin
 {
-    class XamarinSecureCacheDelegate : ISecureCacheDelegate
+    sealed class XamarinSecureCacheDelegate : ISecureCacheDelegate
     {
         readonly string _targetRepository;
         readonly ILog? _log;
@@ -20,7 +21,7 @@ namespace TetraPak.XP.Xamarin
             if (!isTargetedRepository(path.Repository))
             {
                 var exception = new InvalidOperationException($"Unexpected repository when validating entry: {path.Repository}");
-                _log.Error(exception);
+                _log.Error(exception, messageId:(string) null!);
                 throw exception;
             }
 

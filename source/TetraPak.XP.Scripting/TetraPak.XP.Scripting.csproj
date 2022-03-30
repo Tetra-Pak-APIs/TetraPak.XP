@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.StringValues\TetraPak.XP.StringValues.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="TetraPak.XP.Scripting.csproj.DotSettings" />

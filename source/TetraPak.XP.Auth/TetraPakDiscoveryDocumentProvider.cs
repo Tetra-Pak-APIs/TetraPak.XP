@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Caching;
+using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Auth

@@ -1,6 +1,7 @@
 ﻿using System;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.OAuth2.ClientCredentials
 {

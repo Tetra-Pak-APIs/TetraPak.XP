@@ -11,6 +11,8 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
 

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json.Serialization;
 using TetraPak.XP.DynamicEntities;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
