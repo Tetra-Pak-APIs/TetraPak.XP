@@ -12,7 +12,7 @@ namespace TetraPak.XP.Common.Tests
         {
             var r = (HttpWebRequest) WebRequest.Create("https://call.me/please");
             r.Headers.Add("x-one", "value-one");
-            var log = new LogBase().WithConsoleLogging();
+            var log = new LogBase(null).WithConsoleLogging();
             log.DebugWebRequest(r, "hello world!");
             var text = log.ToString();
             var nl = Environment.NewLine;

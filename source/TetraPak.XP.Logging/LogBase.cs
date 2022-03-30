@@ -44,9 +44,15 @@ namespace TetraPak.XP.Logging
         }
 
         public LogBase(IConfiguration? configuration)
+        : this(configuration.ResolveDefaultLogRank(LogRank.Information))
+        {
+        }
+        
+        public LogBase(LogRank rank)
         {
             QueryAsync = null!;
-            Rank = configuration.ResolveDefaultLogRank(LogRank.Information);
+            Rank = rank;
         }
+
     }
 }

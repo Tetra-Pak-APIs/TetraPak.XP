@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using nugt.policies;
 using TetraPak.XP;
@@ -36,7 +37,7 @@ namespace nugt
                 collection.AddSingleton<PolicyDispatcher>();
                 if (IsInteractive)
                 {
-                    collection.AddSingleton(_ => new LogBase().WithConsoleLogging());
+                    collection.AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging());
                 }
             });
             var p = info.ServiceServiceCollection.BuildXpServices();

@@ -21,6 +21,7 @@ namespace TetraPak.XP.Microsoft
     PartialContent = 206, // 0x000000CE
     MultiStatus = 207, // 0x000000CF
     AlreadyReported = 208, // 0x000000D0
+    // ReSharper disable once InconsistentNaming
     IMUsed = 226, // 0x000000E2
     Ambiguous = 300, // 0x0000012C
     MultipleChoices = 300, // 0x0000012C
