@@ -35,7 +35,15 @@ public interface ILog
     ///   (optional)<br/>
     ///   A textual value used to track related events.   
     /// </param>
-    void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null);
+    void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null, LogSource? source = null);
+    
+    /// <summary>
+    ///   Writes a new log entry.
+    /// </summary>
+    /// <param name="args">
+    ///   Describes the event to tbe logged.
+    /// </param>
+    void Write(LogEventArgs args);
 
     /// <summary>
     ///   Gets a value indicating whether a specified <see cref="LogRank"/> is enabled.
@@ -69,5 +77,5 @@ public interface ILog
     /// <returns>
     ///   A new <see cref="ILogSection"/>.
     /// </returns>
-    ILogSection Section(LogRank? rank = null, string? caption = null, int indent = 3, string? sectionSuffix = null);
+    ILogSection Section(LogRank? rank = null, string? caption = null, int indent = 3, string? sectionSuffix = null, LogSource? source = null);
 }

@@ -19,6 +19,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\TetraPak.XP.Desktop\TetraPak.XP.Desktop.csproj" />
       <ProjectReference Include="..\..\TetraPak.XP.Identity\TetraPak.XP.Identity.csproj" />
+      <ProjectReference Include="..\..\TetraPak.XP.Logging.Microsoft\TetraPak.XP.Logging.Microsoft.csproj" />
       <ProjectReference Include="..\..\TetraPak.XP.Logging\TetraPak.XP.Logging.csproj" />
       <ProjectReference Include="..\..\TetraPak.XP.OAuth2\TetraPak.XP.OAuth2.csproj" />
     </ItemGroup>

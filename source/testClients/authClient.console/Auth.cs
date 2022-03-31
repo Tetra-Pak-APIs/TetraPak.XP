@@ -2,15 +2,14 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Identity;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.Logging.Microsoft;
 using TetraPak.XP.OAuth2;
 using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
@@ -187,9 +186,10 @@ namespace authClient.console
                     .AddTetraPakTokenExchangeGrant()
                     .AddTetraPakUserInformation()
                     // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog, SemiLog, Log4Net or whatever)
-                    .AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging());
+                    // .AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging())
+                    .AddMicrosoftLogging(new LogFormatOptions { SuppressRank = true, SuppressPrefix = true});
             });
-            _serviceProvider = info.ServiceServiceCollection.BuildXpServiceProvider();
+            _serviceProvider = info.Services.BuildXpServiceProvider();
             _log = _serviceProvider.GetService<ILog>();
         }
     }

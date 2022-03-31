@@ -1,5 +1,5 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
@@ -15,6 +15,7 @@ var info = args.BuildTetraPakDesktopHost(collection =>
 
 // get the service locator ...
 var services = info.ServiceServiceCollection.BuildXpServiceProvider();
+var logger = services.GetService<ILogger<GrantOptions>>();
 
 // run the Device Code grant request ...
 Console.WriteLine("Press any key to get Device Code grant:");

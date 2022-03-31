@@ -14,6 +14,9 @@ namespace TetraPak.XP.Logging
     /// </remarks>
     public class LogBase : ILog
     {
+        readonly IConfiguration? _configuration;
+        LogRank _logRank;
+
         /// <inheritdoc />
         public event EventHandler<LogEventArgs>? Logged;
 
@@ -24,35 +27,42 @@ namespace TetraPak.XP.Logging
         ///   Gets or sets the currently enabled <see cref="LogRank"/> level.
         /// </summary>
         // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
-        public LogRank Rank { get; set; }
+        public LogRank Rank
+        {
+            get => _configuration.ResolveDefaultLogRank(_logRank);
+            set => _logRank = value;
+        }
 
         /// <inheritdoc />
-        public virtual void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null)
+        public virtual void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null, LogSource? source = null)
         {
             if (IsEnabled(rank))
             {
-                Logged?.Invoke(this, new LogEventArgs(rank, message, exception!, messageId!));
+                Logged?.Invoke(this, new LogEventArgs(source, rank, message, exception!, messageId!));
             }
         }
 
         /// <inheritdoc />
+        public void Write(LogEventArgs args) => Write(args.Rank, args.Message, args.Exception, args.MessageId, args.Source);
+
+        /// <inheritdoc />
         public bool IsEnabled(LogRank rank) => rank >= Rank;
 
-        public ILogSection Section(LogRank? rank = null, string? caption = null, int indent = 3, string? sectionSuffix = null)
+        public ILogSection Section(LogRank? rank = null, string? caption = null, int indent = 3, string? sectionSuffix = null, LogSource? source = null)
         {
-            return new LogSectionBase(this, rank ?? LogRank.Any, caption);
+            return new LogSectionBase(this, rank ?? LogRank.Any, caption, source);
         }
 
         public LogBase(IConfiguration? configuration)
-        : this(configuration.ResolveDefaultLogRank(LogRank.Information))
         {
+            _configuration = configuration;
+            _logRank = _configuration.ResolveDefaultLogRank(LogRank.Information);
         }
         
         public LogBase(LogRank rank)
         {
             QueryAsync = null!;
-            Rank = rank;
+            _logRank = rank;
         }
-
     }
 }

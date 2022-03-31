@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace TetraPak.XP.DependencyInjection
 {
-    class XpServiceProvider : IServiceProvider
+    sealed class XpServiceProvider : IServiceProvider
     {
         readonly ServiceProvider _provider;
-        
+        // readonly XpServiceDelegate[] _serviceDelegates;
+
         public object? GetService(Type serviceType) => GetService(serviceType, true);
 
         // note tryServiceProvider flag prevents endless recursion
@@ -14,20 +17,36 @@ namespace TetraPak.XP.DependencyInjection
         {
             var service = _provider.GetService(serviceType);
             if (service is { })
-                return service;
+                return thruDelegates(serviceType, service);
 
             if (!tryXpServices)
-                return null;
+                return thruDelegates(serviceType, null);
 
             var outcome = XpServices.TryGet(serviceType, false);
-            return outcome
-                ? outcome.Value
-                : null;
+            return thruDelegates(
+                serviceType,  
+                outcome
+                    ? outcome.Value
+                    : null);
         }
 
-        public XpServiceProvider(IServiceCollection services, ServiceProviderOptions options)
+        object? thruDelegates(Type serviceType, object? service)
+        {
+            // foreach (var serviceDelegate in _serviceDelegates)
+            // {
+            //     serviceDelegate(this, serviceType, ref service);
+            // }
+
+            return service;
+        }
+
+        internal XpServiceProvider(
+            IServiceCollection services, 
+            ServiceProviderOptions options,
+            IEnumerable<XpServiceDelegate> serviceDelegates)
         {
             _provider = services.BuildServiceProvider(options);
+            // _serviceDelegates = serviceDelegates.ToArray();
         }
     }
 }

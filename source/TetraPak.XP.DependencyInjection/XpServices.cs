@@ -8,8 +8,8 @@ using TetraPak.XP.Logging.Abstractions;
 
 [assembly:InternalsVisibleTo("TetraPak.XP.DependencyInjection.Tests")]
 
-namespace TetraPak.XP.DependencyInjection
-{
+namespace TetraPak.XP.DependencyInjection;
+
     public static class XpServices
     {
         static readonly object s_syncRoot = new();
@@ -394,41 +394,36 @@ namespace TetraPak.XP.DependencyInjection
 
         public static XpPlatformServicesBuilder BuildFor(params Type[] types) => new(types);
 
-        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection serviceCollection)
-        {
-            return BuildXpServiceProvider(serviceCollection, new ServiceProviderOptions());
-        }
+        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection collection)
+            => BuildXpServiceProvider(collection, new ServiceProviderOptions());
 
         /// <summary>
         /// Creates a <see cref="ServiceProvider"/> containing services from the provided <see cref="IServiceCollection"/>
         /// optionally enabling scope validation.
         /// </summary>
-        /// <param name="serviceCollection">The <see cref="IServiceCollection"/> containing service descriptors.</param>
+        /// <param name="collection">The <see cref="IServiceCollection"/> containing service descriptors.</param>
         /// <param name="validateScopes">
         /// <c>true</c> to perform check verifying that scoped services never gets resolved from root provider; otherwise <c>false</c>.
         /// </param>
         /// <returns>The <see cref="ServiceProvider"/>.</returns>
-        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection serviceCollection, bool validateScopes)
+        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection collection, bool validateScopes)
         {
-            return serviceCollection.BuildXpServiceProvider(new ServiceProviderOptions { ValidateScopes = validateScopes });
+            return collection.BuildXpServiceProvider(new ServiceProviderOptions { ValidateScopes = validateScopes });
         }
         
-        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection serviceCollection, ServiceProviderOptions options)
+        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection collection, ServiceProviderOptions options)
         {
-            if (serviceCollection == null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
 
             if (options == null)
-            {
                 throw new ArgumentNullException(nameof(options));
-            }
 
+            var serviceDelegates = collection is XpServiceCollection xpServiceCollection
+                ? xpServiceCollection.GetServiceDelegates()
+                : Array.Empty<XpServiceDelegate>();
             lock (s_syncRoot)
-            {
-                return s_provider ??= new XpServiceProvider(serviceCollection, options);
-            }
+                return s_provider ??= new XpServiceProvider(collection, options, serviceDelegates);
         }
 
         public static IServiceCollection GetServiceCollection(bool useExisting = true)
@@ -456,7 +451,10 @@ namespace TetraPak.XP.DependencyInjection
             {
                 if (s_serviceCollection is { } && !replace)
                     throw new InvalidOperationException("A service collection is already in use");
-                
+
+                collection = collection is XpServiceCollection
+                    ? collection
+                    : new XpServiceCollection(collection);
                 s_serviceCollection = collection;
                 s_serviceCollection.RegisterXpServices();
                 collection.RegisterXpServices();
@@ -489,7 +487,7 @@ namespace TetraPak.XP.DependencyInjection
     ///   needed services by pre-loading the declaring assemblies before the declarative
     ///   services declaration process is invoked.  
     /// </summary>
-    public class XpServicesBuilder
+    public sealed class XpServicesBuilder
     {
         // note This list is just to force the linker to load the required assemblies
         // ReSharper disable once NotAccessedField.Local
@@ -523,18 +521,4 @@ namespace TetraPak.XP.DependencyInjection
         {
             _triggerAssemblyLoading = types;
         }
-
     }
-
-    public class XpPlatformServicesBuilder 
-    {
-        readonly Type[] _types;
-
-        public XpServicesBuilder Build() => new(_types); 
-        
-        public XpPlatformServicesBuilder(Type[] types)
-        {
-            _types = types;
-        }
-    }
-}
