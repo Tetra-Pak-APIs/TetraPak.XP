@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.StringValues;
 
@@ -29,45 +27,31 @@ namespace TetraPak.XP.Web.Http
         // /// </summary>
         // protected ServiceDiagnostics? GetDiagnostics() => HttpContext?.GetDiagnostics();
 
-        readonly Func<SecureClientOptions,HttpClient> _singletonClientFactory;
-        readonly SecureClientOptions? _singletonClientOptions;
+        readonly Func<HttpClientOptions,HttpClient> _singletonClientFactory;
+        readonly HttpClientOptions? _singletonClientOptions;
         HttpClient? _singletonClient;
         static readonly List<IHttpClientDecorator> s_decorators = new();
         readonly IAuthorizationService? _authorizationService;
-
-        /// <summary>
-        ///   Gets the Tetra Pak integration configuration.
-        /// </summary>
-        protected ITetraPakConfiguration TetraPakConfig { get; }
-
-        // /// <summary>
-        // ///   Provides access to th current <see cref="HttpContext"/>.
-        // /// </summary>
-        // protected HttpContext? HttpContext => TetraPakConfig.AmbientData.HttpContext; todo
-
-        /// <summary>
-        ///   Gets a logging provider.
-        /// </summary>
-        protected ILog? Log { get; }
+        readonly ITetraPakConfiguration? _tetraPakConfig;
+        readonly ILog? _log;
 
         /// <summary>
         ///   The singleton instance (if applicable) of the <see cref="HttpClient"/>.
         /// </summary>
-        protected HttpClient SingletonClient => _singletonClient ??= _singletonClientFactory(_singletonClientOptions!);
+        HttpClient SingletonClient => _singletonClient ??= _singletonClientFactory(_singletonClientOptions!);
 
         LogMessageId? getMessageId(HttpContext client, bool enforce) 
             =>
-              client.Request.GetMessageId(TetraPakConfig, enforce);
+              client.Request.GetMessageId(_tetraPakConfig, enforce);
 
         LogMessageId? getMessageId(HttpClient client, bool enforce) 
             =>
-                
-                client.GetMessageId(TetraPakConfig, enforce);
+                client.GetMessageId(_tetraPakConfig, enforce);
         
         /// <inheritdoc />
         public async Task<Outcome<HttpClient>> GetHttpClientAsync(
-            SecureClientOptions? options = null, 
-            CancellationToken? cancellationToken = null)
+            HttpClientOptions? options = null, 
+             AuthContext? authContext = null)
         {
             var transient = options?.IsClientTransient ?? true;
             var client = transient
@@ -84,19 +68,23 @@ namespace TetraPak.XP.Web.Http
                 return Outcome<HttpClient>.Fail(
                     new HttpServerConfigurationException($"Cannot authorize client. A {nameof(IAuthorizationService)} is not available"));
 
-            var grantType = options.AuthConfig?.GrantType ?? GrantType.None;
+            var grantType = authContext?.GrantType ?? GrantType.None;
             if (grantType == GrantType.None) 
                 return await OnDecorateClient(client, s_decorators.ToArray());
+
+            if (authContext is null)
+                return await OnDecorateClient(client, s_decorators.ToArray());
             
-            var authOutcome = await authService.AuthorizeAsync(options, cancellationToken);
+            var authOutcome = await authService.AuthorizeAsync(authContext);
             if (!authOutcome)
             {
                 var exception = HttpServerException.Unauthorized(
                     "Failed to authenticate an HTTP client",
                     authOutcome.Exception);
-                Log.Error(exception, messageId: getMessageId(client, false));
+                _log.Error(exception, messageId: getMessageId(client, false));
                 return Outcome<HttpClient>.Fail(exception);
             }
+
             var token = authOutcome.Value;
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token!.Identity);
 
@@ -123,7 +111,7 @@ namespace TetraPak.XP.Web.Http
                     var outcome = await decorator.DecorateAsync(client);
                     if (!outcome)
                     {
-                        Log.Warning($"Http client decorator {decorator} failed: {outcome.Exception!.Message}");
+                        _log.Warning($"Http client decorator {decorator} failed: {outcome.Exception!.Message}");
                     }
 
                     client = outcome.Value ?? client;
@@ -131,7 +119,7 @@ namespace TetraPak.XP.Web.Http
                 catch (Exception ex)
                 {
                     ex = new Exception($"Http client decorator {decorator} crashed (see inner exception)", ex);
-                    Log.Error(ex, messageId: getMessageId(client, true));
+                    _log.Error(ex, messageId: getMessageId(client, true));
                     return Outcome<HttpClient>.Fail(ex);
                 }
             }
@@ -157,11 +145,16 @@ namespace TetraPak.XP.Web.Http
         ///   Initializes the <see cref="TetraPakHttpClientProvider"/>.
         /// </summary>
         /// <param name="tetraPakConfiguration">
-        ///   The Tetra Pak integration configuration.
+        ///   (optional)<br/>
+        ///   A Tetra Pak integration configuration.
         /// </param>
         /// <param name="authorizationService">
         ///   (optional)<br/>
         ///   A (custom) authorization service to be invoked instead of amy default service. 
+        /// </param>
+        /// <param name="log">
+        ///   (optional)<br/>
+        ///   A logging abstraction to enabled service diagnostics.
         /// </param>
         /// <param name="singletonClientFactory">
         ///   (optional)<br/>
@@ -175,21 +168,21 @@ namespace TetraPak.XP.Web.Http
         ///   The <paramref name="tetraPakConfiguration"/> was <c>null</c>.
         /// </exception>
         public TetraPakHttpClientProvider(
-            ITetraPakConfiguration tetraPakConfiguration,
+            ITetraPakConfiguration? tetraPakConfiguration = null,
             IAuthorizationService? authorizationService = null,
             ILog? log = null,
-            Func<SecureClientOptions,HttpClient>? singletonClientFactory = null, 
-            SecureClientOptions? singletonClientOptions = null)
+            Func<HttpClientOptions,HttpClient>? singletonClientFactory = null, 
+            HttpClientOptions? singletonClientOptions = null)
         {
-            TetraPakConfig = tetraPakConfiguration ?? throw new ArgumentNullException(nameof(tetraPakConfiguration));
-            Log = log;
+            _tetraPakConfig = tetraPakConfiguration;
+            _log = log;
             _authorizationService = authorizationService;
-            _singletonClientFactory = singletonClientFactory ?? (options => new SingletonHttpClient());
+            _singletonClientFactory = singletonClientFactory ?? (_ => new SingletonHttpClient());
             _singletonClientOptions = singletonClientOptions;
         }
     }
-    
-    class SingletonHttpClient : HttpClient
+
+    sealed class SingletonHttpClient : HttpClient
     {
         protected override void Dispose(bool disposing)
         {

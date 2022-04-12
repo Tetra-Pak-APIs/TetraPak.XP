@@ -2,6 +2,13 @@ namespace TetraPak.XP.Auth.Abstractions
 {
     public static class GrantOptionsHelper
     {
+        static class DataKeys
+        {
+            internal const string AppCredentials = "__" + nameof(AppCredentials);
+
+            internal const string AuthorityInfo = "__" + nameof(AuthorityInfo);
+        }
+        
         /// <summary>
         ///   (fluent api)<br/>
         ///   Assigns the <see cref="GrantOptions.Flags"/> property and returns the <see cref="GrantOptions"/>.
@@ -33,6 +40,32 @@ namespace TetraPak.XP.Auth.Abstractions
         {
             options.SetData(key, data);
             return options;
+        }
+
+        public static GrantOptions WithClientCredentials(this GrantOptions options, Credentials? clientCredentials)
+            => clientCredentials is {} ? options.WithData(DataKeys.AppCredentials, clientCredentials) : options;
+
+        public static Credentials? GetClientCredentials(this GrantOptions options)
+            => options.GetData<Credentials?>(DataKeys.AppCredentials);
+
+        public static GrantOptions WithAuthInfo(this GrantOptions options, IAuthInfo? authInfo)
+            => authInfo is {} ? options.WithData(DataKeys.AuthorityInfo, authInfo) : options;
+
+        public static IAuthInfo? GetAuthInfo(this GrantOptions options)
+            => options.GetData<IAuthInfo?>(DataKeys.AuthorityInfo);
+
+        /// <summary>
+        ///   Inspects the <see cref="GrantOptions"/> and, optionally, a <see cref="ITetraPakConfiguration"/>
+        ///   object and returns a value indicating whether grant caching is currently enabled.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static bool IsGrantCachingEnabled(this GrantOptions options, ITetraPakConfiguration? config)
+        {
+            return config is { } 
+                ? config.IsCaching
+                  && options.IsCaching : options.IsCaching;
         }
     }
 }

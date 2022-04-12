@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Logging;
+using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
@@ -18,30 +18,34 @@ using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2.DeviceCode
 {
-    sealed class TetraPakDeviceCodeGrantService : GrantServiceBase, IDeviceCodeGrantService
+    /// <summary>
+    ///   Implements the OAuth "Device Code" grant type targeting a Tetra Pak authority. 
+    /// </summary>
+    public sealed class TetraPakDeviceCodeGrantService : GrantServiceBase, IDeviceCodeGrantService
     {
         protected override GrantType GetGrantType() => GrantType.DeviceCode;
         
+        /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(
             GrantOptions options,
             Action<VerificationArgs> verificationUriHandler)
         {
-            // todo Consider breaking up this method (it's too big) 
+            // todo Consider decomposing this method (it's too big) 
             var messageId = GetMessageId();
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.DeviceCode, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
 
-            var ctx = authContextOutcome.Value!;
-            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
-            if (!appCredentialsOutcome)
-                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+            var context = authContextOutcome.Value!;
+            var clientCredentialsOutcome = await GetClientCredentialsAsync(context);
+            if (!clientCredentialsOutcome)
+                return Outcome<Grant>.Fail(clientCredentialsOutcome.Exception!);
 
-            var appCredentials = appCredentialsOutcome.Value!;
+            var clientCredentials = clientCredentialsOutcome.Value!;
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
-                var cachedOutcome = await GetCachedGrantAsync(ctx);
+                var cachedOutcome = await GetCachedGrantAsync(context);
                 if (cachedOutcome)
                 {
                     var cachedGrant = cachedOutcome.Value!;
@@ -49,13 +53,13 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                         return cachedOutcome;
                 }
 
-                var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(ctx);
+                var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(context);
                 if (cachedRefreshTokenOutcome)
                 {
                     var refreshToken = cachedRefreshTokenOutcome.Value!;
                     var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(refreshToken, options);
                     if (refreshOutcome)
-                        return await onAuthorizationDoneAsync(refreshOutcome, ctx);
+                        return await onAuthorizationDoneAsync(refreshOutcome, context);
                 }
 
                 var clientOutcome = await GetHttpClientAsync();
@@ -66,11 +70,9 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                             clientOutcome.Exception));
 
                 using var client = clientOutcome.Value!;
-                var basicAuthCredentials = ValidateBasicAuthCredentials(appCredentials);
-                client.DefaultRequestHeaders.Authorization = basicAuthCredentials.ToAuthenticationHeaderValue();
                 var formsValues = new Dictionary<string, string>
                 {
-                    ["client_id"] = basicAuthCredentials.Identity
+                    ["client_id"] = clientCredentials.Identity
                 };
                 if (options.Scope is { })
                 {
@@ -80,9 +82,9 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 var keyValues = formsValues.Select(kvp
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var deviceCodeIssuerUri = ctx.Configuration.DeviceCodeIssuerUri;
+                var deviceCodeIssuerUri = context.GetDeviceCodeIssuerUri(); 
                 if (string.IsNullOrWhiteSpace(deviceCodeIssuerUri))
-                    return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.DeviceCodeIssuerUri));
+                    return context.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.DeviceCodeIssuerUri));
                 
                 var request = new HttpRequestMessage(HttpMethod.Post, deviceCodeIssuerUri)
                 {
@@ -138,7 +140,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                     if (codeVerificationOutcome.Value?.IsPendingVerification() ?? false)
                         continue;
 
-                    return await onAuthorizationDoneAsync(codeVerificationOutcome, ctx);
+                    return await onAuthorizationDoneAsync(codeVerificationOutcome, context);
                 }
 
                 return cts.Token.IsCancellationRequested
@@ -172,11 +174,11 @@ namespace TetraPak.XP.OAuth2.DeviceCode
 
                 var client = clientOutcome.Value!;
 
-                var tokenRequestBodyOutcome = makeTokenRequestBody(appCredentials.Identity, deviceCode, ctx);
+                var tokenRequestBodyOutcome = makeTokenRequestBody(clientCredentials.Identity, deviceCode, context);
                 if (!tokenRequestBodyOutcome)
                     return Outcome<Grant>.Fail(tokenRequestBodyOutcome.Exception!);
 
-                var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
+                var tokenIssuerUri = context.GetTokenIssuerUri();
                 var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {
                     Content = tokenRequestBodyOutcome.Value!
@@ -260,7 +262,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 {
                     var dump = new StateDump().WithStackTrace();
                     dump.AddAsync(TetraPakConfig, "AuthConfig");
-                    dump.AddAsync(appCredentials, "Credentials");
+                    dump.AddAsync(clientCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
                 Log.Error(outcome.Exception!, message.ToString(), messageId);
@@ -294,7 +296,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 ["device_code"] = deviceCode
             };
         
-            var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
+            var tokenIssuerUri = ctx.GetTokenIssuerUri();
             return string.IsNullOrWhiteSpace(tokenIssuerUri) 
                 ? ctx.Configuration.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(IAuthConfiguration.TokenIssuerUri))
                 : Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(formsValues!));
@@ -321,16 +323,47 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 return false;
             }
         }
-        
+
+        /// <summary>
+        ///   Initializes the grant service.
+        /// </summary>
+        /// <param name="httpClientProvider">
+        ///   A HttpClient factory.
+        /// </param>
+        /// <param name="refreshTokenGrantService">
+        ///   Enables the OAuth Refresh Grant flow. 
+        /// </param>
+        /// <param name="tetraPakConfig">
+        ///   (optional)<br/>
+        ///   A Tetra Pak integration configuration.
+        /// </param>
+        /// <param name="tokenCache">
+        ///   (optional)<br/>
+        ///   A specialized (secure) token cache to reduce traffic and improve performance
+        /// </param>
+        /// <param name="appCredentialsDelegate">
+        ///   (optional)<br/>
+        ///   A delegate to handle custom logic for obtaining application credentials (client id / client secret).   
+        /// </param>
+        /// <param name="log">
+        ///   (optional)<br/>
+        ///   A logger provider.   
+        /// </param>
+        /// <param name="httpContextAccessor">
+        ///   Provides access to the current request/response <see cref="HttpContext"/>. 
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   Any parameter was <c>null</c>.
+        /// </exception>
         public TetraPakDeviceCodeGrantService(
-            ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
+            ITetraPakConfiguration? tetraPakConfig = null, 
             IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
+        : base(httpClientProvider, tetraPakConfig, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
         }
     }

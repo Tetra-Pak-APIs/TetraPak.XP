@@ -153,7 +153,12 @@ namespace TetraPak.XP.Configuration
         {
             var path = new ConfigPath(key);
             if (path.Count == 1)
-                return conf.GetSubSections().FirstOrDefault(i => i.Key == key);
+            {
+                var subSection = conf.GetSubSections().FirstOrDefault(i => i.Key == key);
+                return subSection is ConfigurationSectionDecorator decorator 
+                    ? decorator.GetSection() 
+                    : subSection;
+            }
 
             var section = conf.GetSubSection(path.Items[0]);
             return section?.GetSubSection(path.Pop(1, SequentialPosition.Start));

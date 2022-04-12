@@ -42,11 +42,11 @@ public sealed class TetraPakHostInfo
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public IHost Host { get; }
 
-    public IServiceCollection Services { get; }
+    public IServiceCollection ServiceCollection { get; }
 
-    internal TetraPakHostInfo(IHost host, IServiceCollection serviceCollection)
+    internal TetraPakHostInfo(IHost host, IServiceCollection serviceCollectionCollection)
     {
         Host = host;
-        Services = serviceCollection;
+        ServiceCollection = serviceCollectionCollection;
     }
 }

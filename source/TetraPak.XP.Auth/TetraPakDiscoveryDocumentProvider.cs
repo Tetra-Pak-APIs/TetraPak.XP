@@ -24,7 +24,7 @@ namespace TetraPak.XP.Auth
         {
             lock (_syncRoot)
             {
-                if (DiscoveryDocument.Current is { } && (options?.IsCachingAllowed ?? true))
+                if (DiscoveryDocument.Current is { } && (options?.IsCaching ?? true))
                     return Outcome<DiscoveryDocument>.Success(DiscoveryDocument.Current);
             }
             
@@ -122,7 +122,7 @@ namespace TetraPak.XP.Auth
         Outcome<DiscoveryEndpoint> tryResolveUrl(string? input)
         {
             input = string.IsNullOrEmpty(input)
-                ? _conf.DiscoveryDocumentUrl
+                ? _conf.DiscoveryDocumentUri
                 : input;
             
             return Uri.TryCreate(input, UriKind.Absolute, out var uri) 

@@ -15,8 +15,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="TetraPak.XP.Desktop" Version="1.0.0-alpha.13" />
-      <PackageReference Include="TetraPak.XP.OAuth2" Version="1.0.0-alpha.13" />
+      <PackageReference Include="TetraPak.XP.CommandLine" Version="1.0.0-alpha.14" />
+      <PackageReference Include="TetraPak.XP.Desktop" Version="1.0.0-alpha.14" />
+      <PackageReference Include="TetraPak.XP.OAuth2" Version="1.0.0-alpha.14" />
     </ItemGroup>
 
 </Project>

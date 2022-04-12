@@ -7,7 +7,7 @@ using TetraPak.XP.StringValues;
 
 namespace authClient.console
 {
-    class ConfigurationVariablesDelegate : IConfigurationValueDelegate
+    sealed class ConfigurationVariablesDelegate : IConfigurationValueDelegate
     {
         const string EnvironmentIdent = "Env";
 
@@ -35,7 +35,6 @@ namespace authClient.console
                 EnvironmentIdent => getValueFromEnvironmentVariables<T>(ms.Pop(1, SequentialPosition.Start)),
                 _ => Outcome<T>.Fail(new NotSupportedException($"Variable source is not supported for {value}"))
             };
-
         }
 
         static bool isClientCredentials<T>(ConfigurationValueArgs<T> args)

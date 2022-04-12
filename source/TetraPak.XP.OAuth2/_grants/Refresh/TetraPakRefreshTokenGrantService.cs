@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
-using TetraPak.XP.Logging;
+using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Http;
@@ -37,19 +37,19 @@ namespace TetraPak.XP.OAuth2.Refresh
             var conf = ctx.Configuration;
             var messageId = GetMessageId();
                         
-            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
-            if (!appCredentialsOutcome)
-                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+            var clientCredentialsOutcome = await GetClientCredentialsAsync(ctx);
+            if (!clientCredentialsOutcome)
+                return Outcome<Grant>.Fail(clientCredentialsOutcome.Exception!);
             
-            var appCredentials = appCredentialsOutcome.Value!;
-            var clientId = appCredentials.Identity; 
+            var clientCredentials = clientCredentialsOutcome.Value!;
+            var clientId = clientCredentials.Identity; 
 
             var tokenIssuerUriString = conf.TokenIssuerUri;
             if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
-                return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.TokenIssuerUri));
+                return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
 
             if (!Uri.TryCreate(tokenIssuerUriString, UriKind.Absolute, out var tokenIssuerUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.TokenIssuerUri), tokenIssuerUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri), tokenIssuerUriString);
 
             var bodyOutcome = makeRefreshTokenBody(refreshToken, clientId, ctx);
             if (!bodyOutcome)
@@ -172,25 +172,25 @@ namespace TetraPak.XP.OAuth2.Refresh
             };
             
             if (clientId is null)
-                return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict));
+                return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict)); 
 
             var conf = authContext.Configuration;
             if (string.IsNullOrWhiteSpace(clientId))
-                return conf.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(AuthContext.Configuration.ClientId));
+                return conf.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(IAuthConfiguration.ClientId));
 
             dict["client_id"] = clientId;
             return Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(dict));
         }
         
         public TetraPakRefreshTokenGrantService(
-            ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             IDiscoveryDocumentProvider discoveryDocumentProvider,
+            ITetraPakConfiguration? tetraPakConfig = null, 
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, null, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
+        : base(httpClientProvider, tetraPakConfig, null, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
             _discoveryDocumentProvider = discoveryDocumentProvider;
         }

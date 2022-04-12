@@ -186,7 +186,7 @@ namespace TetraPak.XP
         /// <param name="exception">
         ///   Initializes the <see cref="Outcome"/> property.
         /// </param>
-        protected Outcome(bool evaluated, string? message, Exception exception)
+        protected Outcome(bool evaluated, string? message, Exception? exception)
         {
             Evaluated = evaluated;
             _message = message;

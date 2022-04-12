@@ -1,9 +1,13 @@
-﻿using TetraPak.XP.Auth.Abstractions.OIDC;
+﻿using Microsoft.Extensions.Configuration;
+using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.Logging;
+using TetraPak.XP.Diagnostics;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
+    /// <summary>
+    ///   A typed <see cref="IConfigurationSection"/> that implements the <see cref="IAuthConfiguration"/>. 
+    /// </summary>
     public class AuthConfiguration : ConfigurationSectionDecorator, IAuthConfiguration
     {
         internal IRuntimeEnvironmentResolver RuntimeEnvironmentResolver { get; }
@@ -16,22 +20,23 @@ namespace TetraPak.XP.Auth.Abstractions
         {
             get
             {
-                var value = this.Get<string>(getDerived: true);
-                if (!string.IsNullOrWhiteSpace(value))
-                    return value!;
+                var value = this.Get<string?>(getDerived: true);
+                return !string.IsNullOrWhiteSpace(value) 
+                    ? value! 
+                    : TetraPakAuthDefaults.Domain(RuntimeEnvironment);
 
-                return RuntimeEnvironment switch
-                {
-                    RuntimeEnvironment.Production => TetraPakAuthDefaults.ProductionDomain,
-                    RuntimeEnvironment.Migration => TetraPakAuthDefaults.MigrationDomain,
-                    RuntimeEnvironment.Development => TetraPakAuthDefaults.DevelopmentDomain,
-                    RuntimeEnvironment.Sandbox => TetraPakAuthDefaults.SandboxDomain,
-                    RuntimeEnvironment.Unknown => throw error(),
-                    _ => throw error()
-                };
-
-                ConfigurationException error()
-                    => new($"Could not resolve authority domain from runtime environment '{RuntimeEnvironment}'");
+                // return RuntimeEnvironment switch obsolete
+                // {
+                //     RuntimeEnvironment.Production => TetraPakAuthDefaults.ProductionDomain,
+                //     RuntimeEnvironment.Migration => TetraPakAuthDefaults.MigrationDomain,
+                //     RuntimeEnvironment.Development => TetraPakAuthDefaults.DevelopmentDomain,
+                //     RuntimeEnvironment.Sandbox => TetraPakAuthDefaults.SandboxDomain,
+                //     RuntimeEnvironment.Unknown => throw error(),
+                //     _ => throw error()
+                // };
+                //
+                // ConfigurationException error()
+                //     => new($"Could not resolve authority domain from runtime environment '{RuntimeEnvironment}'");
             }
         }
 
@@ -41,8 +46,10 @@ namespace TetraPak.XP.Auth.Abstractions
         {
             get
             {
-                var value = this.Get<string>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultAuthorityPath}" : value!;
+                var value = this.Get<string?>(getDerived: true);
+                return string.IsNullOrWhiteSpace(value) 
+                    ? $"{TetraPakAuthDefaults.AuthorityUri(RuntimeEnvironment)}" 
+                    : value!;
             }
         }
 
@@ -52,8 +59,10 @@ namespace TetraPak.XP.Auth.Abstractions
         {
             get
             {
-                var value = this.Get<string>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultTokenIssuerPath}" : value!;
+                var value = this.Get<string?>(getDerived: true);
+                return string.IsNullOrWhiteSpace(value)
+                    ? $"{TetraPakAuthDefaults.TokenIssuerUri(RuntimeEnvironment)}"
+                    : value!;
             }
         }
 
@@ -63,8 +72,8 @@ namespace TetraPak.XP.Auth.Abstractions
         {
             get
             {
-                var value = this.Get<string>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{TetraPakAuthDefaults.DefaultDeviceCodeIssuerPath}" : value!;
+                var value = this.Get<string?>(getDerived: true);
+                return string.IsNullOrWhiteSpace(value) ? $"{TetraPakAuthDefaults.DeviceCodeIssuerUri(RuntimeEnvironment)}" : value!;
             }
         }
 
@@ -73,11 +82,11 @@ namespace TetraPak.XP.Auth.Abstractions
         public string? RedirectUri => this.Get<string>(getDerived:true);
 
         /// <inheritdoc />
-        public string DiscoveryDocumentUrl
+        public string DiscoveryDocumentUri
         {
             get
             {
-                var value = this.Get<string>(getDerived: true);
+                var value = this.Get<string?>(getDerived: true);
                 return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{DiscoveryDocument.DefaultPath}" : value!;
             }
         }

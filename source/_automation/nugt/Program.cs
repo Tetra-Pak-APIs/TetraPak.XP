@@ -40,7 +40,7 @@ static class Program
                 collection.AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging());
             }
         });
-        var p = info.ServiceServiceCollection.BuildXpServices();
+        var p = info.ServiceCollection.BuildXpServices();
         var policyOutcome = initPolicy(
             args, 
             p.GetRequiredService<PolicyDispatcher>(),

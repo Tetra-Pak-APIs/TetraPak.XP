@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace TetraPak.XP.Auth.Abstractions
 {
     /// <summary>
-    ///   Classes implementing this interface are able to obtain client authorization, obsolete?
+    ///   Classes implementing this interface are able to obtain client authorization, todo Rewrite to use newer AuthContext concept
     ///   resulting in an <see cref="ActorToken"/> to be used in requests.   
     /// </summary>
     public interface IAuthorizationService
@@ -25,10 +25,12 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   the requested token as its <see cref="Outcome{T}.Value"/>; otherwise an <see cref="Exception"/>.
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        ///   <paramref name="options"/> configuration (<see cref="SecureClientOptions.AuthConfig"/>) was unassigned.
+        ///   <paramref name="options"/> configuration (<see cref="HttpClientOptions.AuthConfig"/>) was unassigned.
         /// </exception>
         Task<Outcome<ActorToken>> AuthorizeAsync(
-            SecureClientOptions options,
-            CancellationToken? cancellationToken = null);
+            AuthContext context
+            // SecureClientOptions options,
+            // CancellationToken? cancellationToken = null
+            );
     }
 }

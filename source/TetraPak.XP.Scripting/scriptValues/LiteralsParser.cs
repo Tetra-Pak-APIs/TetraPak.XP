@@ -1,62 +1,61 @@
-﻿using System.Globalization;
-using System.Linq;
+﻿using System;
+using System.Globalization;
+using TetraPak.XP;
+using TetraPak.XP.Scripting;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Scripting
 {
-    class LiteralsParser : ScriptValueParser
+    sealed class LiteralsParser : ScriptValueParser
     {
-        static readonly string[] s_stringOperators = {
-            ScriptTokens.Equal,
-            ScriptTokens.NotEqual,
-            ScriptTokens.LessThan,
-            ScriptTokens.LessThanOrEquals,
-            ScriptTokens.GreaterThan,
-            ScriptTokens.GreaterThanOrEquals
-        };
-
-        static readonly string[] s_numericOperators = {
-            ScriptTokens.Equal,
-            ScriptTokens.NotEqual,
-            ScriptTokens.LessThan,
-            ScriptTokens.LessThanOrEquals,
-            ScriptTokens.GreaterThan,
-            ScriptTokens.GreaterThanOrEquals
-        };
-
-        public override Outcome<ParseOperandResult> ParseLeftOperand(string stringValue, string operatorToken)
-            =>
-            parseLiteral(stringValue, operatorToken, null);
-
-        public override Outcome<ParseOperandResult> ParseRightOperand(string stringValue, string operatorToken, ComparativeOperation? suggestedOperation)
-            =>
-            parseLiteral(stringValue, operatorToken, suggestedOperation);
-
-        Outcome<ParseOperandResult> parseLiteral(string stringValue, string operatorToken,
-            ComparativeOperation? suggestedOperation)
+        protected override Outcome<ScriptValue> ParseValue(string stringValue)
         {
             if (isStringLiteral(stringValue))
-            {
-                if (!s_stringOperators.Contains(operatorToken))
-                    return Outcome<ParseOperandResult>.Fail("Unsupported operator");
-                
-                return Outcome<ParseOperandResult>.Success(new ParseOperandResult(
-                    new StringLiteral(stringValue), 
-                     suggestedOperation ?? operatorToken.ToOperator(true)));
-            }
+                return Outcome<ScriptValue>.Success(new StringLiteralValue(stringValue));
 
-            if (isNumericLiteral(stringValue, out var numericValue))
-            {
-                if (!s_numericOperators.Contains(operatorToken))
-                    return Outcome<ParseOperandResult>.Fail("Unsupported operator");
-                    
+            if (isNumericLiteral(stringValue, out var value))
+                return Outcome<ScriptValue>.Success(new NumericLiteralValue(stringValue, value));
+
+            return Outcome<ScriptValue>.Fail("not literal");
+        }
+
+        public override Outcome<ParseOperandResult> ParseLeftOperand(string stringValue, string operatorToken)
+        {
+            // todo support more value types (such as objects)
+            return parseLiteral(stringValue, operatorToken, null);
+        }
+
+        public override Outcome<ParseOperandResult> ParseRightOperand(string stringValue, string operatorToken, ComparativeOperation? suggestedOperation)
+        {
+            // todo support more value types (such as objects)
+            return parseLiteral(stringValue, operatorToken, suggestedOperation);
+        }
+
+        static Outcome<ParseOperandResult> parseLiteral(
+            string stringValue, 
+            string operatorToken,
+            ComparativeOperation? suggestedOperation)
+        {
+            if (isNullLiteral(stringValue))
                 return Outcome<ParseOperandResult>.Success(new ParseOperandResult(
-                    new NumericLiteral(stringValue, numericValue), 
-                    suggestedOperation ?? operatorToken.ToOperator(false)));
-            }
+                    new NullLiteralValue(stringValue), 
+                    suggestedOperation ?? operatorToken.ToComparativeOperator()));
+            
+            if (isStringLiteral(stringValue))
+                return Outcome<ParseOperandResult>.Success(new ParseOperandResult(
+                    new StringLiteralValue(stringValue), 
+                     suggestedOperation ?? operatorToken.ToComparativeOperator()));
+
+            if (isNumericLiteral(stringValue, out var value))
+                return Outcome<ParseOperandResult>.Success(new ParseOperandResult(
+                    new NumericLiteralValue(stringValue, value), 
+                    suggestedOperation ?? operatorToken.ToComparativeOperator()));
             
             // todo support other literals, such as DateTime, TimeSpan etc ...
             return Outcome<ParseOperandResult>.Fail("Unrecognized literal");
         }
+        
+        static bool isNullLiteral(string stringValue) => stringValue == NullLiteralValue.Identifier;
 
         static bool isStringLiteral(string stringValue)
         {
@@ -70,5 +69,27 @@ namespace TetraPak.XP.Scripting
             var format = CultureInfo.InvariantCulture;
             return double.TryParse(stringValue, NumberStyles.Any, format, out value);
         }
+    }
+}
+
+sealed class LiteralScriptValueFactory : IScriptValueFactory
+{
+    public Outcome<ScriptValue> GetScriptValue(string key, object? value)
+    {
+        if (value is null)
+            return Outcome<ScriptValue>.Success(new NullLiteralValue(string.Empty));
+
+        if (value.IsNumeric())
+        {
+            var d = Convert.ToDouble(value);
+            return Outcome<ScriptValue>.Success(new NumericLiteralValue(value.ToString()!, d));
+        }
+
+        return value switch
+        {
+            string s => Outcome<ScriptValue>.Success(new StringLiteralValue(s)),
+            IStringValue sv => Outcome<ScriptValue>.Success(new StringLiteralValue(sv.StringValue)),
+            _ => Outcome<ScriptValue>.Fail("not supported")
+        };
     }
 }

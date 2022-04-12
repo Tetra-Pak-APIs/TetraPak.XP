@@ -123,7 +123,7 @@ namespace TetraPak.XP
         /// </returns>
         public static implicit operator T?(Outcome<T?> outcome) => outcome.Value;
 
-        Outcome(bool evaluated, string message, Exception exception, T? value) 
+        protected Outcome(bool evaluated, string message, Exception? exception, T? value) 
         : base(evaluated, message, exception)
         {
             Value = value;

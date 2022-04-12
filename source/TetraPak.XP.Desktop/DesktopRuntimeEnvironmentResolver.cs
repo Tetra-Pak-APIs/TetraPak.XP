@@ -7,7 +7,7 @@ using TetraPak.XP.Desktop;
 
 namespace TetraPak.XP.Desktop
 {
-    public class DesktopRuntimeEnvironmentResolver : IRuntimeEnvironmentResolver
+    public sealed class DesktopRuntimeEnvironmentResolver : IRuntimeEnvironmentResolver
     {
         const string TetraPakAppEnvironmentVariable = "DOTNET_ENVIRONMENT";
 

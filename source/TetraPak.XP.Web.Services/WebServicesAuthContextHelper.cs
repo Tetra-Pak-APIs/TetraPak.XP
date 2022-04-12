@@ -20,12 +20,15 @@ namespace TetraPak.XP.Web.Services
         ///   
         /// </returns>
         public static Outcome<AuthContext> GetAuthContext(
-            this ITetraPakConfiguration self, 
+            this ITetraPakConfiguration? self, 
             GrantType grantType, 
             GrantOptions options)
         {
-            if (string.IsNullOrWhiteSpace(options.Service))
-                return Outcome<AuthContext>.Success(new AuthContext(grantType, self, options));
+            // if (self is null)
+            //     return Outcome<AuthContext>.Fail("Configuration is unassigned"); obsolete
+            
+            if (self is null || string.IsNullOrWhiteSpace(options.Service))
+                return Outcome<AuthContext>.Success(new AuthContext(grantType, options, self));
 
             var servicesSection = self.GetSubSection(ConfigurationSectionNames.Services);
             if (servicesSection is not IWebServicesConfiguration webServices)
@@ -34,7 +37,7 @@ namespace TetraPak.XP.Web.Services
             var section = webServices.GetSubSection(options.Service!);
             return section is not IWebServiceConfiguration wsSection
                 ? servicesSection.MissingConfigurationOutcome<AuthContext>(options.Service!) 
-                : Outcome<AuthContext>.Success(new AuthContext(grantType, wsSection, options));
+                : Outcome<AuthContext>.Success(new AuthContext(grantType, options, wsSection));
         }
     }
 }

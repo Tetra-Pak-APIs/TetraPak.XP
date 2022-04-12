@@ -1,5 +1,6 @@
 ﻿using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
+using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging;
 
 namespace TetraPak.XP.Web.Services

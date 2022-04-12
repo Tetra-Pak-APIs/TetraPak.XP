@@ -5,7 +5,7 @@ namespace TetraPak.XP.Auth.Abstractions
     /// <summary>
     ///   Used to configure a secure <see cref="HttpClient"/> through a <see cref="IHttpClientProvider"/>.
     /// </summary>
-    public class SecureClientOptions
+    public class HttpClientOptions
     {
         /// <summary>
         ///   (default=<c>false</c>)<br/>
@@ -20,8 +20,8 @@ namespace TetraPak.XP.Auth.Abstractions
         public ActorToken? ActorToken { get; set; }
 
         /// <summary>
-        ///   Gets or sets an (optional) authorization service. When set this is an indicator that the
-        ///   requested client should be automatically authorized as per the configured <see cref="AuthConfig"/>.   
+        ///   Gets or sets an (optional) authorization service.
+        ///   When set this is an indicator that the requested client should be automatically authorized.   
         /// </summary>
         public IAuthorizationService? AuthorizationService { get; set; }
         
@@ -32,10 +32,10 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <seealso cref="WithMessageHandler"/>
         public HttpMessageHandler? MessageHandler { get; private set; }
 
-        /// <summary>
-        ///   Gets or sets the configuration required for authenticating the client. 
-        /// </summary>
-        public IAuthConfiguration? AuthConfig { get; set; }
+        // /// <summary>
+        // ///   Gets or sets the configuration required for authenticating the client. 
+        // /// </summary>
+        // public IAuthConfiguration? AuthConfig { get; set; }
 
         /// <summary>
         ///   (intended for internal use; default=<c>false</c>)<br/>
@@ -45,7 +45,7 @@ namespace TetraPak.XP.Auth.Abstractions
         public bool ForceAuthorization { get; private set; }
 
         /// <summary>
-        ///   Clears the <see cref="ForceAuthorization"/>, forcing a renewed client authorization.
+        ///   Clears the <see cref="ForceAuthorization"/>, forcing a renewed client authorization. 
         /// </summary>
         public void RequestForcedAuthorization(bool value = true)
         {
@@ -59,7 +59,7 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   <c>this</c>
         /// </returns>
         /// <seealso cref="MessageHandler"/>
-        public SecureClientOptions WithMessageHandler(HttpMessageHandler messageHandler)
+        public HttpClientOptions WithMessageHandler(HttpMessageHandler messageHandler)
         {
             MessageHandler = messageHandler;
             return this;
@@ -75,7 +75,7 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   (optional)<br/>
         ///   A (custom) authorization service to be used for authorizing the requested client.
         /// </param>
-        public SecureClientOptions WithAuthorization(
+        public HttpClientOptions WithAuthorization(
             ActorToken? actorToken,
             IAuthorizationService? authorizationService = null)
         {
@@ -85,12 +85,12 @@ namespace TetraPak.XP.Auth.Abstractions
         }
 
         /// <summary>
-        ///   Initializes the <see cref="SecureClientOptions"/>.
+        ///   Initializes the <see cref="HttpClientOptions"/>.
         /// </summary>
         /// <param name="isClientTransient">
         ///   Initializes <see cref="IsClientTransient"/>.
         /// </param>
-        public SecureClientOptions(bool isClientTransient = false)
+        public HttpClientOptions(bool isClientTransient = false)
         {
             IsClientTransient = isClientTransient;
             ForceAuthorization = false;

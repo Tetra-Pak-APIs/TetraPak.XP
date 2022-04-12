@@ -2,13 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.OAuth2.TokenExchange
 {
-    sealed class TetraPakTokenExchangeGrantService : GrantServiceBase, ITokenExchangeGrantService
+    public sealed class TetraPakTokenExchangeGrantService : GrantServiceBase, ITokenExchangeGrantService
     {
         protected override GrantType GetGrantType() => GrantType.TokenExchange;
 
@@ -19,13 +18,13 @@ namespace TetraPak.XP.OAuth2.TokenExchange
         }
 
         public TetraPakTokenExchangeGrantService(
-            ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
+            ITetraPakConfiguration? tetraPakConfig = null, 
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, null, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
+        : base(httpClientProvider, tetraPakConfig, null, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
         }
     }

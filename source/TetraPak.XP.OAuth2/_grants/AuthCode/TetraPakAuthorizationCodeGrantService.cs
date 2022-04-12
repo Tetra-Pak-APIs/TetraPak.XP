@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
-using TetraPak.XP.Logging;
+using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.StringValues;
@@ -24,10 +24,9 @@ using TetraPak.XP.Web.Services;
 namespace TetraPak.XP.OAuth2.AuthCode
 {
     /// <summary>
-    ///   Helps with adding support for the OAuth2 Authorization Code grant type
-    ///   (see <see cref="TetraPakAuthorizationCodeGrantService"/>). 
+    ///   Implements the OAuth "Authorization Code" grant type targeting a Tetra Pak authority. 
     /// </summary>
-    sealed class TetraPakAuthorizationCodeGrantService : GrantServiceBase, IAuthorizationCodeGrantService
+    public sealed class TetraPakAuthorizationCodeGrantService : GrantServiceBase, IAuthorizationCodeGrantService
     {
         readonly ILoopbackBrowser _browser;
         readonly IDiscoveryDocumentProvider _discoveryDocumentProvider;
@@ -42,64 +41,64 @@ namespace TetraPak.XP.OAuth2.AuthCode
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             
-            var ctx = authContextOutcome.Value!;
-            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
-            if (!appCredentialsOutcome)
-                return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
+            var context = authContextOutcome.Value!;
+            var clientCredentialsOutcome = await GetClientCredentialsAsync(context);
+            if (!clientCredentialsOutcome)
+                return Outcome<Grant>.Fail(clientCredentialsOutcome.Exception!);
             
-            var appCredentials = appCredentialsOutcome.Value!;
-            var clientId = appCredentials.Identity; 
-            
-            var redirectUriString = ctx.Configuration.RedirectUri;
-            var conf = ctx.Configuration;
+            var clientCredentials = clientCredentialsOutcome.Value!;
+            var clientId = clientCredentials.Identity; 
+
+            var conf = context.Configuration;
+            var redirectUriString = context.GetRedirectUri();
             if (string.IsNullOrWhiteSpace(redirectUriString))
-                return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri));
+                return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.RedirectUri), redirectUriString!);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri), redirectUriString);
 
-            var authorityUriString = conf.AuthorityUri;
+            var authorityUriString = context.GetAuthorityUri();
             if (string.IsNullOrWhiteSpace(authorityUriString))
-                return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.AuthorityUri));
+                return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri));
             
             if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var authorityUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.AuthorityUri), authorityUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri), authorityUriString);
             
-            var tokenIssuerUriString = conf.TokenIssuerUri;
+            var tokenIssuerUriString = context.GetTokenIssuerUri();
             if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
-                return conf.MissingConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.TokenIssuerUri));
+                return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             
             if (!Uri.TryCreate(tokenIssuerUriString, UriKind.Absolute, out var tokenIssuerUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(AuthContext.Configuration.TokenIssuerUri), tokenIssuerUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri), tokenIssuerUriString);
 
             var isStateUsed = conf.OidcState;
             var isPkceUsed = conf.OidcPkce;
             var authState = new AuthState(isStateUsed, isPkceUsed, clientId);
             
-            var cachedGrantOutcome = await GetCachedGrantAsync(ctx);
+            var cachedGrantOutcome = await GetCachedGrantAsync(context);
             if (cachedGrantOutcome)
                 return cachedGrantOutcome;
             
-            if (!IsRefreshingGrants(ctx))
+            if (!IsRefreshingGrants(context))
                 return await onAuthorizationDoneAsync(
                     await acquireTokenViaWebUIAsync(authorityUri,  
                         tokenIssuerUri,
                         authState, 
-                        appCredentials, 
+                        clientCredentials, 
                         redirectUri, 
-                        ctx,
+                        context,
                         messageId));
 
             // attempt refresh token ...
-            var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(ctx);
+            var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(context);
             if (!cachedRefreshTokenOutcome)
                 return await onAuthorizationDoneAsync(
                     await acquireTokenViaWebUIAsync(authorityUri,
                         tokenIssuerUri,
                         authState,
-                        appCredentials,
+                        clientCredentials,
                         redirectUri,
-                        ctx,
+                        context,
                         messageId));
             
             var refreshToken = cachedRefreshTokenOutcome.Value!;
@@ -112,9 +111,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 await acquireTokenViaWebUIAsync(authorityUri, 
                     tokenIssuerUri, 
                     authState, 
-                    appCredentials,  
+                    clientCredentials,  
                     redirectUri,
-                    ctx, 
+                    context, 
                     messageId));
             
             async Task<Outcome<Grant>> onAuthorizationDoneAsync(Outcome<Grant> outcome)
@@ -123,10 +122,10 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     return outcome;
                     
                 var grant = outcome.Value!;
-                await CacheGrantAsync(ctx, grant);
+                await CacheGrantAsync(context, grant);
                 if (grant.RefreshToken is { })
                 {
-                    await CacheRefreshTokenAsync(ctx, grant.RefreshToken);
+                    await CacheRefreshTokenAsync(context, grant.RefreshToken);
                 }
                 return outcome;
             }
@@ -351,18 +350,55 @@ namespace TetraPak.XP.OAuth2.AuthCode
 
              return Task.FromResult(Outcome<Dictionary<string,string>>.Success(dictionary));
          }
-         
+
+         /// <summary>
+         ///   Initializes the grant service.
+         /// </summary>
+         /// <param name="httpClientProvider">
+         ///   A HttpClient factory.
+         /// </param>
+         /// <param name="browser">
+         ///   A <see cref="ILoopbackBrowser"/> to be used for authentication user interaction.
+         /// </param>
+         /// <param name="refreshTokenGrantService">
+         ///   Enables the OAuth Refresh Grant flow. 
+         /// </param>
+         /// <param name="discoveryDocumentProvider">
+         ///   A service to provide a well-known discovery document (when open id connect is added to the grant flow). 
+         /// </param>
+         /// <param name="tetraPakConfig">
+         ///   (optional)<br/>
+         ///   A Tetra Pak integration configuration.
+         /// </param>
+         /// <param name="tokenCache">
+         ///   (optional)<br/>
+         ///   A specialized (secure) token cache to reduce traffic and improve performance
+         /// </param>
+         /// <param name="appCredentialsDelegate">
+         ///   (optional)<br/>
+         ///   A delegate to handle custom logic for obtaining application credentials (client id / client secret).   
+         /// </param>
+         /// <param name="log">
+         ///   (optional)<br/>
+         ///   A logger provider.   
+         /// </param>
+         /// <param name="httpContextAccessor">
+         ///   Provides access to the current request/response <see cref="HttpContext"/>. 
+         /// </param>
+         /// <exception cref="ArgumentNullException">
+         ///   Any parameter was <c>null</c>.
+         /// </exception>
          public TetraPakAuthorizationCodeGrantService(
-            ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
             ILoopbackBrowser browser,
             IDiscoveryDocumentProvider discoveryDocumentProvider,
+            ITetraPakConfiguration? tetraPakConfig = null, 
             IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
+        : base(httpClientProvider, tetraPakConfig, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
          {
              _discoveryDocumentProvider = discoveryDocumentProvider;
             _browser = browser;

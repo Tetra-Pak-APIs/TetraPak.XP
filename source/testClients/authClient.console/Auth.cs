@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Identity;
@@ -151,6 +152,7 @@ namespace authClient.console
             {
                 sb.AppendLine($"  {pair.Key} = {pair.Value}");
             }
+            
             _log.Information(sb.ToString);
         }
 
@@ -189,7 +191,8 @@ namespace authClient.console
                     // .AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging())
                     .AddMicrosoftLogging(new LogFormatOptions { SuppressRank = true, SuppressPrefix = true});
             });
-            _serviceProvider = info.Services.BuildXpServiceProvider();
+            Configure.InsertValueDelegate(new ConfigurationVariablesDelegate());
+            _serviceProvider = info.ServiceCollection.BuildXpServiceProvider();
             _log = _serviceProvider.GetService<ILog>();
         }
     }

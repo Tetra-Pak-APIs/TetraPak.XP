@@ -24,6 +24,44 @@ namespace TetraPak.XP
         public static bool EndsWithAny(this string self, IEnumerable<char> chars, bool ignoreCase = false) 
         => chars.Any(c => self.EndsWith(c, ignoreCase));
 
+#if !NET5_0_OR_GREATER 
+        public static bool Contains(this string self, string match, StringComparison comparison)
+        {
+            return self.IndexOf(match, comparison) != -1;
+            
+            // if (match.Length == 0)
+            //     return self.Contains(match);
+            //
+            // if (match.Length > self.Length)
+            //     return false;
+            //
+            // // 0 1 2 3 4 5 6 7 8 9 
+            // // a B c D e F g H i J
+            // //             g h i j
+            // var caSelf = self.ToCharArray();
+            // var caMatch = match.ToCharArray();
+            // var ignoreCase = comparison 
+            //     is StringComparison.OrdinalIgnoreCase
+            //     or StringComparison.CurrentCultureIgnoreCase or StringComparison.InvariantCultureIgnoreCase;
+            // for (var i = 0; i <= caSelf.Length-match.Length; i++)
+            // {
+            //     if (!caSelf[i].Equals(caMatch[0], ignoreCase))
+            //         continue;
+            //
+            //     var j = 1;
+            //     for (; j < caMatch.Length; j++)
+            //     {
+            //         if (!caSelf[i+j].Equals(caMatch[j]))
+            //             break;
+            //     }
+            //
+            //     if (j == caMatch.Length)
+            //         return true;
+            // }
+            //
+            // return false;
+        }
+#endif
 
         // todo Copy to TetraPak.Common (.NET 5+ / Core)
         public static string EnsureAssigned(

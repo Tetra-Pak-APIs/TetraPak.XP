@@ -39,7 +39,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <summary>
         ///   Gets a value indicating whether cached grants are permitted. 
         /// </summary>
-        public bool IsCachingAllowed => (Flags & GrantFlags.Cached) == GrantFlags.Cached;
+        public bool IsCaching => (Flags & GrantFlags.Cached) == GrantFlags.Cached;
 
         /// <summary>
         ///   Sets an arbitrary value to be carried by the <see cref="GrantOptions"/>.
@@ -90,13 +90,25 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   (optional)<br/>
         ///   Allows cancelling the operation.
         /// </param>
+        /// <param name="clientCredentials">
+        ///   (optional; default=[see remarks])<br/>
+        ///   Specifies client (a client id and, optionally, secret) credentials for the request.
+        ///   Please see remarks for more details.
+        /// </param>
         /// <returns>
         ///   A <see cref="GrantOptions"/> object.
         /// </returns>
+        /// <remarks>
+        ///   Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
+        ///   that information, the service is expected to support some other means of obtaining them, such as
+        ///   from a configuration source. 
+        /// </remarks>
         /// <seealso cref="Grant"/>
+        /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
         public static GrantOptions Default(
-            CancellationTokenSource? cancellationTokenSource = null) 
-            => Silent(cancellationTokenSource);
+            CancellationTokenSource? cancellationTokenSource = null,
+            Credentials? clientCredentials = null) 
+            => Silent(cancellationTokenSource, clientCredentials: clientCredentials);
         
         /// <summary>
         ///   Constructs and returns a <see cref="GrantOptions"/> object to force the grant request.
@@ -105,21 +117,35 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   (optional)<br/>
         ///   Enables canceling the request.
         /// </param>
+        /// <seealso cref="GrantFlags"/>
         /// <param name="actorId">
         ///   (optional)<br/>
         ///   A (unique) id used to identify the actor requesting authorization.
         ///   This information is needed for caching purposed by some grant flows.  
         /// </param>
+        /// <param name="clientCredentials">
+        ///   (optional; default=[see remarks])<br/>
+        ///   Specifies client (a client id and, optionally, secret) credentials for the request.
+        ///   Please see remarks for more details.
+        /// </param>
+        /// <remarks>
+        ///   Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
+        ///   that information, the service is expected to support some other means of obtaining them, such as
+        ///   from a configuration source. 
+        /// </remarks>
         /// <seealso cref="GrantFlags"/>
+        /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
         public static GrantOptions Forced(
-            CancellationTokenSource? cancellationTokenSource = null, 
-            string? actorId = null)
+            CancellationTokenSource? cancellationTokenSource = null,
+            string? actorId = null,
+            Credentials? clientCredentials = null)
         {
             return new GrantOptions
             {
                 Flags = GrantFlags.Forced,
                 CancellationTokenSource = cancellationTokenSource,
-                ActorId = actorId
+                ActorId = actorId,
+                
             };
         }
         
@@ -139,11 +165,23 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   A (unique) id used to identify the actor requesting authorization. 
         ///   This information is needed for caching purposed by some grant flows.  
         /// </param>
+        /// <param name="clientCredentials">
+        ///   (optional; default=[see remarks])<br/>
+        ///   Specifies client (a client id and, optionally, secret) credentials for the request.
+        ///   Please see remarks for more details.
+        /// </param>
+        /// <remarks>
+        ///   Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
+        ///   that information, the service is expected to support some other means of obtaining them, such as
+        ///   from a configuration source. 
+        /// </remarks>
         /// <seealso cref="GrantFlags"/>
+        /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
         public static GrantOptions Forced(
             string? service, 
             CancellationTokenSource? cancellationTokenSource = null, 
-            string? actorId = null)
+            string? actorId = null,
+            Credentials? clientCredentials = null)
         {
             return new GrantOptions
             {
@@ -151,7 +189,7 @@ namespace TetraPak.XP.Auth.Abstractions
                 Flags = GrantFlags.Forced,
                 CancellationTokenSource = cancellationTokenSource,
                 ActorId = actorId
-            };
+            }.WithClientCredentials(clientCredentials);
         }
 
         /// <summary>
@@ -166,12 +204,24 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   A (unique) id used to identify the actor requesting authorization. 
         ///   This information is needed for caching purposed by some grant flows.  
         /// </param>
+        /// <param name="clientCredentials">
+        ///   (optional; default=[see remarks])<br/>
+        ///   Specifies client (a client id and, optionally, secret) credentials for the request.
+        ///   Please see remarks for more details.
+        /// </param>
+        /// <remarks>
+        ///   Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
+        ///   that information, the service is expected to support some other means of obtaining them, such as
+        ///   from a configuration source. 
+        /// </remarks>
         /// <seealso cref="GrantFlags"/>
+        /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
         public static GrantOptions Silent(
             CancellationTokenSource? cancellationTokenSource = null, 
-            string? actorId = null) 
+            string? actorId = null,
+            Credentials? clientCredentials = null) 
             =>
-            Silent(null, actorId, cancellationTokenSource);
+            Silent(null, cancellationTokenSource, actorId, clientCredentials);
         
         /// <summary>
         ///   Constructs and returns a <see cref="GrantOptions"/> object for a silent grant request.
@@ -180,20 +230,32 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   (optional)<br/>
         ///   Specifies a service to be consumed. 
         /// </param>
+        /// <param name="cancellationTokenSource">
+        ///   (optional)<br/>
+        ///   Enables canceling the request.
+        /// </param>
         /// <param name="actorId">
         ///   (optional)<br/>
         ///   A (unique) id used to identify the actor requesting authorization. 
         ///   This information is needed for caching purposed by some grant flows.  
         /// </param>
-        /// <param name="cancellationTokenSource">
-        ///   (optional)<br/>
-        ///   Enables canceling the request.
+        /// <param name="clientCredentials">
+        ///   (optional; default=[see remarks])<br/>
+        ///   Specifies client (a client id and, optionally, secret) credentials for the request.
+        ///   Please see remarks for more details.
         /// </param>
+        /// <remarks>
+        ///   Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
+        ///   that information, the service is expected to support some other means of obtaining them, such as
+        ///   from a configuration source. 
+        /// </remarks>
         /// <seealso cref="GrantFlags"/>
+        /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
         public static GrantOptions Silent(
             string? service,
+            CancellationTokenSource? cancellationTokenSource = null,
             string? actorId = null,
-            CancellationTokenSource? cancellationTokenSource = null)
+            Credentials? clientCredentials = null)
         {
             return new GrantOptions
             {
@@ -201,7 +263,7 @@ namespace TetraPak.XP.Auth.Abstractions
                 Flags = GrantFlags.Silent,
                 ActorId = actorId,
                 CancellationTokenSource = cancellationTokenSource
-            };
+            }.WithClientCredentials(clientCredentials);
         }
     }
 }

@@ -100,31 +100,34 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <summary>
         ///   Constructs and returns an <see cref="Outcome{T}"/> to reflect a required configuration item is missing. 
         /// </summary>
-        public static Outcome<T> MissingConfigurationOutcome<T>(this IConfigurationSection cfg, string key) 
+        public static Outcome<T> MissingConfigurationOutcome<T>(this IConfigurationSection? cfg, string key) 
             => 
                 Outcome<T>.Fail(MissingConfigurationException(cfg, key));
-         
+
         /// <summary>
         ///   Constructs and returns an <see cref="Exception"/> to reflect a required configuration item is missing. 
         /// </summary>
-        public static Exception MissingConfigurationException(this IConfigurationSection cfg, string key)
+        public static Exception MissingConfigurationException(this IConfigurationSection? cfg, string key)
             =>
-                new ConfigurationException($"Missing configuration: {new ConfigPath(cfg.Path).Push(key)}");
+                cfg is { }
+                    ? new ConfigurationException($"Missing configuration: {new ConfigPath(cfg.Path).Push(key)}")
+                    : new ConfigurationException($"Missing configuration: {key}");
         
         /// <summary>
         ///   Constructs and returns an <see cref="Outcome{T}"/> to reflect a configuration item is invalid. 
         /// </summary>
-        public static Outcome<T> InvalidConfigurationOutcome<T>(this IConfigurationSection cfg, string key, object value) 
+        public static Outcome<T> InvalidConfigurationOutcome<T>(this IConfigurationSection? cfg, string key, object value) 
             => 
                 Outcome<T>.Fail(InvalidConfigurationException(cfg, key, value));
 
         /// <summary>
         ///   Constructs and returns an <see cref="Exception"/> to reflect a configuration item is invalid. 
         /// </summary>
-        public static Exception InvalidConfigurationException(this IConfigurationSection cfg, string key, object value) 
+        public static Exception InvalidConfigurationException(this IConfigurationSection? cfg, string key, object value) 
             => 
-                new ConfigurationException($"Invalid configuration: {new ConfigPath(cfg.Path).Push(key)}: {value}");
-
+                cfg is { }
+                    ? new ConfigurationException($"Missing configuration: {new ConfigPath(cfg.Path).Push(key)}: {value}")
+                    : new ConfigurationException($"Missing configuration: {key}");
     }
 
     sealed class FallbackConfigurationDecoratorDelegate : IConfigurationDecoratorDelegate

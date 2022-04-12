@@ -5,8 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Logging;
-using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Abstractions;
 using HttpMethod = Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpMethod;
@@ -58,7 +56,7 @@ namespace TetraPak.XP.Web.Http
             var key = tetraPakConfig?.MessageIdHeader ?? Headers.MessageId;
             var value = request.Headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
             return value is { }
-                ? (LogMessageId)value
+                ? (LogMessageId?) value
                 : null;
         }
         
@@ -86,7 +84,7 @@ namespace TetraPak.XP.Web.Http
             var key = tetraPakConfig?.MessageIdHeader ?? Headers.MessageId;
             var value = headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
             return value is { }
-                ? (LogMessageId)value
+                ? (LogMessageId?) value
                 : null;
         }
         

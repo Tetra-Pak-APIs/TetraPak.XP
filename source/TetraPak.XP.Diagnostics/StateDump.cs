@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using TetraPak.XP.Diagnostics;
+using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 
-namespace TetraPak.XP.Logging
+namespace TetraPak.XP.Diagnostics
 {
     /// <summary>
     ///   Assists in creating a well formatted state dump of one or more objects.
@@ -36,10 +36,10 @@ namespace TetraPak.XP.Logging
         /// </exception>
         /// <seealso cref="StateDumpContext"/>
         /// <seealso cref="RestrictedValueAttribute"/>
-        public async Task AddAsync(object source, string? name = null)
+        public async Task AddAsync(object? source, string? name = null)
         {
             if (source is null)
-                throw new ArgumentNullException(nameof(source));
+                return;
 
             name ??= source.GetType().FullName;
             await addAsync(source, name!);

@@ -10,7 +10,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <summary>
         ///   Gets the <see cref="IAuthConfiguration"/> object.
         /// </summary>
-        public IAuthConfiguration Configuration { get; }
+        public IAuthConfiguration? Configuration { get; }
 
         public GrantOptions Options { get; }
         
@@ -22,18 +22,18 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Initializes the <see cref="AuthContext"/>.
         /// </summary>
         /// <param name="grantType">
-        ///   Initializes <see cref="GrantType"/>.
-        /// </param>
-        /// <param name="configuration">
-        ///   Initializes <see cref="Configuration"/>. 
+        ///     Initializes <see cref="GrantType"/>.
         /// </param>
         /// <param name="options">
-        ///   Specifies options for the ongoing <see cref="Grant"/> request.
+        ///     Specifies options for the ongoing <see cref="Grant"/> request.
         /// </param>
-        internal AuthContext(GrantType grantType, IAuthConfiguration configuration, GrantOptions options)
+        /// <param name="configuration">
+        ///     Initializes <see cref="Configuration"/>. 
+        /// </param>
+        internal AuthContext(GrantType grantType, GrantOptions options, IAuthConfiguration? configuration)
         {
             GrantType = grantType;
-            Options = options;
+            Options = options.WithAuthInfo(configuration);
             Configuration = configuration;
         }
     }

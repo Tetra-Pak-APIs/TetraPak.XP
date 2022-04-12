@@ -691,8 +691,6 @@ namespace TetraPak.XP
                 return true;
             }
         }
-        
-        
 
         public static IEnumerable<T> WithInserted<T>(this IEnumerable<T> collection, int index, T item)
         {
@@ -718,9 +716,9 @@ namespace TetraPak.XP
         /// <returns>
         ///   <c>true</c> if the type declares an implicit overloaded type method; otherwise <c>false</c>.
         /// </returns>
-        /// <seealso cref="getOverloadingOperator"/>
+        /// <seealso cref="getOverloadingConversionOperator"/>
         public static bool IsConvertingTo<T>(this Type type, ConversionOverload overload = ConversionOverload.Any) 
-             => type.getOverloadingOperator(typeof(T), overload) != null;
+             => type.getOverloadingConversionOperator(typeof(T), overload) != null;
 
          /// <summary>
          ///   Gets a value specifying whether the <seealso cref="Type"/> declares an
@@ -739,12 +737,12 @@ namespace TetraPak.XP
          /// <returns>
          ///   <c>true</c> if the type declares an implicit overloaded type method; otherwise <c>false</c>.
          /// </returns>
-         /// <seealso cref="getOverloadingOperator"/>
+         /// <seealso cref="getOverloadingConversionOperator"/>
          public static bool IsConvertingTo(
              this Type type, 
              Type convertedType,
              ConversionOverload overload = ConversionOverload.Any) 
-             => type.getOverloadingOperator(convertedType, ConversionOverload.Any) != null;
+             => type.getOverloadingConversionOperator(convertedType, overload) != null;
 
          /// <summary>
          ///   Attempts getting an implicit overload operator type method.
@@ -767,7 +765,7 @@ namespace TetraPak.XP
          ///   <paramref name="overload"/> was not <see cref="ConversionOverload.Implicit"/>
          ///   or <see cref="ConversionOverload.Explicit"/>
          /// </exception>
-         static MethodInfo? getOverloadingOperator(this Type self, Type type, ConversionOverload overload)
+         static MethodInfo? getOverloadingConversionOperator(this Type self, Type type, ConversionOverload overload)
          {
              var ident = overload switch
              {
@@ -792,6 +790,12 @@ namespace TetraPak.XP
 
                  return parameters[0].ParameterType == type;
              }
+         }
+
+         public static bool IsLessOrGreaterComparisonSupported(this Type self)
+         {
+             throw new NotImplementedException();
+             var nisse = self.GetMethods().Where(m => m.Name.StartsWith("op_"));
          }
         
          public static TValue GetDefaultValue<TValue>() => (TValue) GetDefaultValue(typeof(TValue))!;

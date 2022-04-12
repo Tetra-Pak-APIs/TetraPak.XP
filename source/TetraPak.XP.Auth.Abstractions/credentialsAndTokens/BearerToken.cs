@@ -8,7 +8,7 @@ namespace TetraPak.XP.Auth.Abstractions
     /// <summary>
     ///   Represents a bearer token (a token with 'Bearer ' prefix).
     /// </summary>
-    public class BearerToken : ActorToken
+    public sealed class BearerToken : ActorToken
     {
         /// <summary>
         ///   Gets the bearer token qualifier.

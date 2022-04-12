@@ -6,11 +6,11 @@ namespace TetraPak.XP.Auth.Abstractions
     /// <summary>
     ///   Represents basic authentication credentials. 
     /// </summary>
-    public class BasicAuthCredentials : Credentials
+    public sealed class BasicAuthCredentials : Credentials
     {
         const string SecretQualifier = ":";
         const string NewSecretQualifier = " ; ";
-        const string BasicAuthQualifier = "Basic ";
+        internal const string Scheme = "Basic ";
 
         /// <summary>
         ///   Gets the basic auth credentials encoded form.  
@@ -26,11 +26,26 @@ namespace TetraPak.XP.Auth.Abstractions
             return Convert.ToBase64String(bytes);
         }
 
+        /// <inheritdoc />
+        public override string ToString() => $"{Scheme} {Encoded}";
+
+        /// <summary>
+        ///   Implicitly casts <see cref="BasicAuthCredentials"/> to a <see cref="string"/>.
+        /// </summary>
+        /// <param name="basicAuthCredentials">
+        ///   The <see cref="BasicAuthCredentials"/> to be cast.
+        /// </param>
+        /// <returns>
+        ///   The <see cref="string"/> representation of the <see cref="BasicAuthCredentials"/>.
+        /// </returns>
+        public static implicit operator string(BasicAuthCredentials basicAuthCredentials) =>
+            basicAuthCredentials.ToString();
+
         static Outcome<(string identity, string secret, string newSecret)> decode(string encoded)
         {
-            if (encoded.StartsWith(BasicAuthQualifier, StringComparison.OrdinalIgnoreCase))
+            if (encoded.StartsWith(Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                encoded = encoded.Substring(BasicAuthQualifier.Length);
+                encoded = encoded.Substring(Scheme.Length);
             }
 
             try

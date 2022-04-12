@@ -37,7 +37,7 @@ sealed class TetraPakUserInformationService : IUserInformationService
 
         var accessToken = grant.AccessToken!;
         options ??= GrantOptions.Default();
-        if (options.IsCachingAllowed)
+        if (options.IsCaching)
         {
             var value = await getCachedAsync(accessToken);
             if (value is { })
@@ -75,7 +75,7 @@ sealed class TetraPakUserInformationService : IUserInformationService
 
         var userInfoEndpoint = discoOutcome.Value!.UserInformationEndpoint!;
         var completionSource = downloadAsync(accessToken, new Uri(userInfoEndpoint), options, messageId);
-        if (options.IsCachingAllowed)
+        if (options.IsCaching)
         {
             await setCachedAsync(accessToken, completionSource);
         }

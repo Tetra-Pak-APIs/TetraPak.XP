@@ -24,7 +24,7 @@ namespace TetraPak.XP.OAuth2
         /// <summary>
         ///   The Tetra Pak configuration object.
         /// </summary>
-        protected ITetraPakConfiguration TetraPakConfig { get; }
+        protected ITetraPakConfiguration? TetraPakConfig { get; }
         
         IHttpClientProvider HttpClientProvider { get; }
         
@@ -57,7 +57,7 @@ namespace TetraPak.XP.OAuth2
         /// </returns>
         bool IsGrantCachingEnabled(AuthContext context, bool isWritingToCache) 
             => 
-            TokenCache is {} && TetraPakConfig.IsCaching && (context.Options.IsCachingAllowed || isWritingToCache);
+            TokenCache is {} && (context.Options.IsGrantCachingEnabled(TetraPakConfig) || isWritingToCache);
 
         /// <summary>
         ///   Examines passed state and returns a value indicating whether the Refresh Grant flow is
@@ -100,7 +100,7 @@ namespace TetraPak.XP.OAuth2
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="Credentials"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        protected Task<Outcome<Credentials>> GetAppCredentialsAsync(AuthContext context)
+        protected Task<Outcome<Credentials>> GetClientCredentialsAsync(AuthContext context)
         {
             if (_appCredentialsDelegate is { })
             {
@@ -108,14 +108,19 @@ namespace TetraPak.XP.OAuth2
                 if (outcome)
                     return Task.FromResult(outcome);
             }
-            
-            var identity = context.Configuration.ClientId;
-            if (string.IsNullOrWhiteSpace(identity))
-                return Task.FromResult(Outcome<Credentials>.Fail(
+
+            var credentials = context.GetClientCredentials();// Configuration.ClientId;
+            return Task.FromResult(credentials is { }
+                ? Outcome<Credentials>.Success(credentials)
+                : Outcome<Credentials>.Fail(
                     new ConfigurationException("Client credentials have not been provisioned")));
 
-            var secret = context.Configuration.ClientSecret;
-            return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity!, secret!)));
+            // if (string.IsNullOrWhiteSpace(identity)) obsolete
+            //     return Task.FromResult(Outcome<Credentials>.Fail(
+            //         new ConfigurationException("Client credentials have not been provisioned")));
+            //
+            // var secret = context.Configuration.ClientSecret;
+            // return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity, secret!)));
         }
 
         /// <summary>
@@ -139,7 +144,7 @@ namespace TetraPak.XP.OAuth2
             if (!IsGrantCachingEnabled(context, true))
                 return;
 
-            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(context);
             if (!appCredentialsOutcome)
                 return;
 
@@ -166,7 +171,7 @@ namespace TetraPak.XP.OAuth2
             if (!IsGrantCachingEnabled(context, false))
                 return Outcome<Grant>.Fail("Token caching is unavailable or not allowed");
 
-            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(context);
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail("Could not resolve app credentials");
 
@@ -191,7 +196,7 @@ namespace TetraPak.XP.OAuth2
             if (!IsGrantCachingEnabled(context, true))
                 return;
         
-            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(context);
             if (!appCredentialsOutcome)
                 return;
         
@@ -221,7 +226,7 @@ namespace TetraPak.XP.OAuth2
             if (!IsGrantCachingEnabled(context, true))
                 return;
             
-            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(context);
             if (!appCredentialsOutcome)
                 return;
 
@@ -241,7 +246,7 @@ namespace TetraPak.XP.OAuth2
             if (TokenCache is null)
                 return Outcome<ActorToken>.Fail("No token cache is available");
         
-            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(context);
             if (!appCredentialsOutcome)
                 return Outcome<ActorToken>.Fail("Could not resolve app credentials");
 
@@ -265,7 +270,7 @@ namespace TetraPak.XP.OAuth2
             if (!IsGrantCachingEnabled(context, true))
                 return;
         
-            var appCredentialsOutcome = await GetAppCredentialsAsync(context);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(context);
             if (!appCredentialsOutcome)
                 return;
         
@@ -294,26 +299,26 @@ namespace TetraPak.XP.OAuth2
             await DeleteCachedRefreshTokenAsync(ctx);
         }
 
-        /// <summary>
-        ///   Validates <see cref="Credentials"/> to be used as <see cref="BasicAuthCredentials"/>.
-        /// </summary>
-        /// <param name="credentials"></param>
-        /// <returns>
-        ///   
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        ///   The <paramref name="credentials"/> lacks either the <see cref="Credentials.Identity"/> or
-        ///   <see cref="Credentials.Secret"/> elements.
-        /// </exception>
-        protected BasicAuthCredentials ValidateBasicAuthCredentials(Credentials credentials)
-        {
-            if (string.IsNullOrWhiteSpace(credentials.Identity) || string.IsNullOrWhiteSpace(credentials.Secret))
-                throw new InvalidOperationException("Invalid credentials. Please specify client id and secret");
-            
-            return credentials is BasicAuthCredentials bac
-                ? bac
-                : new BasicAuthCredentials(credentials.Identity, credentials.Secret!);
-        }
+        // /// <summary>
+        // ///   Validates <see cref="Credentials"/> to be used as <see cref="BasicAuthCredentials"/>. obsolete 
+        // /// </summary>
+        // /// <param name="credentials"></param>
+        // /// <returns>
+        // ///   
+        // /// </returns>
+        // /// <exception cref="InvalidOperationException">
+        // ///   The <paramref name="credentials"/> lacks either the <see cref="Credentials.Identity"/> or
+        // ///   <see cref="Credentials.Secret"/> elements.
+        // /// </exception>
+        // protected BasicAuthCredentials ValidateBasicAuthCredentials(Credentials credentials)
+        // {
+        //     if (string.IsNullOrWhiteSpace(credentials.Identity) || string.IsNullOrWhiteSpace(credentials.Secret))
+        //         throw new InvalidOperationException("Invalid credentials. Please specify client id and secret");
+        //     
+        //     return credentials is BasicAuthCredentials bac
+        //         ? bac
+        //         : new BasicAuthCredentials(credentials.Identity, credentials.Secret!);
+        // }
 
         /// <summary>
         ///   Initializes the grant service.
@@ -342,16 +347,17 @@ namespace TetraPak.XP.OAuth2
         /// <exception cref="ArgumentNullException">
         ///   Any of the compulsory arguments where unassigned.
         /// </exception>
-        protected GrantServiceBase(ITetraPakConfiguration tetraPakConfig,
+        protected GrantServiceBase(
             IHttpClientProvider httpClientProvider,
+            ITetraPakConfiguration? tetraPakConfig = null,
             IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
         {
-            TetraPakConfig = tetraPakConfig ?? throw new ArgumentNullException(nameof(tetraPakConfig));
             HttpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
+            TetraPakConfig = tetraPakConfig;
             RefreshTokenGrantService = refreshTokenGrantService;
             TokenCache = tokenCache;
             _appCredentialsDelegate = appCredentialsDelegate;

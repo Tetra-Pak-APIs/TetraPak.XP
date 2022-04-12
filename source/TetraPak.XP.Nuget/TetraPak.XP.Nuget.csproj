@@ -3,10 +3,10 @@
     <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
     <LangVersion>default</LangVersion>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>1.0.0.13</AssemblyVersion>
-    <FileVersion>1.0.0.13</FileVersion>
-    <Version>1.0.0.13</Version>
-    <PackageVersion>1.0.0-alpha.13</PackageVersion>
+    <AssemblyVersion>1.0.0.15</AssemblyVersion>
+    <FileVersion>1.0.0.15</FileVersion>
+    <Version>1.0.0.15</Version>
+    <PackageVersion>1.0.0-alpha.15</PackageVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Title>Tetra Pak SDK library for cross-platform (XP) applications</Title>
     <Description>A common set of code APIs and tools for Tetra Pak .NET development</Description>

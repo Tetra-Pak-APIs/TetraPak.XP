@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Logging;
+using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.Web.Http;
@@ -19,9 +19,9 @@ using TetraPak.XP.Web.Services;
 namespace TetraPak.XP.OAuth2.ClientCredentials
 {
     /// <summary>
-    ///   A default service to support the client credentials grant type.
+    ///   Implements the OAuth "Client Credentials" grant type targeting a Tetra Pak authority. 
     /// </summary>
-    sealed class TetraPakClientCredentialsGrantService : GrantServiceBase, IClientCredentialsGrantService
+    public sealed class TetraPakClientCredentialsGrantService : GrantServiceBase, IClientCredentialsGrantService
     {
         protected override GrantType GetGrantType() => GrantType.ClientCredentials;
         
@@ -37,20 +37,20 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             var ctx = authContextOutcome.Value!;
 
-            var appCredentialsOutcome = await GetAppCredentialsAsync(ctx);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(ctx);
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
-            var appCredentials = appCredentialsOutcome.Value!;
+            var clientCredentials = appCredentialsOutcome.Value!;
             
             
-            var tokenIssuerUri = ctx.Configuration.TokenIssuerUri;
+            var tokenIssuerUri = ctx.GetTokenIssuerUri();
             if (string.IsNullOrWhiteSpace(tokenIssuerUri))
-                return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthConfiguration.TokenIssuerUri));
+                return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             
             var ctSource = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
-                var basicAuthCredentials = ValidateBasicAuthCredentials(appCredentials);
+                var basicAuthCredentials = clientCredentials.ToBasicAuthCredentials();
                 var cachedOutcome = await GetCachedGrantAsync(ctx);
                 if (cachedOutcome)
                 {
@@ -152,7 +152,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 {
                     var dump = new StateDump().WithStackTrace();
                     dump.AddAsync(TetraPakConfig, "AuthConfig");
-                    dump.AddAsync(appCredentials, "Credentials");
+                    dump.AddAsync(clientCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
                 Log.Error(ex, message.ToString(), messageId);
@@ -161,16 +161,17 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
         }
 
         /// <summary>
-        ///   Initializes the <see cref="TetraPakClientCredentialsGrantService"/>.
+        ///   Initializes the grant service.
         /// </summary>
-        /// <param name="tetraPakConfig">
-        ///   The Tetra Pak integration configuration.
-        /// </param>
         /// <param name="httpClientProvider">
         ///   A HttpClient factory.
         /// </param>
         /// <param name="refreshTokenGrantService">
         ///   Enables the OAuth Refresh Grant flow. 
+        /// </param>
+        /// <param name="tetraPakConfig">
+        ///   (optional)<br/>
+        ///   A Tetra Pak integration configuration.
         /// </param>
         /// <param name="tokenCache">
         ///   (optional)<br/>
@@ -191,14 +192,14 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
         ///   Any parameter was <c>null</c>.
         /// </exception>
         public TetraPakClientCredentialsGrantService(
-            ITetraPakConfiguration tetraPakConfig, 
             IHttpClientProvider httpClientProvider,
+            ITetraPakConfiguration? tetraPakConfig = null, 
             IRefreshTokenGrantService? refreshTokenGrantService = null,
             ITokenCache? tokenCache = null,
             IAppCredentialsDelegate? appCredentialsDelegate = null,
             ILog? log = null,
             IHttpContextAccessor? httpContextAccessor = null)
-        : base(tetraPakConfig, httpClientProvider, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
+        : base(httpClientProvider, tetraPakConfig, refreshTokenGrantService, tokenCache, appCredentialsDelegate, log, httpContextAccessor)
         {
         }
     }

@@ -22,6 +22,9 @@ namespace authClient.console
             var keyClientSecret = $"{prefix}{nameof(IAuthConfiguration.ClientSecret)}";
 
             var conf = context.Configuration;
+            if (conf is null)
+                return conf.MissingConfigurationOutcome<Credentials>(nameof(IAuthConfiguration.ClientId));
+                
             var clientId = conf.GetNamed<string?>(keyClientId)?.Trim();
             if (string.IsNullOrEmpty(clientId))
             {
@@ -31,12 +34,12 @@ namespace authClient.console
             var clientSecret = conf.GetNamed<string?>(keyClientSecret)?.Trim();
             if (string.IsNullOrEmpty(clientSecret))
             {
-                clientId = conf.GetNamed<string?>(nameof(IAuthConfiguration.ClientSecret))?.Trim();
+                clientSecret = conf.GetNamed<string?>(nameof(IAuthConfiguration.ClientSecret))?.Trim();
             }
             
             return string.IsNullOrEmpty(clientId)
                 ? conf.MissingConfigurationOutcome<Credentials>(nameof(IAuthConfiguration.ClientId))
-                : Outcome<Credentials>.Success(new Credentials(clientId, clientSecret));
+                : Outcome<Credentials>.Success(new Credentials(clientId!, clientSecret));
         }
     }
 }

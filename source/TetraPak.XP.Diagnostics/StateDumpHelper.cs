@@ -1,6 +1,4 @@
-﻿using TetraPak.XP.Diagnostics;
-
-namespace TetraPak.XP.Logging;
+﻿namespace TetraPak.XP.Diagnostics;
 
 /// <summary>
 ///   Provides convenient extensions for working with <see cref="StateDump"/>s.

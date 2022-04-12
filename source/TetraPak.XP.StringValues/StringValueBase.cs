@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
@@ -172,6 +173,52 @@ public class StringValueBase : IStringValue // todo consider making StringValueB
     static bool isParsed(string? stringValue) => stringValue.IsAssigned() && stringValue!.StartsWith(NoParse);
 
     static string stripParsed(string stringValue) => stringValue.Substring(NoParse.Length);
+
+    public static bool TryConstruct(Type stringValueType, string s, out IStringValue? stringValue)
+    {
+        if (!stringValueType.IsImplementingInterface<IStringValue>())
+            throw new ArgumentException($"Type is not a {typeof(IStringValue)}: {stringValueType}");
+
+        ConstructorInfo? ctor = null;
+        var constructors = stringValueType.GetConstructors();
+        foreach (var c in constructors)
+        {
+            var infos = c.GetParameters();
+            if (infos.Length == 0)
+                continue;
+            
+            if (infos[0].ParameterType != typeof(string))
+                continue;
+            
+            if (!isSingleParameterOrRestAreOptional(infos))
+                continue;
+
+            ctor = c;
+        }
+
+        if (ctor is null)
+        {
+            stringValue = null;
+            return false;
+        }
+
+        stringValue = (IStringValue) Activator.CreateInstance(stringValueType, s);
+        return true;
+
+        bool isSingleParameterOrRestAreOptional(IReadOnlyList<ParameterInfo> parameterInfos)
+        {
+            if (parameterInfos.Count == 1)
+                return true;
+
+            for (var i = 1; i < parameterInfos.Count; i++)
+            {
+                if (!parameterInfos[i].IsOptional)
+                    return false;
+            }
+
+            return true;
+        }
+    }
 
     /// <summary>
     ///   Initializes the <see cref="IStringValue"/>.
