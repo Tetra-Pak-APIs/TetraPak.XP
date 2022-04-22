@@ -2,28 +2,30 @@
 using HttpStatusCode = TetraPak.XP.Microsoft.HttpStatusCode;
 
 // ReSharper disable once CheckNamespace
-namespace TetraPak.XP;
-
-partial class HttpServerException
+namespace TetraPak.XP
 {
-    /// <summary>
-    ///   Produces a <see cref="HttpServerException"/> to indicate that the request failed
-    ///   due to failure of a previous request.
-    /// </summary>
-    /// <param name="message">
-    ///   (optional)<br/>
-    ///   Describes the problem.
-    /// </param>
-    /// <param name="innerException">
-    ///   (optional)<br/>
-    ///   The exception that is the cause of the current exception.
-    /// </param>
-    /// <returns>
-    ///   A <see cref="HttpServerException"/>.
-    /// </returns>
-    public static HttpServerException FailedDependency(string? message = null, Exception? innerException = null)
+
+    partial class HttpServerException
     {
-        return new HttpServerException(HttpStatusCode.FailedDependency, 
-            message ?? "Failed Dependency", innerException);
+        /// <summary>
+        ///   Produces a <see cref="HttpServerException"/> to indicate that the request failed
+        ///   due to failure of a previous request.
+        /// </summary>
+        /// <param name="message">
+        ///   (optional)<br/>
+        ///   Describes the problem.
+        /// </param>
+        /// <param name="innerException">
+        ///   (optional)<br/>
+        ///   The exception that is the cause of the current exception.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="HttpServerException"/>.
+        /// </returns>
+        public static HttpServerException FailedDependency(string? message = null, Exception? innerException = null)
+        {
+            return new HttpServerException(HttpStatusCode.FailedDependency,
+                message ?? "Failed Dependency", innerException);
+        }
     }
 }

@@ -5,7 +5,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace TetraPak.XP.Web.Http;
+namespace TetraPak.XP.Web.Http
+{
 
     /// <summary>
     ///   Provides convenient methods for working with HTTP request objects.
@@ -27,7 +28,7 @@ namespace TetraPak.XP.Web.Http;
             {
                 Version = message.Version
             };
-            
+
             // copy content via a MemoryStream ...
             var stream = new MemoryStream();
             if (message.Content is { })
@@ -35,7 +36,7 @@ namespace TetraPak.XP.Web.Http;
                 await message.Content.CopyToAsync(stream).ConfigureAwait(false);
                 stream.Position = 0;
                 clone.Content = new StreamContent(stream);
-                
+
                 // copy content headers ...
                 if (message.Content.Headers.Any())
                 {
@@ -79,7 +80,7 @@ namespace TetraPak.XP.Web.Http;
         ///   The type of headers supported by the headers collection.
         /// </typeparam>
         public static void ResetTo<T>(this HttpHeaderValueCollection<T> self, params T[] headers)
-        where T : class
+            where T : class
         {
             self.Clear();
             foreach (var header in headers)
@@ -88,3 +89,4 @@ namespace TetraPak.XP.Web.Http;
             }
         }
     }
+}

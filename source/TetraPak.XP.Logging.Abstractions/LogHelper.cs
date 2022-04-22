@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace TetraPak.XP.Logging.Abstractions;
@@ -42,6 +41,9 @@ public static class LogHelper
     /// </param>
     /// <param name="message">
     ///   A message to be written to <paramref name="log"/>.
+    /// </param>
+    /// <param name="source">
+    ///   The log source.
     /// </param>
     /// <param name="messageId">
     ///   (optional)<br/>
@@ -415,13 +417,13 @@ public static class LogHelper
         var formatted = $"{prefix}{messageId}{logRank}{message}{caller}";
 
         var sb = new StringBuilder(formatted);
-        if (rank > LogRank.Debug || exception is null)
-            return sb.ToString();
-
-        sb.AppendLine(exception.ToString());
-        if (exception.InnerException is { })
+        if (exception is { })
         {
-            sb.AppendLine(exception.InnerException.ToString());
+            sb.AppendLine(exception.ToString());
+            if (exception.InnerException is { })
+            {
+                sb.AppendLine(exception.InnerException.ToString());
+            }
         }
         return sb.ToString();
     }
@@ -473,44 +475,5 @@ public static class LogHelper
             message.AppendLine($"{key.ToString()}={value?.ToString()}");
         }
         log.Write(rank, message.ToString(), messageId: messageId);
-    }
-}
-
-public class LogSource
-{
-    readonly string _stringValue;
-
-    public override string ToString() => _stringValue;
-
-    protected bool Equals(LogSource other)
-    {
-        return _stringValue == other._stringValue;
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        return obj.GetType() == GetType() && Equals((LogSource)obj);
-    }
-
-    public override int GetHashCode()
-    {
-        return _stringValue.GetHashCode();
-    }
-
-    public static bool operator ==(LogSource? left, LogSource? right)
-    {
-        return Equals(left, right);
-    }
-
-    public static bool operator !=(LogSource? left, LogSource? right)
-    {
-        return !Equals(left, right);
-    }
-
-    public LogSource([CallerMemberName] string? caller = null, [CallerFilePath] string? callerFile = null, [CallerLineNumber] int callerLine = 0)
-    {
-        _stringValue = $"{caller}@{callerFile} (#{callerLine})";
     }
 }

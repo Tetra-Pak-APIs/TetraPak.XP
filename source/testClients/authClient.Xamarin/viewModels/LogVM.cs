@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows.Input;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using Xamarin.Forms;
 
 namespace authClient.viewModels
@@ -55,16 +56,16 @@ namespace authClient.viewModels
 
     class LogItemVM : ViewModel
     {
-        readonly ILogEntry _entry;
+        readonly ILogEvent _event;
 
         public Color MessageColor { get; }
 
-        public string Message => _entry.Message;
+        public string Message => _event.Message;
 
-        public LogItemVM(ILogEntry logEntry, IServiceProvider services, ILog log) : base(services, log)
+        public LogItemVM(ILogEvent logEvent, IServiceProvider services, ILog log) : base(services, log)
         {
-            _entry = logEntry;
-            switch (logEntry.Rank)
+            _event = logEvent;
+            switch (logEvent.Rank)
             {
                 case LogRank.Debug:
                     MessageColor = Color.Yellow;

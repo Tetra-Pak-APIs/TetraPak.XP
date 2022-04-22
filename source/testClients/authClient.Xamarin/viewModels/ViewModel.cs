@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using TetraPak.XP;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace authClient.viewModels
 {

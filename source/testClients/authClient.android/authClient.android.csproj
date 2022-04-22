@@ -203,19 +203,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\TetraPak.XP.Android\TetraPak.XP.Android.csproj">
       <Project>{c8f6ae96-fcc1-4bfe-a8a8-c15a9d652225}</Project>
-      <Name>TetraPak.Auth.Xamarin.Android</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\TetraPak.Auth.Xamarin\TetraPak.Auth.Xamarin.csproj">
-      <Project>{ee52c397-0253-4c6f-b128-f6c0f02526fc}</Project>
-      <Name>TetraPak.Auth.Xamarin</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\TetraPak.XP.Android\TetraPak.XP.Android.csproj">
-      <Project>{c8f6ae96-fcc1-4bfe-a8a8-c15a9d652225}</Project>
       <Name>TetraPak.XP.Android</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\authClient.Xamarin\authClient.Xamarin.csproj">
-      <Project>{4d7e9698-a348-4bb9-bd7e-0f7c186957c6}</Project>
-      <Name>authClient.Xamarin</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />

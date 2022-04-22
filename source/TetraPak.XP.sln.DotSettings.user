@@ -12,9 +12,9 @@
   &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\microsoft.aspnetcore.http\2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\serembrattj\.nuget\packages\microsoft.aspnetcore.http\2.2.2\lib\netstandard2.0\Microsoft.AspNetCore.Http.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/CustomBuildToolPath/@EntryValue">C:\Program Files\dotnet\sdk\6.0.201\MSBuild.dll</s:String>
-	<s:Int64 x:Key="/Default/Environment/Hierarchy/Build/BuildTool/MsbuildVersion/@EntryValue">1114112</s:Int64>
-	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\serembrattj\AppData\Local\JetBrains\Rider2021.3\resharper-host\temp\Rider\vAny\CoverageData\_TetraPak.XP.951730231\Snapshot\snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/CustomBuildToolPath/@EntryValue">C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe</s:String>
+	
+	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1df9f9fe_002D345f_002D4132_002Daf97_002D5cd635d76646/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Ensure_can_only_register_concrete_types" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.UnitTest1.Load_configuration_from_specified_file&lt;/TestId&gt;&#xD;
@@ -46,9 +46,11 @@
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=13499e8a_002Df932_002D42c4_002Db0b8_002D1360cdb0d575_0023authClient_002Eandroid/@EntryIndexedValue">True</s:Boolean>
+	
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2047eeef_002D41b8_002D4788_002Daa9d_002D04ba6293f107_0023authClient_002Euwp/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=334fd242_002Dbdfd_002D48df_002D9ec7_002Dc5940c13575f_0023TetraPak_002EXP_002EScripting_002ETests/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4d7e9698_002Da348_002D4bb9_002Dbd7e_002D0f7c186957c6_0023authClient_002EXamarin/@EntryIndexedValue">True</s:Boolean>
+	
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5baec876_002D8bd9_002D4773_002Db019_002D6538cbe872b3_0023TetraPak_002EXP_002EiOS/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=beb06ab9_002D03a8_002D4815_002D9717_002D004b801d8449_0023TetraPak_002EXP_002EUWP/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c4c17daf_002D21a6_002D4801_002D8d85_002Dba14b453dd8a_0023authClient_002Eios/@EntryIndexedValue">True</s:Boolean>

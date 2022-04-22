@@ -1,9 +1,10 @@
 using System;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 namespace authClient.viewModels
 {
-    public class MainViewModel : ViewModel
+    public sealed class MainViewModel : ViewModel
     {
         public AuthCodeGrantVM? AuthCodeGrant { get; }
 

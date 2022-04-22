@@ -10,6 +10,7 @@ using authClient.viewModels;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 

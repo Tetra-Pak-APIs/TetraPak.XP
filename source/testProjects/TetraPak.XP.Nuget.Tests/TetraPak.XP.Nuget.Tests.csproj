@@ -7,6 +7,8 @@
         <IsPackable>false</IsPackable>
 
         <RootNamespace>TetraPak.XP.Nuget</RootNamespace>
+
+        <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
