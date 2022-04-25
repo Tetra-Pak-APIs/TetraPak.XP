@@ -18,13 +18,19 @@ sealed class MicrosoftLoggerHub : LogBase, ILogger
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
-        var args = new LogEventArgs(null, logLevel.ToLogRank(), formatter(state, exception), exception, eventId.ToString());
+        var args = new LogEventArgs(null, logLevel.ToLogRank(), formatter(state, exception), exception, eventId.ToString(), null);
         writeToBoth(args);
     }
 
-    public override void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null, LogSource? source = null)
+    public override void Write(
+        LogRank rank, 
+        string? message = null, 
+        Exception? exception = null, 
+        string? messageId = null,
+        LogEventSource? source = null,
+        DateTime? timestamp = null)
     {
-        var args = new LogEventArgs(source, rank, message, exception, messageId);
+        var args = new LogEventArgs(source, rank, message, exception, messageId, timestamp);
         writeToBoth(args);
     }
 
