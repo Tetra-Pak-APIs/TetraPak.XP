@@ -413,7 +413,7 @@ public static class LogHelper
             ? string.Empty
             : $"{Prefix} ";
         var sTimestamp = timestamp.HasValue && !(options?.SuppressTimestamp ?? false) 
-            ? $"@{timestamp.Value:s} " 
+            ? $"@{timestamp.Value:s}{(timestamp.Value.Kind == DateTimeKind.Utc ? "Z" : "")} " 
             : string.Empty;
         var logRank = rank < LogRank.Any && !(options?.SuppressRank ?? false) 
             ? $"[{rank.ToAbbreviatedString()}] "
