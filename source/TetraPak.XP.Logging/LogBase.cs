@@ -34,11 +34,17 @@ namespace TetraPak.XP.Logging
         }
 
         /// <inheritdoc />
-        public virtual void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null, LogSource? source = null)
+        public virtual void Write(
+            LogRank rank, 
+            string? message = null, 
+            Exception? exception = null,
+            string? messageId = null, 
+            LogEventSource? source = null,
+            DateTime? timestamp = null)
         {
             if (IsEnabled(rank))
             {
-                Logged?.Invoke(this, new LogEventArgs(source, rank, message, exception!, messageId!));
+                Logged?.Invoke(this, new LogEventArgs(source, rank, message, exception!, messageId!, timestamp));
             }
         }
 
@@ -48,7 +54,13 @@ namespace TetraPak.XP.Logging
         /// <inheritdoc />
         public bool IsEnabled(LogRank rank) => rank >= Rank;
 
-        public ILogSection Section(LogRank? rank = null, string? caption = null, int indent = 3, string? sectionSuffix = null, LogSource? source = null)
+        public ILogSection Section(
+            LogRank? rank = null, 
+            string? caption = null, 
+            int indent = 3, 
+            string? sectionSuffix = null, 
+            LogEventSource? source = null,
+            DateTime? timestamp = null)
         {
             return new LogSectionBase(this, rank ?? LogRank.Any, caption, source);
         }

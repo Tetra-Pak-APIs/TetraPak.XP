@@ -26,28 +26,48 @@ namespace TetraPak.XP.Logging
             return message is null ? null! : $"{_indent}{message}";
         }
 
-        public void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null, LogSource? source = null)
+        /// <inheritdoc />
+        public void Write(
+            LogRank rank, 
+            string? message = null, 
+            Exception? exception = null, 
+            string? messageId = null, 
+            LogEventSource? source = null,
+            DateTime? timestamp = null)
         {
             _log.Write(rank, indentMessage(message), exception, messageId, source);
         }
 
+        /// <inheritdoc />
         public void Write(LogEventArgs args)
         {
             Write(args.Rank, args.Message, args.Exception, args.MessageId);
         }
 
+        /// <inheritdoc />
         public bool IsEnabled(LogRank rank)
         {
             return _log.IsEnabled(rank);
         }
 
         /// <inheritdoc />
-        public ILogSection Section(LogRank? rank = LogRank.Any, string? caption = null, int indent = 3, string? sectionSuffix = null, LogSource? source = null)
+        public ILogSection Section(
+            LogRank? rank = LogRank.Any, 
+            string? caption = null, 
+            int indent = 3, 
+            string? sectionSuffix = null,
+            LogEventSource? source = null,
+            DateTime? timestamp = null)
         {
             return new LogSectionBase(this, rank ?? LogRank.Any, caption, source, _indentLength);
         }
         
-        public LogSectionBase(ILog log, LogRank logRank, string? caption, LogSource? source = null, int indentLength = 3,
+        public LogSectionBase(
+            ILog log, 
+            LogRank logRank,
+            string? caption, 
+            LogEventSource? source = null, 
+            int indentLength = 3,
             string? sectionSuffix = null)
         {
             _log = log;

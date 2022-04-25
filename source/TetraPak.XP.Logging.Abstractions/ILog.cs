@@ -35,7 +35,19 @@ public interface ILog
     ///   (optional)<br/>
     ///   A textual value used to track related events.   
     /// </param>
-    void Write(LogRank rank, string? message = null, Exception? exception = null, string? messageId = null, LogSource? source = null);
+    /// <param name="source">
+    ///   Represents the log event source (eg. class/method).
+    /// </param>
+    /// <param name="timestamp">
+    ///   The log event time.
+    /// </param>
+    void Write(
+        LogRank rank, 
+        string? message = null, 
+        Exception? exception = null, 
+        string? messageId = null, 
+        LogEventSource? source = null,
+        DateTime? timestamp = null);
     
     /// <summary>
     ///   Writes a new log entry.
@@ -77,5 +89,17 @@ public interface ILog
     /// <returns>
     ///   A new <see cref="ILogSection"/>.
     /// </returns>
-    ILogSection Section(LogRank? rank = null, string? caption = null, int indent = 3, string? sectionSuffix = null, LogSource? source = null);
+    /// <param name="source">
+    ///   Represents the log event source (eg. class/method).
+    /// </param>
+    /// <param name="timestamp">
+    ///   The log section timestamp.
+    /// </param>
+    ILogSection Section(
+        LogRank? rank = null, 
+        string? caption = null, 
+        int indent = 3, 
+        string? sectionSuffix = null, 
+        LogEventSource? source = null,
+        DateTime? timestamp = null);
 }

@@ -144,8 +144,8 @@ public class ConfigurationSectionDecorator : IConfigurationSection
         _runtimeEnvironmentResolver = null!;
         Section = null!;
     }
-    
-    public ConfigurationSectionDecorator(ConfigurationSectionDecoratorArgs args)
+
+    protected ConfigurationSectionDecorator(ConfigurationSectionDecoratorArgs args)
     {
         _configuration = args.Configuration;
         Log = args.Log;

@@ -14,7 +14,7 @@ public static class LogHelper
     ///   log entries. This can be used to distinguish entries sourced by your code from other log entries..  
     /// </summary>
     // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
-    public static string Prefix { get; set; } = "------>";
+    public static string Prefix { get; set; } = "---->";
     
     /// <summary>
     ///   Writes a trace log entry in a standardized format.  
@@ -42,7 +42,7 @@ public static class LogHelper
     /// <param name="message">
     ///   A message to be written to <paramref name="log"/>.
     /// </param>
-    /// <param name="source">
+    /// <param name="eventSource">
     ///   The log source.
     /// </param>
     /// <param name="messageId">
@@ -50,8 +50,8 @@ public static class LogHelper
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
     /// <seealso cref="System.Diagnostics.Trace"/>
-    public static void Trace(this ILog? log, string message, LogSource source, string? messageId = null) 
-        => log?.Trace(() => message, messageId, source);
+    public static void Trace(this ILog? log, string message, LogEventSource eventSource, string? messageId = null) 
+        => log?.Trace(() => message, messageId, eventSource);
 
     /// <summary>
     ///   Writes a trace log entry in a standardized format.  
@@ -66,7 +66,7 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Trace(this ILog? log, Func<string> messageHandler, string? messageId = null, LogSource? source = null)
+    public static void Trace(this ILog? log, Func<string> messageHandler, string? messageId = null, LogEventSource? source = null)
     {
         if (log is null || !log.IsEnabled(LogRank.Trace))
             return;
@@ -103,8 +103,8 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Debug(this ILog? log, string message, LogSource source, string? messageId = null) 
-        => log?.Debug(() => message, messageId, source);
+    public static void Debug(this ILog? log, string message, LogEventSource eventSource, string? messageId = null) 
+        => log?.Debug(() => message, messageId, eventSource);
 
     /// <summary>
     ///   Writes a debug log entry in a standardized format.  
@@ -119,7 +119,7 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Debug(this ILog? log, Func<string> messageHandler, string? messageId = null,LogSource? source = null)
+    public static void Debug(this ILog? log, Func<string> messageHandler, string? messageId = null,LogEventSource? source = null)
     {
         if (log is null || !log.IsEnabled(LogRank.Debug))
             return;
@@ -156,8 +156,8 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking an event through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Warning(this ILog? log, string message, LogSource source, string? messageId = null) 
-        => log.Warning(() => message, messageId, source);
+    public static void Warning(this ILog? log, string message, LogEventSource eventSource, string? messageId = null) 
+        => log.Warning(() => message, messageId, eventSource);
 
     /// <summary>
     ///   Writes a warning log entry in a standardized format.  
@@ -172,7 +172,7 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Warning(this ILog? log, Func<string> messageHandler, string? messageId = null, LogSource? source = null)
+    public static void Warning(this ILog? log, Func<string> messageHandler, string? messageId = null, LogEventSource? source = null)
     {
         if (log is null || !log.IsEnabled(LogRank.Warning))
             return;
@@ -209,8 +209,8 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking an event through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Information(this ILog? log, string message, LogSource source, string? messageId = null) 
-        => log.Information(() => message, messageId, source);
+    public static void Information(this ILog? log, string message, LogEventSource eventSource, string? messageId = null) 
+        => log.Information(() => message, messageId, eventSource);
 
     /// <summary>
     ///   Writes an information log entry in a standardized format.  
@@ -225,7 +225,7 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking an event through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Information(this ILog? log, Func<string> messageHandler, string? messageId = null, LogSource? source = null)
+    public static void Information(this ILog? log, Func<string> messageHandler, string? messageId = null, LogEventSource? source = null)
     {
         if (log is null || !log.IsEnabled(LogRank.Information))
             return;
@@ -268,8 +268,8 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Error(this ILog? log, Exception exception, LogSource source, string? message = null, string? messageId = null) 
-        => log.Error(exception, () => message, messageId, source);
+    public static void Error(this ILog? log, Exception exception, LogEventSource eventSource, string? message = null, string? messageId = null) 
+        => log.Error(exception, () => message, messageId, eventSource);
     /// <summary>
     ///   Writes an information log entry in a standardized format.  
     /// </summary>
@@ -286,7 +286,7 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Error(this ILog? log, Exception exception, Func<string?> messageHandler, string? messageId = null, LogSource? source = null)
+    public static void Error(this ILog? log, Exception exception, Func<string?> messageHandler, string? messageId = null, LogEventSource? source = null)
     {
         if (log is null || !log.IsEnabled(LogRank.Error))
             return;
@@ -323,8 +323,8 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Any(this ILog? log, string message, LogSource source, string? messageId = null) 
-        => log.Any(() => message, messageId, source);
+    public static void Any(this ILog? log, string message, LogEventSource eventSource, string? messageId = null) 
+        => log.Any(() => message, messageId, eventSource);
     
     /// <summary>
     ///   Writes an information log entry in a standardized format.  
@@ -339,7 +339,7 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
-    public static void Any(this ILog? log, Func<string> messageHandler, string? messageId = null, LogSource? source = null)
+    public static void Any(this ILog? log, Func<string> messageHandler, string? messageId = null, LogEventSource? source = null)
     {
         if (log is null || !log.IsEnabled(LogRank.Information))
             return;
@@ -386,25 +386,35 @@ public static class LogHelper
     ///   (optional)<br/>
     ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
     /// </param>
+    /// <param name="source">
+    ///   Represents the log event source (eg. class/method).
+    /// </param>
     /// <param name="options">
     ///   (optional)<br/>
     ///   Log message formatting options.
+    /// </param>
+    /// <param name="timestamp">
+    ///   The log event timestamp.
     /// </param>
     /// <returns>
     ///   A standardized logging message (<see cref="string"/> value).
     /// </returns>
     public static string Format(
-        LogRank rank, 
+        LogRank rank,
         Exception? exception, 
         string? message, 
         string? messageId = null, 
-        LogSource? source = null, 
+        LogEventSource? source = null, 
+        DateTime? timestamp = null,
         LogFormatOptions? options = null)
     {
         message ??= exception?.Message ?? "(NO MESSAGE)";
         var prefix = options?.SuppressPrefix ?? false
             ? string.Empty
             : $"{Prefix} ";
+        var sTimestamp = timestamp.HasValue && !(options?.SuppressTimestamp ?? false) 
+            ? $"@{timestamp.Value:s} " 
+            : string.Empty;
         var logRank = rank < LogRank.Any && !(options?.SuppressRank ?? false) 
             ? $"[{rank.ToAbbreviatedString()}] "
             : string.Empty;
@@ -414,7 +424,7 @@ public static class LogHelper
         var caller = source is {} && !(options?.SuppressSource ?? false)
             ? $" (source={source})"
             : string.Empty;
-        var formatted = $"{prefix}{messageId}{logRank}{message}{caller}";
+        var formatted = $"{prefix}{sTimestamp}{messageId}{logRank}{message}{caller}";
 
         var sb = new StringBuilder(formatted);
         if (exception is { })
@@ -435,7 +445,7 @@ public static class LogHelper
     ///   A standardized logging message (<see cref="string"/> value).
     /// </returns>
     public static string Format(this LogEventArgs args, LogFormatOptions? formatOptions = null) 
-        => Format(args.Rank, args.Exception, args.Message, args.MessageId, args.Source, formatOptions);
+        => Format(args.Rank, args.Exception, args.Message, args.MessageId, args.Source, args.Timestamp, formatOptions);
 
     /// <summary>
     ///   Writes the contents of a <see cref="IDictionary{TKey,TValue}"/> to a <see cref="ILog"/>

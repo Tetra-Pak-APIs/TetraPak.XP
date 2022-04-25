@@ -7,7 +7,7 @@ namespace TetraPak.XP.Logging.Abstractions;
 /// </summary>
 public sealed class LogEventArgs : EventArgs
 {
-    public LogSource? Source { get; }
+    public LogEventSource? Source { get; }
     
     /// <summary>
     ///   Gets the log entry rank.
@@ -28,18 +28,31 @@ public sealed class LogEventArgs : EventArgs
     ///   A unique string value for tracking related events.
     /// </summary>
     public string? MessageId { get; set; }
-    
+
+    /// <summary>
+    ///   The date/time when the log event occured.
+    /// </summary>
+    public DateTime Timestamp { get; set; }
+
     /// <summary>
     ///   Initializes the event arguments.
     /// </summary>
-    public LogEventArgs(LogSource? source, LogRank rank, string? message, Exception? exception, string? messageId)
+    public LogEventArgs(
+        LogEventSource? source, 
+        LogRank rank, 
+        string? message, 
+        Exception? exception, 
+        string? messageId,
+        DateTime? timestamp)
     {
         Source = source;
         Rank = rank;
         Message = message;
         Exception = exception;
         MessageId = messageId;
+        Timestamp = timestamp ?? DateTime.UtcNow;
     }
+
 }
 
 public static class LogEventArgsHelper
@@ -57,6 +70,8 @@ public static class LogEventArgsHelper
 
 public sealed class LogFormatOptions
 {
+    public bool SuppressTimestamp { get; set; } = false;
+
     public bool SuppressSource { get; set; } = false;
 
     public bool SuppressRank { get; set; } = false;
