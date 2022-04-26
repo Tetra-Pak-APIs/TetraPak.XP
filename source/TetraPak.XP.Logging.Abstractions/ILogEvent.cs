@@ -1,15 +1,16 @@
 ﻿using System;
 
-namespace TetraPak.XP.Logging.Abstractions;
-
-/// <summary>
-///   Represents a single log event.
-/// </summary>
-public interface ILogEvent
+namespace TetraPak.XP.Logging.Abstractions
 {
-    LogRank Rank { get; }
+    /// <summary>
+    ///   Represents a single log event.
+    /// </summary>
+    public interface ILogEvent
+    {
+        LogRank Rank { get; }
 
-    DateTime Time { get; }
+        DateTime Time { get; }
 
-    string Message { get; }
+        string Message { get; }
+    }
 }

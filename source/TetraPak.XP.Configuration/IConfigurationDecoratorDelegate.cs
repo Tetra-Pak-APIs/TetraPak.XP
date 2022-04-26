@@ -1,8 +1,9 @@
-﻿namespace TetraPak.XP.Configuration;
-
-public interface IConfigurationDecoratorDelegate
+﻿namespace TetraPak.XP.Configuration
 {
-    bool IsFallbackDecorator { get; }
+    public interface IConfigurationDecoratorDelegate
+    {
+        bool IsFallbackDecorator { get; }
 
-    Outcome<ConfigurationSectionDecorator> WrapSection(ConfigurationSectionDecoratorArgs args);
+        Outcome<ConfigurationSectionDecorator> WrapSection(ConfigurationSectionDecoratorArgs args);
+    }
 }

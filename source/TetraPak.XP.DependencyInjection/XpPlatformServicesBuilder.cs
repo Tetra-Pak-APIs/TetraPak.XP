@@ -1,15 +1,16 @@
 ﻿using System;
 
-namespace TetraPak.XP.DependencyInjection;
-
-public sealed class XpPlatformServicesBuilder
+namespace TetraPak.XP.DependencyInjection
 {
-    readonly Type[] _types;
-
-    public XpServicesBuilder Build() => new(_types); 
-        
-    public XpPlatformServicesBuilder(Type[] types)
+    public sealed class XpPlatformServicesBuilder
     {
-        _types = types;
+        readonly Type[] _types;
+
+        public XpServicesBuilder Build() => new(_types);
+
+        public XpPlatformServicesBuilder(Type[] types)
+        {
+            _types = types;
+        }
     }
 }

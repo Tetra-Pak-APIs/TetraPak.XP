@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace TetraPak.XP.Scripting;
-
-public interface IScriptContext
+namespace TetraPak.XP.Scripting
 {
-    bool IsDefaultContext { get; }
-    
-    StringComparison StringComparison { get; }
-    
-    Task<Outcome<object>> ResolveValueAsync(string key);
+
+    public interface IScriptContext
+    {
+        bool IsDefaultContext { get; }
+
+        StringComparison StringComparison { get; }
+
+        Task<Outcome<object>> ResolveValueAsync(string key);
+    }
 }

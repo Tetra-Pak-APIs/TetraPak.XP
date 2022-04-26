@@ -1,8 +1,9 @@
-﻿namespace TetraPak.XP.Configuration;
-
-public interface IConfigurationValueDelegate
+﻿namespace TetraPak.XP.Configuration
 {
-    bool IsFallbackDelegate { get; }
-        
-    Outcome<T> GetValue<T>(ConfigurationValueArgs<T> args);
+    public interface IConfigurationValueDelegate
+    {
+        bool IsFallbackDelegate { get; }
+
+        Outcome<T> GetValue<T>(ConfigurationValueArgs<T> args);
+    }
 }

@@ -3543,6 +3543,7 @@ Global
 		{9FE4082B-9FB6-4B08-B0F7-A026D63AF61D}.SimulatedAuth|x64.Build.0 = Debug|iPhoneSimulator
 		{9FE4082B-9FB6-4B08-B0F7-A026D63AF61D}.SimulatedAuth|x86.ActiveCfg = Debug|iPhoneSimulator
 		{9FE4082B-9FB6-4B08-B0F7-A026D63AF61D}.SimulatedAuth|x86.Build.0 = Debug|iPhoneSimulator
+		{9FE4082B-9FB6-4B08-B0F7-A026D63AF61D}.Debug|Any CPU.Build.0 = Debug|iPhoneSimulator
 		{DC6EEBFE-DE92-4047-8B71-3ABCC8BA61D4}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC6EEBFE-DE92-4047-8B71-3ABCC8BA61D4}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
 		{DC6EEBFE-DE92-4047-8B71-3ABCC8BA61D4}.Ad-Hoc|ARM.ActiveCfg = Debug|Any CPU

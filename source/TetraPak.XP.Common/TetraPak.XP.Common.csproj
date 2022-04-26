@@ -2,7 +2,7 @@
   <PropertyGroup>
     <RootNamespace>TetraPak.XP</RootNamespace>
     <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>default</LangVersion>
     <Nullable>enable</Nullable>
     <AssemblyVersion>1.0.0.15</AssemblyVersion>
     <FileVersion>1.0.0.15</FileVersion>

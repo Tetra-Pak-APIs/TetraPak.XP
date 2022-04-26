@@ -8,8 +8,8 @@ using TetraPak.XP.Logging.Abstractions;
 
 [assembly:InternalsVisibleTo("TetraPak.XP.DependencyInjection.Tests")]
 
-namespace TetraPak.XP.DependencyInjection;
-
+namespace TetraPak.XP.DependencyInjection
+{
     public static class XpServices
     {
         static readonly object s_syncRoot = new();
@@ -17,6 +17,7 @@ namespace TetraPak.XP.DependencyInjection;
         static readonly Dictionary<Type, ResolutionInfo> s_registered = new();
         static IServiceCollection? s_serviceCollection;
         static IServiceProvider? s_provider;
+
         static readonly HashSet<Assembly> s_registeredAssemblies = new();
         // static readonly HashSet<Type> s_registeredImplicitInterfaces = new();// Experiment concept 
 
@@ -35,12 +36,12 @@ namespace TetraPak.XP.DependencyInjection;
             ///   The service type.
             /// </summary>
             public Type Type { get; }
-            
+
             /// <summary>
             ///   The service type.
             /// </summary>
             public Type? ImplementingType { get; }
-            
+
             /// <summary>
             ///   A resolved instance. 
             /// </summary>
@@ -59,7 +60,7 @@ namespace TetraPak.XP.DependencyInjection;
                 Service = null!;
                 IsTypeLiteral = isTypeLiteral;
             }
-            
+
             internal ResolutionInfo(Type type, Type implementingType, bool isSingleton)
             {
                 Type = type;
@@ -97,18 +98,18 @@ namespace TetraPak.XP.DependencyInjection;
         ///   The <paramref name="implementingType"/> was already registered -and- the <paramref name="skipOnConflict"/> was not set. 
         /// </exception>
         public static void Register(
-            Type implementingType, 
-            bool skipOnConflict = true, 
+            Type implementingType,
+            bool skipOnConflict = true,
             bool isTypeLiteral = false,
-            bool? isSingleton = null) 
+            bool? isSingleton = null)
             =>
-            Register(implementingType, null!, skipOnConflict, isTypeLiteral, isSingleton);
+                Register(implementingType, null!, skipOnConflict, isTypeLiteral, isSingleton);
 
         public static void Register(
-            Type implementingType, 
-            Type? interfaceType, 
-            bool skipOnConflict = true, 
-            bool isTypeLiteral = false, 
+            Type implementingType,
+            Type? interfaceType,
+            bool skipOnConflict = true,
+            bool isTypeLiteral = false,
             bool? isSingleton = null)
         {
             // if (IsDefaultImplementingSingleInterface && !isTypeLiteral) // Experimental concept
@@ -121,13 +122,13 @@ namespace TetraPak.XP.DependencyInjection;
             //         s_registeredImplicitInterfaces.Add(interfaceType);
             //     }
             // }
-            
+
             var isIndeedSingleton = isSingleton ?? DefaultIsSingleton; // :-)
             if (implementingType.IsAbstract)
                 throw new ArgumentException(
                     $"Cannot register abstract types with {typeof(XpServices)}. Only concrete implementations are allowed");
-            
-            if (interfaceType is {} && isTypeLiteral)
+
+            if (interfaceType is { } && isTypeLiteral)
                 throw new InvalidOperationException(
                     $"Cannot register {nameof(interfaceType)} and also set {nameof(isTypeLiteral)}");
 
@@ -168,7 +169,7 @@ namespace TetraPak.XP.DependencyInjection;
         ///   The type was already registered. 
         /// </exception>
         public static void Register<T>() => Register(typeof(T));
-        
+
         /// <summary>
         ///   Registers a literal service type (see remarks).
         /// </summary>
@@ -180,7 +181,7 @@ namespace TetraPak.XP.DependencyInjection;
         ///   or an interface implemented by the service will return an unsuccessful outcome. 
         /// </remarks>
         public static void RegisterLiteral<T>(bool skipOnConflict = true) => Register(typeof(T), skipOnConflict, true);
-        
+
         public static T? Get<T>()
         {
             var outcome = TryGet<T>();
@@ -190,8 +191,8 @@ namespace TetraPak.XP.DependencyInjection;
         public static T GetRequired<T>()
         {
             var outcome = TryGet<T>();
-            return outcome 
-                ? outcome.Value! 
+            return outcome
+                ? outcome.Value!
                 : throw new Exception($"Cannot resolve service: {typeof(T)}");
         }
 
@@ -200,14 +201,15 @@ namespace TetraPak.XP.DependencyInjection;
             var outcome = TryGet(typeof(T), true);
             if (!outcome)
                 return Outcome<T>.Fail(outcome.Exception!);
-            
+
             if (outcome.Value is T tValue)
                 return Outcome<T>.Success(tValue);
-                
+
             return Outcome<T>.Fail(
-                new InvalidOperationException ($"Resolved service ({outcome.Value}) is not of expected type: {typeof(T)}"));
+                new InvalidOperationException(
+                    $"Resolved service ({outcome.Value}) is not of expected type: {typeof(T)}"));
         }
-        
+
         internal static Outcome<object> TryGet(Type type, bool tryServiceProvider)
         {
             // note the 'cannotResolve' list of types is needed to avoid infinite recursion 
@@ -221,10 +223,10 @@ namespace TetraPak.XP.DependencyInjection;
 
             // first try get a resolved, literal, explicit type ...
             if (s_resolved.TryGetValue(type, out var info))
-                return info.IsSingleton 
+                return info.IsSingleton
                     ? Outcome<object>.Success(info.Service!)
                     : tryActivate(info.Type, cannotResolve);
-            
+
             // fall back to dynamically resolving a service from the requested type ...
             return tryResolve(type, tryServiceProvider, cannotResolve);
         }
@@ -239,24 +241,24 @@ namespace TetraPak.XP.DependencyInjection;
                 if (!info.IsTypeLiteral || type == info.Type)
                     return activate(info.Type, info);
             }
-            
+
             // next, try IServiceProvider if available ...
             if (tryServiceProvider && s_provider is { })
             {
-                var service = 
-                s_provider is XpServiceProvider xpServiceProvider
-                    ? xpServiceProvider.GetService(type, false)
-                    : s_provider.GetService(type);
+                var service =
+                    s_provider is XpServiceProvider xpServiceProvider
+                        ? xpServiceProvider.GetService(type, false)
+                        : s_provider.GetService(type);
                 if (service is { })
                     return Outcome<object>.Success(service);
             }
-            
+
             // finally, fall back to dynamically resolving from XpServices implementation ...
             foreach (var pair in s_registered)
             {
                 var registeredType = pair.Key;
                 var registrationInfo = pair.Value;
-                
+
                 if (!type.Is(registeredType, false))
                     continue;
 
@@ -265,7 +267,7 @@ namespace TetraPak.XP.DependencyInjection;
 
                 return activate(registeredType, registrationInfo);
             }
-            
+
             return activateOutcome ?? Outcome<object>.Fail(failCannotResolveServiceFor(type));
 
             Outcome<object> activate(Type svcType, ResolutionInfo svcInfo)
@@ -273,20 +275,22 @@ namespace TetraPak.XP.DependencyInjection;
                 activateOutcome = tryActivate(svcType, cannotResolve);
                 if (!activateOutcome)
                     return Outcome<object>.Fail(failCannotResolveServiceFor(svcType));
-            
+
                 var resolution = new ResolutionInfo(type, svcInfo.IsSingleton, false);
                 if (svcInfo.IsSingleton)
                 {
                     resolution.Service = activateOutcome.Value!;
                 }
+
                 s_resolved.Add(type, resolution);
                 return Outcome<object>.Success(activateOutcome.Value!);
             }
         }
 
-        static Exception failCannotResolveServiceFor(Type type) => new($"Cannot resolve service that implements {type}");
+        static Exception failCannotResolveServiceFor(Type type) =>
+            new($"Cannot resolve service that implements {type}");
 
-        static Outcome<object> tryActivate(Type type, List<Type> cannotResolve) 
+        static Outcome<object> tryActivate(Type type, List<Type> cannotResolve)
         {
             var emptyCtor = type.GetConstructor(Type.EmptyTypes);
             if (emptyCtor is { })
@@ -298,7 +302,7 @@ namespace TetraPak.XP.DependencyInjection;
                 catch (Exception ex)
                 {
                     cannotResolve.Add(type);
-                    return Outcome<object>.Fail( new Exception($"Failed when activating service {type}", ex));
+                    return Outcome<object>.Fail(new Exception($"Failed when activating service {type}", ex));
                 }
 
             foreach (var constructor in type.GetConstructors())
@@ -314,10 +318,10 @@ namespace TetraPak.XP.DependencyInjection;
                         isMatchingArgs = false;
                         break;
                     }
-                    
+
                     parameters.Add(outcome.Value!);
                 }
-                
+
                 if (!isMatchingArgs)
                     continue;
 
@@ -331,9 +335,10 @@ namespace TetraPak.XP.DependencyInjection;
                     // ignored
                 }
             }
-            
+
             cannotResolve.Add(type);
-            return Outcome<object>.Fail($"Failed when activating service {type}. Could not resolve a suitable constructor");
+            return Outcome<object>.Fail(
+                $"Failed when activating service {type}. Could not resolve a suitable constructor");
         }
 
         public static IServiceCollection RegisterXpServices(ILog? log = null)
@@ -351,8 +356,8 @@ namespace TetraPak.XP.DependencyInjection;
                     var asm = assemblies[i];
                     if (s_registeredAssemblies.Contains(asm))
                         continue;
-                    var  nisse = // nisse
-                    asm.GetCustomAttributes<XpServiceAttribute>();
+                    var nisse = // nisse
+                        asm.GetCustomAttributes<XpServiceAttribute>();
                     s_registeredAssemblies.Add(asm);
                 }
 
@@ -390,7 +395,7 @@ namespace TetraPak.XP.DependencyInjection;
         ///   are loaded prior to calling any of the configuration methods
         ///   (such as <see cref="BuildXpServices()"/> or (<see cref="RegisterXpServices(ILog?)"/>
         /// </remarks>
-        public static XpServicesBuilder Include(params Type[] types) =>new(types);
+        public static XpServicesBuilder Include(params Type[] types) => new(types);
 
         public static XpPlatformServicesBuilder BuildFor(params Type[] types) => new(types);
 
@@ -410,8 +415,9 @@ namespace TetraPak.XP.DependencyInjection;
         {
             return collection.BuildXpServiceProvider(new ServiceProviderOptions { ValidateScopes = validateScopes });
         }
-        
-        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection collection, ServiceProviderOptions options)
+
+        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection collection,
+            ServiceProviderOptions options)
         {
             if (collection == null)
                 throw new ArgumentNullException(nameof(collection));
@@ -437,8 +443,8 @@ namespace TetraPak.XP.DependencyInjection;
                     return s_serviceCollection;
                 }
 
-                var collection = useExisting 
-                    ? s_serviceCollection 
+                var collection = useExisting
+                    ? s_serviceCollection
                     : new ServiceCollection();
                 collection.RegisterXpServices();
                 return collection;
@@ -461,7 +467,7 @@ namespace TetraPak.XP.DependencyInjection;
                 return s_serviceCollection;
             }
         }
-        
+
         public static IServiceCollection NewServiceCollection()
         {
             lock (s_syncRoot)
@@ -481,7 +487,7 @@ namespace TetraPak.XP.DependencyInjection;
             }
         }
     }
-    
+
     /// <summary>
     ///   This class is only used to provided a convenient fluid code api for supplying
     ///   needed services by pre-loading the declaring assemblies before the declarative
@@ -496,20 +502,20 @@ namespace TetraPak.XP.DependencyInjection;
         /// <summary>
         ///   Simply invokes the <see cref="XpServices.RegisterXpServices(ILog?)"/> method.
         /// </summary>
-        public IServiceCollection RegisterXpServices(IServiceCollection? collection) 
+        public IServiceCollection RegisterXpServices(IServiceCollection? collection)
             => collection.RegisterXpServices();
-                
+
         /// <summary>
         ///   Simply invokes the <see cref="XpServices.BuildXpServices()"/> method.
         /// </summary>
-        public IServiceProvider BuildXpServices(IServiceCollection? collection = null) 
+        public IServiceProvider BuildXpServices(IServiceCollection? collection = null)
             => collection.BuildXpServices();
-            
+
         public IServiceCollection GetServiceCollection() => XpServices.GetServiceCollection();
 
-        public IServiceCollection WithServiceCollection(IServiceCollection collection) 
+        public IServiceCollection WithServiceCollection(IServiceCollection collection)
             =>
-            XpServices.UseServiceCollection(collection);
+                XpServices.UseServiceCollection(collection);
 
         public XpServicesBuilder Include(params Type[] types)
         {
@@ -522,3 +528,4 @@ namespace TetraPak.XP.DependencyInjection;
             _triggerAssemblyLoading = types;
         }
     }
+}

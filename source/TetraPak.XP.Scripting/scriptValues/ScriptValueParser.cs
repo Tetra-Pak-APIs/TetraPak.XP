@@ -1,70 +1,71 @@
 ﻿using System.Collections.Generic;
 
-namespace TetraPak.XP.Scripting;
-
-public abstract class ScriptValueParser
+namespace TetraPak.XP.Scripting
 {
-    static readonly List<ScriptValueParser> s_valueParsers;
-
-    internal static ScriptValueParser[] ValueParsers => s_valueParsers.ToArray();
-
-    public static Outcome<ScriptValue> TryParseValue(string stringValue)
+    public abstract class ScriptValueParser
     {
-        var parsers = ValueParsers;
-        for (var i = 0; i < parsers.Length; i++)
+        static readonly List<ScriptValueParser> s_valueParsers;
+
+        internal static ScriptValueParser[] ValueParsers => s_valueParsers.ToArray();
+
+        public static Outcome<ScriptValue> TryParseValue(string stringValue)
         {
-            var parser = parsers[i];
-            var outcome = parser.ParseValue(stringValue);
-            if (outcome)
-                return outcome;
+            var parsers = ValueParsers;
+            for (var i = 0; i < parsers.Length; i++)
+            {
+                var parser = parsers[i];
+                var outcome = parser.ParseValue(stringValue);
+                if (outcome)
+                    return outcome;
+            }
+
+            return Errors.CannotResolveValue(stringValue);
         }
-        
-        return Errors.CannotResolveValue(stringValue);
-    }
 
-    protected abstract Outcome<ScriptValue> ParseValue(string stringValue);
+        protected abstract Outcome<ScriptValue> ParseValue(string stringValue);
 
-    public IScriptContext? Context { get; set; }
-    
-    internal static void AddProviders(params ScriptValueParser[] providers) => s_valueParsers.AddRange(providers);
+        public IScriptContext? Context { get; set; }
 
-    public abstract Outcome<ParseOperandResult> ParseLeftOperand(
-        string stringValue, 
-        string operatorToken);
+        internal static void AddProviders(params ScriptValueParser[] providers) => s_valueParsers.AddRange(providers);
 
-    public abstract Outcome<ParseOperandResult> ParseRightOperand(
-        string stringValue, 
-        string operatorToken,
-        ComparativeOperation? suggestedOperation);
+        public abstract Outcome<ParseOperandResult> ParseLeftOperand(
+            string stringValue,
+            string operatorToken);
 
-    static ScriptValueParser()
-    {
-        s_valueParsers = new List<ScriptValueParser>(new[]
+        public abstract Outcome<ParseOperandResult> ParseRightOperand(
+            string stringValue,
+            string operatorToken,
+            ComparativeOperation? suggestedOperation);
+
+        static ScriptValueParser()
         {
-            new LiteralsParser()
-        });
+            s_valueParsers = new List<ScriptValueParser>(new[]
+            {
+                new LiteralsParser()
+            });
+        }
+
     }
 
-}
-
-public sealed class ParseOperandResult
-{
-    public ScriptValue Value { get; }
-
-    public ComparativeOperation Operation { get; }
-
-    public ParseOperandResult(ScriptValue value, ComparativeOperation operation)
+    public sealed class ParseOperandResult
     {
-        Value = value;
-        Operation = operation;
+        public ScriptValue Value { get; }
+
+        public ComparativeOperation Operation { get; }
+
+        public ParseOperandResult(ScriptValue value, ComparativeOperation operation)
+        {
+            Value = value;
+            Operation = operation;
+        }
     }
-}
 
-public static class ScriptValueParserHelper
-{
-    public static ScriptValueParser WithContext(this ScriptValueParser parser, IScriptContext context)
+    public static class ScriptValueParserHelper
     {
-        parser.Context = context;
-        return parser;
+        public static ScriptValueParser WithContext(this ScriptValueParser parser, IScriptContext context)
+        {
+            parser.Context = context;
+            return parser;
+        }
     }
 }

@@ -1,6 +1,7 @@
-﻿namespace TetraPak.XP.Scripting;
-
-public interface IScriptValueFactory
+﻿namespace TetraPak.XP.Scripting
 {
-    Outcome<ScriptValue> GetScriptValue(string key, object? value);
+    public interface IScriptValueFactory
+    {
+        Outcome<ScriptValue> GetScriptValue(string key, object? value);
+    }
 }
