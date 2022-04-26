@@ -10,20 +10,23 @@ namespace mobileClient.ViewModels
 {
     public class BaseViewModel : INotifyPropertyChanged
     {
+        string _title = string.Empty;
+        bool _isBusy = false;
+
         public IDataStore<Item> DataStore => DependencyService.Get<IDataStore<Item>>();
 
-        bool isBusy = false;
+
         public bool IsBusy
         {
-            get { return isBusy; }
-            set { SetProperty(ref isBusy, value); }
+            get => _isBusy;
+            set => SetProperty(ref _isBusy, value);
         }
 
-        string title = string.Empty;
+        
         public string Title
         {
-            get { return title; }
-            set { SetProperty(ref title, value); }
+            get => _title;
+            set => SetProperty(ref _title, value);
         }
 
         protected bool SetProperty<T>(ref T backingStore, T value,
@@ -39,7 +42,7 @@ namespace mobileClient.ViewModels
             return true;
         }
 
-        #region INotifyPropertyChanged
+        #region .  INotifyPropertyChanged  .
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
