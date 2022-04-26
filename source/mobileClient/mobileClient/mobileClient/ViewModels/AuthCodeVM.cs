@@ -1,9 +1,10 @@
-﻿namespace mobileClient.ViewModels;
-
-public class AuthCodeVM : GrantViewModel
+﻿namespace mobileClient.ViewModels
 {
-    public AuthCodeVM()
+    public class AuthCodeVM : GrantViewModel
     {
-        Title = "Auth Code Grant";
+        public AuthCodeVM()
+        {
+            Title = "Auth Code Grant";
+        }
     }
 }

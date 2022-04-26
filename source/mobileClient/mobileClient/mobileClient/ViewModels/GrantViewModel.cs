@@ -1,6 +1,7 @@
-﻿namespace mobileClient.ViewModels;
-
-public abstract class GrantViewModel : BaseViewModel
+﻿namespace mobileClient.ViewModels
 {
-    
+    public abstract class GrantViewModel : BaseViewModel
+    {
+
+    }
 }
