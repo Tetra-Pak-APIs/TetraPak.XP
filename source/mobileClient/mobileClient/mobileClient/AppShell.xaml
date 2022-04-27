@@ -34,8 +34,8 @@
 
     <TabBar>
         <ShellContent Title="Auth Code" Icon="icon_auth_code_32.png" Route="AboutPage" ContentTemplate="{DataTemplate local:AuthCodePage}" />
-        <ShellContent Title="Client Credentials" Icon="icon_client_credentials_32.png" ContentTemplate="{DataTemplate local:ItemsPage}" />
         <ShellContent Title="Device Code" Icon="icon_device_code_32.png" ContentTemplate="{DataTemplate local:ItemsPage}" />
+        <ShellContent Title="Client Credentials" Icon="icon_client_credentials_32.png" ContentTemplate="{DataTemplate local:ItemsPage}" />
     </TabBar>
 
     <!--

@@ -411,12 +411,15 @@ namespace TetraPak.XP.DependencyInjection
         /// <c>true</c> to perform check verifying that scoped services never gets resolved from root provider; otherwise <c>false</c>.
         /// </param>
         /// <returns>The <see cref="ServiceProvider"/>.</returns>
-        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection collection, bool validateScopes)
+        public static IServiceProvider BuildXpServiceProvider(
+            this IServiceCollection collection, 
+            bool validateScopes)
         {
             return collection.BuildXpServiceProvider(new ServiceProviderOptions { ValidateScopes = validateScopes });
         }
 
-        public static IServiceProvider BuildXpServiceProvider(this IServiceCollection collection,
+        public static IServiceProvider BuildXpServiceProvider(
+            this IServiceCollection collection,
             ServiceProviderOptions options)
         {
             if (collection == null)

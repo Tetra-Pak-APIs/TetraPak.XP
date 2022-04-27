@@ -10,6 +10,19 @@ namespace TetraPak.XP.Desktop
 {
     public static class TetraPakDesktopHostBuilderHelper
     {
+        /// <summary>
+        ///   Builds and configures a host for use with a desktop app.
+        /// </summary>
+        /// <param name="args">
+        ///   A collection of string arguments.
+        /// </param>
+        /// <param name="configureServices">
+        ///   (optional)<br/>
+        ///   Delegate for configuring custom services with the provided <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="TetraPakHostInfo"/> object.
+        /// </returns>
         public static TetraPakHostInfo BuildTetraPakDesktopHost(
             this string[] args,
             Action<IServiceCollection>? configureServices = null)

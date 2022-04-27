@@ -14,7 +14,7 @@ namespace mobileClient.Droid
 {
 	
 	
-	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Xamarin.Android.Build.Tasks", "1.0.0.0")]
+	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Xamarin.Android.Build.Tasks", "12.2.4.160")]
 	public partial class Resource
 	{
 		
@@ -11683,22 +11683,22 @@ namespace mobileClient.Droid
 			public const int icon_about = 2131165296;
 			
 			// aapt resource value: 0x7F070071
-			public const int icon_auth_code = 2131165297;
+			public const int icon_auth_code_32 = 2131165297;
 			
 			// aapt resource value: 0x7F070072
-			public const int icon_client_credentials = 2131165298;
+			public const int icon_client_credentials_32 = 2131165298;
 			
 			// aapt resource value: 0x7F070073
-			public const int icon_device_code = 2131165299;
+			public const int icon_device_code_32 = 2131165299;
 			
 			// aapt resource value: 0x7F070074
 			public const int icon_feed = 2131165300;
 			
 			// aapt resource value: 0x7F070075
-			public const int icon_token_exchange = 2131165301;
+			public const int icon_token_exchange_32 = 2131165301;
 			
 			// aapt resource value: 0x7F070076
-			public const int icon_user_information = 2131165302;
+			public const int icon_user_information_32 = 2131165302;
 			
 			// aapt resource value: 0x7F07006C
 			public const int ic_mtrl_checked_circle = 2131165292;

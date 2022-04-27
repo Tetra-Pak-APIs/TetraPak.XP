@@ -103,6 +103,10 @@
     <AndroidResource Include="Resources\drawable\icon_feed.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\TetraPak.XP.Mobile\TetraPak.XP.Mobile.csproj">
+      <Project>{3c8db621-3b0e-4c12-86e5-39fbf2e4252f}</Project>
+      <Name>TetraPak.XP.Mobile</Name>
+    </ProjectReference>
     <ProjectReference Include="..\mobileClient\mobileClient.csproj">
       <Project>{734C36FE-5FA2-4997-90B3-FF93689589F4}</Project>
       <Name>mobileClient</Name>
