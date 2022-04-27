@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace TetraPak.XP.Web
+namespace TetraPak.XP.Web.Abstractions
 {
     /// <summary>
     ///   See <see cref="ILoopbackBrowser.GetLoopbackAsync"/> for more info on how to use this delegate.

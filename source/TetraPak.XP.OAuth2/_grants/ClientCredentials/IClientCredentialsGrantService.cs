@@ -6,13 +6,12 @@ using TetraPak.XP.OAuth2.AuthCode;
 namespace TetraPak.XP.OAuth2.ClientCredentials
 {
     /// <summary>
-    ///   Implementors of this interface are able to acquire a token using the
-    ///   OAuth Client Credentials grant. 
+    ///   Classes implementing this contract allows its clients to acquire an OAuth2 Client Credentials grant. 
     /// </summary>
     public interface IClientCredentialsGrantService : IGrantService
     {
         /// <summary>
-        ///   Requests a token using the OAuth Client Credentials grant.   
+        ///   Requests an OAuth2 Client Credentials grant asynchronously.   
         /// </summary>
         /// <param name="options">
         ///   Specifies the details for how to perform the grant request.

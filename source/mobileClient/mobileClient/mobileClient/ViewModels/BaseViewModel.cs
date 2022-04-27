@@ -15,13 +15,11 @@ namespace mobileClient.ViewModels
 
         public IDataStore<Item> DataStore => DependencyService.Get<IDataStore<Item>>();
 
-
         public bool IsBusy
         {
             get => _isBusy;
             set => SetProperty(ref _isBusy, value);
         }
-
         
         public string Title
         {
@@ -31,7 +29,8 @@ namespace mobileClient.ViewModels
 
         protected bool SetProperty<T>(ref T backingStore, T value,
             [CallerMemberName] string propertyName = "",
-            Action onChanged = null)
+            Action onChanged = null, 
+            params string[] triggerOtherProperties)
         {
             if (EqualityComparer<T>.Default.Equals(backingStore, value))
                 return false;
@@ -39,6 +38,11 @@ namespace mobileClient.ViewModels
             backingStore = value;
             onChanged?.Invoke();
             OnPropertyChanged(propertyName);
+            foreach (var otherProperty in triggerOtherProperties)
+            {
+                OnPropertyChanged(otherProperty);
+            }
+            
             return true;
         }
 

@@ -114,13 +114,6 @@ namespace TetraPak.XP.OAuth2
                 ? Outcome<Credentials>.Success(credentials)
                 : Outcome<Credentials>.Fail(
                     new ConfigurationException("Client credentials have not been provisioned")));
-
-            // if (string.IsNullOrWhiteSpace(identity)) obsolete
-            //     return Task.FromResult(Outcome<Credentials>.Fail(
-            //         new ConfigurationException("Client credentials have not been provisioned")));
-            //
-            // var secret = context.Configuration.ClientSecret;
-            // return Task.FromResult(Outcome<Credentials>.Success(new BasicAuthCredentials(identity, secret!)));
         }
 
         /// <summary>

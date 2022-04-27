@@ -4,7 +4,7 @@
 // using System.Threading.Tasks;
 // using TetraPak.XP.Caching;
 //
-// namespace TetraPak.XP.Xamarin.Caching
+// namespace TetraPak.XP.Mobile.Caching
 // {
 // public class FileCache<T> // : MemoryCache<T>
 //     {

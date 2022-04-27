@@ -7,7 +7,7 @@ using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using Xamarin.Essentials;
 
-namespace TetraPak.XP.Xamarin
+namespace TetraPak.XP.Mobile
 {
     sealed class XamarinSecureCacheDelegate : ISecureCacheDelegate
     {

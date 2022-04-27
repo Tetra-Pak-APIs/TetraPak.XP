@@ -5,6 +5,7 @@ using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web;
+using TetraPak.XP.Web.Abstractions;
 
 namespace TetraPak.XP.Auth
 {

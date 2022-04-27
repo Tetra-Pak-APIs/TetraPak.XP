@@ -12,7 +12,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
     public interface IDeviceCodeGrantService : IGrantService
     {
         /// <summary>
-        ///   Requests a token using the OAuth Device Code grant.   
+        ///   Requests an OAuth2 Device Code grant asynchronously.   
         /// </summary>
         /// <param name="options">
         ///   Specifies the details for how to perform the grant request.

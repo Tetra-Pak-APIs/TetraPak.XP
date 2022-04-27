@@ -1,13 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:mobileClient.Converters;assembly=mobileClient"
              x:Class="mobileClient.App">
     <!--
         Define global resources and styles here, that apply to all pages in your app.
     -->
     <Application.Resources>
         <ResourceDictionary>
+            <converters:OutcomeBackgroundColorConverter x:Key="OutcomeBackgroundColorConverter" />
             <Color x:Key="Primary">#2196F3</Color>
+            <Color x:Key="Success">Green</Color>
+            <Color x:Key="Failure">DarkRed</Color>
             <Style TargetType="Button">
                 <Setter Property="TextColor" Value="White"></Setter>
                 <Setter Property="VisualStateManager.VisualStateGroups">

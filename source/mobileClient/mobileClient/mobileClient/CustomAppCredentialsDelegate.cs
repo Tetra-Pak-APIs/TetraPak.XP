@@ -1,9 +1,8 @@
 ﻿using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.Desktop;
 
-namespace authClient.console
+namespace mobileClient
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     class CustomAppCredentialsDelegate : AppCredentialsDelegate

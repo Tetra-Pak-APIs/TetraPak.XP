@@ -6,13 +6,12 @@ namespace TetraPak.XP.OAuth2.AuthCode
 {
     
     /// <summary>
-    /// todo This is the first step in making the "TetraPakAuthenticator" (from the "TAX" mobile apps lib)
-    ///      a service, just like <see cref="IDeviceCodeGrantService"/> and <see cref="IClientCredentialsGrantService"/> 
+    ///   Classes implementing this contract allows its clients to acquire an OAuth2 Authorization Code grant. 
     /// </summary>
     public interface IAuthorizationCodeGrantService : IGrantService
     {
         /// <summary>
-        ///   Requests a token using the OAuth Device Code grant.   
+        ///   Requests an OAuth2 Authorization Code grant asynchronously.   
         /// </summary>
         /// <param name="options">
         ///   Specifies the details for how to perform the grant request.

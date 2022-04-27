@@ -16,7 +16,7 @@ using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.StringValues;
-using TetraPak.XP.Web;
+using TetraPak.XP.Web.Abstractions;
 using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Http.Debugging;
 using TetraPak.XP.Web.Services;

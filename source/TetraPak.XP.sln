@@ -41,7 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetraPak.XP.DependencyInjec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetraPak.XP.Common", "TetraPak.XP.Common\TetraPak.XP.Common.csproj", "{710E2D54-9DB9-4513-BF40-3E89733AA206}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetraPak.XP.Xamarin", "TetraPak.XP.Xamarin\TetraPak.XP.Xamarin.csproj", "{3C8DB621-3B0E-4C12-86E5-39FBF2E4252F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetraPak.XP.Mobile", "TetraPak.XP.Mobile\TetraPak.XP.Mobile.csproj", "{3C8DB621-3B0E-4C12-86E5-39FBF2E4252F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetraPak.XP.DependencyInjection.Tests", "testProjects\TetraPak.XP.DependencyInjection.Tests\TetraPak.XP.DependencyInjection.Tests.csproj", "{4F1CBCE8-5CB7-4DAC-8AB2-2CECD15070FD}"
 EndProject

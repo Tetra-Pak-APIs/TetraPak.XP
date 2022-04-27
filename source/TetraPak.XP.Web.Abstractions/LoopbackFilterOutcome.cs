@@ -1,4 +1,4 @@
-﻿namespace TetraPak.XP.Web
+﻿namespace TetraPak.XP.Web.Abstractions
 {
     /// <summary>
     ///   Used by a <see cref="LoopbackFilter"/> to control how to handle loopback requests to a

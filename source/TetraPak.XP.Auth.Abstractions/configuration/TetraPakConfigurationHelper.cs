@@ -32,7 +32,6 @@ namespace TetraPak.XP.Auth.Abstractions
                 var log = p.GetService<ILog>();
                 var args = new ConfigurationSectionDecoratorArgs(null, conf, section, resolver, log);
                 return new TetraPakConfiguration(args);
-                
             });
             return collection;
         }

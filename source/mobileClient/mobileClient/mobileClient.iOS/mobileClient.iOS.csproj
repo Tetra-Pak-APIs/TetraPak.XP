@@ -147,11 +147,15 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2401" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.2" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\..\..\TetraPak.XP.Mobile\TetraPak.XP.Mobile.csproj">
+      <Project>{3c8db621-3b0e-4c12-86e5-39fbf2e4252f}</Project>
+      <Name>TetraPak.XP.Mobile</Name>
+    </ProjectReference>
     <ProjectReference Include="..\mobileClient\mobileClient.csproj">
       <Project>{734C36FE-5FA2-4997-90B3-FF93689589F4}</Project>
       <Name>mobileClient</Name>

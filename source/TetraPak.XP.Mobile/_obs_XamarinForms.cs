@@ -1,7 +1,7 @@
 ﻿// using Microsoft.Extensions.DependencyInjection;
 // using TetraPak.XP.SimpleDI;
 //
-// namespace TetraPak.XP.Xamarin
+// namespace TetraPak.XP.Mobile
 // {
 //     public class XamarinForms
 //     {

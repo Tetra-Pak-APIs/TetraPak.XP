@@ -1,9 +1,27 @@
-﻿namespace TetraPak.XP
+using System;
+
+namespace TetraPak.XP.Mobile
 {
+    [AttributeUsage(AttributeTargets.Assembly)]
+    public class TetraPakRuntimeEnvironmentAttribute : Attribute
+    {
+        public RuntimeEnvironment RuntimeEnvironment { get; set; }
+        
+        public TetraPakRuntimeEnvironmentAttribute(MobileRuntimeEnvironment runtimeEnvironment)
+        {
+            if (runtimeEnvironment == MobileRuntimeEnvironment.Unknown)
+                throw new ArgumentOutOfRangeException(
+                    nameof(runtimeEnvironment), 
+                    $"Assembly runtime environment cannot be '{runtimeEnvironment}'");
+                
+            RuntimeEnvironment = (RuntimeEnvironment) runtimeEnvironment;
+        }
+    }
+
     /// <summary>
     ///   This enum value can be used to identity a runtime environment.
     /// </summary>
-    public enum RuntimeEnvironment
+    public enum MobileRuntimeEnvironment
     {
         /// <summary>
         ///   Runtime environment is unknown/unresolved.

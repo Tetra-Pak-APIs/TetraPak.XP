@@ -1,13 +1,13 @@
 ﻿using System.Threading.Tasks;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.OAuth2.AuthCode;
+using TetraPak.XP.OAuth2.ClientCredentials;
 
 namespace mobileClient.ViewModels
 {
-    public class AuthCodeVM : GrantViewModel
+    public class ClientCredentialsVM : GrantViewModel
     {
-        readonly IAuthorizationCodeGrantService _grantService;
+        readonly IClientCredentialsGrantService _grantService;
 
         protected override async Task<Outcome<Grant>> OnAcquireTokenAsync(bool forced)
         {
@@ -15,12 +15,12 @@ namespace mobileClient.ViewModels
             return await _grantService.AcquireTokenAsync(options);
         }
 
-        public AuthCodeVM()
+        public ClientCredentialsVM()
         {
-            Title = "Auth Code Grant";
+            Title = "Client Credentials Grant";
         }
         
-        public AuthCodeVM(IAuthorizationCodeGrantService grantService)
+        public ClientCredentialsVM(IClientCredentialsGrantService grantService)
         : this()
         {
             _grantService = grantService;

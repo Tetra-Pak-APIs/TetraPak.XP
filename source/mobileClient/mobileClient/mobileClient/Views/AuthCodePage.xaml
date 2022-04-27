@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:mobileClient.ViewModels;assembly=mobileClient"
+             x:Class="mobileClient.Views.AuthCodePage"
+             Title="{Binding Title}">
+    
+    <ContentPage.BindingContext>
+        <vm:AuthCodeVM />
+    </ContentPage.BindingContext>
+    
+    <ContentPage.Content>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <StackLayout Padding="10,20">
+                <Label Text="Hello, world!"
+                       Padding="10"
+                       VerticalOptions="CenterAndExpand"
+                       HorizontalOptions="Start" />
+                <Button Text="Get Grant Silently" 
+                        Command="{Binding AcquireTokenCommand}" />
+                <Button Text="Get Grant Forced" 
+                        Command="{Binding ForceAcquireTokenCommand}" />
+                <Button Text="{Binding OutcomeCaption}"
+                        BackgroundColor="{Binding GrantOutcome, 
+                            Converter={StaticResource OutcomeBackgroundColorConverter}}"
+                        Command="{Binding OutcomeCommand}" 
+                        IsVisible="{Binding IsOutcomeAvailable}" />
+            </StackLayout>
+        </Grid>
+        
+    </ContentPage.Content>
+</ContentPage>

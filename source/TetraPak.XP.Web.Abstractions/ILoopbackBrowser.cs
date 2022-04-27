@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace TetraPak.XP.Web
+namespace TetraPak.XP.Web.Abstractions
 {
     /// <summary>
     ///   Classes implementing this contract can be used by apps to open a browser,

@@ -3,7 +3,7 @@ using TetraPak.XP.Caching;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging.Abstractions;
 
-namespace TetraPak.XP.Xamarin
+namespace TetraPak.XP.Mobile
 {
     public static class XamarinCacheHelper
     {

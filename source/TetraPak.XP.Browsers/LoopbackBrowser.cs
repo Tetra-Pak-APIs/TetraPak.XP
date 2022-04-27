@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using TetraPak.XP.Logging.Abstractions;
-using TetraPak.XP.Web;
+using TetraPak.XP.Web.Abstractions;
 
 namespace TetraPak.XP.Browsers
 {
@@ -69,7 +69,7 @@ namespace TetraPak.XP.Browsers
             {
                 _loopbackHost.LoopbackFilter = LoopbackFilter;
                 timeout ??= LoopbackHost.s_defaultTimeout;
-                OnOpenBrowser(targetUri);
+                OnOpenBrowserAsync(targetUri);
                 var request = await _loopbackHost.WaitForCallbackUrlAsync(timeout.Value);
                 return request is { }
                     ? Outcome<HttpRequest>.Success(request)
@@ -107,7 +107,7 @@ namespace TetraPak.XP.Browsers
                     : LoopbackFilterOutcome.RejectAndFail);
         }
 
-        protected abstract void OnOpenBrowser(Uri uri);
+        protected abstract Task OnOpenBrowserAsync(Uri uri);
 
         public void Dispose() => _loopbackHost?.Dispose();
 
