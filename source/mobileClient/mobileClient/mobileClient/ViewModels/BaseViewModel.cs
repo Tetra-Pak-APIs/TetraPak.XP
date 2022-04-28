@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace mobileClient.ViewModels
@@ -45,6 +46,8 @@ namespace mobileClient.ViewModels
             
             return true;
         }
+        
+        protected Task PushAsync(Page page) => ((App)Application.Current).Navigation.PushAsync(page);
 
         #region .  INotifyPropertyChanged  .
         public event PropertyChangedEventHandler PropertyChanged;

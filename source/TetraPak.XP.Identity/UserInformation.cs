@@ -7,7 +7,7 @@ namespace TetraPak.XP.Identity
     /// <summary>
     ///   Represents user information claims as a dictionary.
     /// </summary>
-    public class UserInformation
+    public class UserInformation 
     {
         readonly IDictionary<string, string> _dictionary;
 

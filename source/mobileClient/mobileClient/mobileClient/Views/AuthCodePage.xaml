@@ -18,13 +18,13 @@
             </Grid.RowDefinitions>
             
             <StackLayout Padding="10,20">
-                <Label Text="Hello, world!"
+                <Label Text="{Binding Introduction}"
                        Padding="10"
                        VerticalOptions="CenterAndExpand"
                        HorizontalOptions="Start" />
-                <Button Text="Get Grant Silently" 
+                <Button Text="Silent Grant Request" 
                         Command="{Binding AcquireTokenCommand}" />
-                <Button Text="Get Grant Forced" 
+                <Button Text="Force Grant Request" 
                         Command="{Binding ForceAcquireTokenCommand}" />
                 <Button Text="{Binding OutcomeCaption}"
                         BackgroundColor="{Binding GrantOutcome, 

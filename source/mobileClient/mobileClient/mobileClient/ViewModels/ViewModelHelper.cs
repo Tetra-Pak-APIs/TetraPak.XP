@@ -17,5 +17,7 @@ namespace mobileClient.ViewModels
                 => new DeviceCodeVM(p.GetRequiredService<IDeviceCodeGrantService>()));
             return collection;
         }
+        
+        // public static Task PushAsync(this BaseViewModel vm, Page page) => ((App)Application.Current).Navigation.PushAsync(page); obsolete
     }
 }

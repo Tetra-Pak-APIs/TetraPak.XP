@@ -36,8 +36,6 @@ namespace mobileClient.ViewModels
 
         public ICommand OutcomeCommand { get; }
 
-        protected Task PushAsync(Page page) => Navigation.PushAsync(page);
-
         protected abstract Task<Outcome<Grant>> OnAcquireTokenAsync(bool forced);
         
         async Task onOutcomeAsync()
@@ -57,4 +55,5 @@ namespace mobileClient.ViewModels
             // ReSharper restore AsyncVoidLambda
         }
     }
+    
 }

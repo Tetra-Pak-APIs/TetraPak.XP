@@ -3,11 +3,39 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="mobileClient.Views.GrantSuccessPage">
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="TokenRoleLabel" TargetType="Label" BasedOn="{StaticResource BaseStyle}">
+                <Setter Property="Margin" Value="0,8,0,0"></Setter>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
     <ContentPage.Content>
-        <StackLayout>
-            <Label Text="SUCCESS - TODO"
-                   VerticalOptions="CenterAndExpand"
-                   HorizontalOptions="CenterAndExpand" />
-        </StackLayout>
+        <Grid Margin="20,10,20,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" 
+                   Text="Grant Information"
+                   FontSize="Title"
+                   HorizontalOptions="Start" />
+            <Label Grid.Row="1" Grid.Column="0"
+                   Text="Your request for a grant was successful. Below are the acquired tokens:"
+                   FontSize="Medium"/>
+            <ScrollView Grid.Row="2">
+                <Grid x:Name="Grid" />
+            </ScrollView>
+            <Button Grid.Row="3" 
+                    Text="User Information"
+                    Padding="20,5"
+                    HorizontalOptions="Center"
+                    Margin="0,10"
+                    Command="{Binding UserInformationCommand}"/>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>
