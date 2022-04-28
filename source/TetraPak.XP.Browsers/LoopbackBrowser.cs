@@ -69,7 +69,9 @@ namespace TetraPak.XP.Browsers
             {
                 _loopbackHost.LoopbackFilter = LoopbackFilter;
                 timeout ??= LoopbackHost.s_defaultTimeout;
+#pragma warning disable CS4014
                 OnOpenBrowserAsync(targetUri);
+#pragma warning restore CS4014
                 var request = await _loopbackHost.WaitForCallbackUrlAsync(timeout.Value);
                 return request is { }
                     ? Outcome<HttpRequest>.Success(request)

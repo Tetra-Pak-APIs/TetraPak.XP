@@ -21,7 +21,10 @@ namespace TetraPak.XP.Mobile
         {
             Log.Trace(uri.ToStringBuilderAsync(ToString(), null).Result.ToString());
             // todo make choice of internal/external browser configurable 
-            await Browser.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
+            await Browser.OpenAsync(uri, new BrowserLaunchOptions
+            {
+                LaunchMode = BrowserLaunchMode.SystemPreferred,
+            } );
         }
         
         public MobileLoopbackBrowser(ITetraPakConfiguration tetraPakConfig, ILog? log = null) 

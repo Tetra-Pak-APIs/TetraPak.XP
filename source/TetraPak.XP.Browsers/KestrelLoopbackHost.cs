@@ -36,20 +36,41 @@ namespace TetraPak.XP.Browsers
         {
             _loopbackTcs.TrySetResult(ctx.Request);
             
-            try
-            {
-                ctx.Response.StatusCode = 200;
-                ctx.Response.ContentType = "text/html";
-                await ctx.Response.WriteAsync("<h1>You can now return to the application.</h1>");
-                await ctx.Response.Body.FlushAsync();
-            }
-            catch
-            {
-                ctx.Response.StatusCode = 400;
-                ctx.Response.ContentType = "text/html";
-                await ctx.Response.WriteAsync("<h1>Invalid request.</h1>");
-                await ctx.Response.Body.FlushAsync();
-            }
+            // try
+            // {
+                ctx.Response.OnStarting(async () =>
+                {
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = "text/html";
+                    try
+                    {
+                        await ctx.Response.WriteAsync("<h1>You can now return to the application.</h1>");
+                        await ctx.Response.Body.FlushAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        ctx.Response.StatusCode = 400;
+                        ctx.Response.ContentType = "text/html";
+                        await ctx.Response.WriteAsync("<h1>Invalid request.</h1>");
+                        await ctx.Response.Body.FlushAsync();
+                    }
+                });
+            // }
+            // catch
+            // {
+            //     try
+            //     {
+            //         ctx.Response.StatusCode = 400;
+            //         ctx.Response.ContentType = "text/html";
+            //         await ctx.Response.WriteAsync("<h1>Invalid request.</h1>");
+            //         await ctx.Response.Body.FlushAsync();
+            //     }
+            //     catch (Exception ex)
+            //     {
+            //         Console.WriteLine(ex);
+            //         throw;
+            //     }
+            // }
         }
         
         public Task<HttpRequest?> WaitForCallbackUrlAsync(TimeSpan timeout)
