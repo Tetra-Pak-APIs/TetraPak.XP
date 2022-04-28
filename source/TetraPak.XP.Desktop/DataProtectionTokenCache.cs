@@ -11,7 +11,7 @@ namespace TetraPak.XP.Desktop
         public override bool IsTypeStrict
         {
             get => false; 
-            set { /* ignore */}
+            set { /* ignore */ }
         }
 
         public DataProtectionTokenCache(IDataProtectionProvider protectionProvider,  ILog? log = null) 
