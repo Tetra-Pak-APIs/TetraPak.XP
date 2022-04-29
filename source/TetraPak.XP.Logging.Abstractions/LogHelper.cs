@@ -418,19 +418,19 @@ namespace TetraPak.XP.Logging.Abstractions
             LogFormatOptions? options = null)
         {
             message ??= exception?.Message ?? "(NO MESSAGE)";
-            var prefix = options?.SuppressPrefix ?? false
+            var prefix = options?.OmitPrefix ?? false
                 ? string.Empty
                 : $"{Prefix} ";
-            var sTimestamp = timestamp.HasValue && !(options?.SuppressTimestamp ?? false)
+            var sTimestamp = timestamp.HasValue && !(options?.OmitTimestamp ?? false)
                 ? $"@{timestamp.Value:s}{(timestamp.Value.Kind == DateTimeKind.Utc ? "Z" : "")} "
                 : string.Empty;
-            var logRank = rank < LogRank.Any && !(options?.SuppressRank ?? false)
+            var logRank = rank < LogRank.Any && !(options?.OmitRank ?? false)
                 ? $"[{rank.ToAbbreviatedString()}] "
                 : string.Empty;
-            messageId = !string.IsNullOrEmpty(messageId) && !(options?.SuppressMessageId ?? false)
+            messageId = !string.IsNullOrEmpty(messageId) && !(options?.OmitMessageId ?? false)
                 ? $"<{messageId}> "
                 : string.Empty;
-            var caller = source is { } && !(options?.SuppressSource ?? false)
+            var caller = source is { } && !(options?.OmitSource ?? false)
                 ? $" (source={source})"
                 : string.Empty;
             var formatted = $"{prefix}{sTimestamp}{messageId}{logRank}{message}{caller}";

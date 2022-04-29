@@ -14,7 +14,7 @@ namespace TetraPak.XP.Android
 {
 	
 	
-	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Xamarin.Android.Build.Tasks", "1.0.0.0")]
+	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Xamarin.Android.Build.Tasks", "12.2.4.160")]
 	public partial class Resource
 	{
 		
@@ -5396,76 +5396,64 @@ namespace TetraPak.XP.Android
 			public static int preference_seekbar_value_minWidth = 2131100057;
 			
 			// aapt resource value: 0x7F06019A
-			public static int subtitle_corner_radius = 2131100058;
+			public static int test_mtrl_calendar_day_cornerSize = 2131100058;
 			
 			// aapt resource value: 0x7F06019B
-			public static int subtitle_outline_width = 2131100059;
+			public static int test_navigation_bar_active_item_max_width = 2131100059;
 			
 			// aapt resource value: 0x7F06019C
-			public static int subtitle_shadow_offset = 2131100060;
+			public static int test_navigation_bar_active_item_min_width = 2131100060;
 			
 			// aapt resource value: 0x7F06019D
-			public static int subtitle_shadow_radius = 2131100061;
+			public static int test_navigation_bar_active_text_size = 2131100061;
 			
 			// aapt resource value: 0x7F06019E
-			public static int test_mtrl_calendar_day_cornerSize = 2131100062;
+			public static int test_navigation_bar_elevation = 2131100062;
 			
 			// aapt resource value: 0x7F06019F
-			public static int test_navigation_bar_active_item_max_width = 2131100063;
+			public static int test_navigation_bar_height = 2131100063;
 			
 			// aapt resource value: 0x7F0601A0
-			public static int test_navigation_bar_active_item_min_width = 2131100064;
+			public static int test_navigation_bar_icon_size = 2131100064;
 			
 			// aapt resource value: 0x7F0601A1
-			public static int test_navigation_bar_active_text_size = 2131100065;
+			public static int test_navigation_bar_item_max_width = 2131100065;
 			
 			// aapt resource value: 0x7F0601A2
-			public static int test_navigation_bar_elevation = 2131100066;
+			public static int test_navigation_bar_item_min_width = 2131100066;
 			
 			// aapt resource value: 0x7F0601A3
-			public static int test_navigation_bar_height = 2131100067;
+			public static int test_navigation_bar_label_padding = 2131100067;
 			
 			// aapt resource value: 0x7F0601A4
-			public static int test_navigation_bar_icon_size = 2131100068;
+			public static int test_navigation_bar_shadow_height = 2131100068;
 			
 			// aapt resource value: 0x7F0601A5
-			public static int test_navigation_bar_item_max_width = 2131100069;
+			public static int test_navigation_bar_text_size = 2131100069;
 			
 			// aapt resource value: 0x7F0601A6
-			public static int test_navigation_bar_item_min_width = 2131100070;
+			public static int tooltip_corner_radius = 2131100070;
 			
 			// aapt resource value: 0x7F0601A7
-			public static int test_navigation_bar_label_padding = 2131100071;
+			public static int tooltip_horizontal_padding = 2131100071;
 			
 			// aapt resource value: 0x7F0601A8
-			public static int test_navigation_bar_shadow_height = 2131100072;
+			public static int tooltip_margin = 2131100072;
 			
 			// aapt resource value: 0x7F0601A9
-			public static int test_navigation_bar_text_size = 2131100073;
+			public static int tooltip_precise_anchor_extra_offset = 2131100073;
 			
 			// aapt resource value: 0x7F0601AA
-			public static int tooltip_corner_radius = 2131100074;
+			public static int tooltip_precise_anchor_threshold = 2131100074;
 			
 			// aapt resource value: 0x7F0601AB
-			public static int tooltip_horizontal_padding = 2131100075;
+			public static int tooltip_vertical_padding = 2131100075;
 			
 			// aapt resource value: 0x7F0601AC
-			public static int tooltip_margin = 2131100076;
+			public static int tooltip_y_offset_non_touch = 2131100076;
 			
 			// aapt resource value: 0x7F0601AD
-			public static int tooltip_precise_anchor_extra_offset = 2131100077;
-			
-			// aapt resource value: 0x7F0601AE
-			public static int tooltip_precise_anchor_threshold = 2131100078;
-			
-			// aapt resource value: 0x7F0601AF
-			public static int tooltip_vertical_padding = 2131100079;
-			
-			// aapt resource value: 0x7F0601B0
-			public static int tooltip_y_offset_non_touch = 2131100080;
-			
-			// aapt resource value: 0x7F0601B1
-			public static int tooltip_y_offset_touch = 2131100081;
+			public static int tooltip_y_offset_touch = 2131100077;
 			
 			static Dimension()
 			{

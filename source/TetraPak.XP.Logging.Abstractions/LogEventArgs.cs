@@ -70,16 +70,25 @@ namespace TetraPak.XP.Logging.Abstractions
 
     public sealed class LogFormatOptions
     {
-        public bool SuppressTimestamp { get; set; } = false;
+        public bool OmitTimestamp { get; set; } = false;
 
-        public bool SuppressSource { get; set; } = false;
+        public bool OmitSource { get; set; } = false;
 
-        public bool SuppressRank { get; set; } = false;
+        public bool OmitRank { get; set; } = false;
 
-        public bool SuppressPrefix { get; set; } = false;
+        public bool OmitPrefix { get; set; } = false;
 
-        public bool SuppressMessageId { get; set; } = false;
+        public bool OmitMessageId { get; set; } = false;
 
         public static LogFormatOptions Default => new();
+    }
+
+    public static class LogFormatOptionsHelper
+    {
+        public static LogFormatOptions WithOmitTimestamp(this LogFormatOptions options, bool value)
+        {
+            options.OmitTimestamp = value;
+            return options;
+        }
     }
 }

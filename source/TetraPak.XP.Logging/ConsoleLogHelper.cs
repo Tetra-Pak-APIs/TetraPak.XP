@@ -9,13 +9,16 @@ namespace TetraPak.XP.Logging
     /// </summary>
     public static class ConsoleLogHelper
     {
+        static LogFormatOptions? s_options;
+
         /// <summary>
         ///   (fluent api)<br/>
         ///   Adds a logger provider to output all events to the <see cref="Console"/> and then return the log instance.
         /// </summary>
-        public static ILog WithConsoleLogging(this ILog log)
+        public static ILog WithConsoleLogging(this ILog log, LogFormatOptions? options = null)
         {
-            log.Logged += writeToConsole!;
+            log.Logged += writeToConsole;
+            s_options = options ?? LogFormatOptions.Default;
             return log;
         }
 
@@ -32,7 +35,7 @@ namespace TetraPak.XP.Logging
                 LogRank.None => throw new ArgumentOutOfRangeException(nameof(args.Rank), args.Rank, null),
                 _ => throw new ArgumentOutOfRangeException(nameof(args.Rank), args.Rank, null)
             };
-            Console.WriteLine(args.Format());
+            Console.WriteLine(args.Format(s_options));
             Console.ResetColor();
         }
 

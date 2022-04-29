@@ -43,6 +43,8 @@ namespace TetraPak.XP.Mobile
             }
             catch (Exception ex)
             {
+                ex = new Exception($"Failed to write to secure token cache: '{entry}'" , ex);
+                Log.Error(ex);
                 return Outcome.Fail(ex);
             }
         }
@@ -58,6 +60,8 @@ namespace TetraPak.XP.Mobile
             }
             catch (Exception ex)
             {
+                ex = new Exception($"Failed to delete '{path}' from secure token cache (see inner exception)" , ex);
+                Log.Error(ex);
                 return Outcome.Fail(ex);
             }        
         }
@@ -75,15 +79,11 @@ namespace TetraPak.XP.Mobile
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
-                throw;
+                ex = new Exception($"Failed to read '{path}' from secure token cache (see inner exception)" , ex);
+                Log.Error(ex);
+                return Outcome<ITimeLimitedRepositoryEntry>.Fail(ex);
             }
         }
-
-        // async Task<Outcome<string>> serializeAsync(ITimeLimitedRepositoryEntry entry)
-        // {
-        //     return await EntryDto.Serialize(entry);
-        // }
 
         public SecureStoreCacheDelegate(ITimeLimitedRepositories repositories, ILog? log) 
         : base(log)
@@ -108,19 +108,19 @@ namespace TetraPak.XP.Mobile
             public string? CustomMaxLifeSpan { get; set; }
 
             [JsonPropertyName("value")]
-            public string Value { get; set; }
+            public object Value { get; set; }
 
             [JsonPropertyName("typeFullName")]
-            public string TypeFullName { get; set; }
+            public string TypeName { get; set; }
 
             public static Task<Outcome<string>> SerializeAsync(ITimeLimitedRepositoryEntry entry)
             {
                 var value = entry.GetValue();
-                var serializedValue = JsonSerializer.Serialize(value);
-                var spawnRimeUtc = entry.SpawnTimeUtc.ToString("O");
+                // var serializedValue = JsonSerializer.Serialize(value); obsolete
+                var spawnTimeUtc = entry.SpawnTimeUtc.ToString("O");
                 try
                 {
-                    var dto = new EntryDto(entry.Path, spawnRimeUtc, serializedValue, value.GetType().FullName)
+                    var dto = new EntryDto(entry.Path, spawnTimeUtc, value)
                     {
                         CustomLifeSpan = entry is SimpleCacheEntry { CustomLifeSpan: { } } simpleEntry1 
                             ? simpleEntry1.CustomLifeSpan.Value.Ticks.ToString()
@@ -168,11 +168,12 @@ namespace TetraPak.XP.Mobile
                         
                         customMaxLifeSpan = TimeSpan.FromTicks(ticks);
                     }
-                    var type = Type.GetType(entryDto.TypeFullName);
+                    var type = Type.GetType(entryDto.TypeName);
                     if (type is null)
-                        return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Fail($"Could not obtain cached value type with name '{entryDto.TypeFullName}'"));
+                        return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Fail($"Could not obtain cached value type with name '{entryDto.TypeName}'"));
 
-                    var value = JsonSerializer.Deserialize(entryDto.Value, type)!;
+                    var serializedValue = entryDto.GetSerializedValue(serializedEntryDto);
+                    var value = JsonSerializer.Deserialize(serializedValue, type)!;
                     var entry = new SimpleCacheEntry(repositories, entryDto.Path, value, spawnTimeUtc, customLifeSpan, customMaxLifeSpan);
                     return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Success(entry));
                 }
@@ -181,13 +182,25 @@ namespace TetraPak.XP.Mobile
                     return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Fail(ex));
                 }
             }
-            
-            public EntryDto(string path, string spawnTimeUtc, string value, string typeFullName)
+
+            string GetSerializedValue(string serializedEntryDto)
+            {
+                using var jsonDocument = JsonDocument.Parse(serializedEntryDto);
+                foreach (var element in jsonDocument.RootElement.EnumerateArray())
+                {
+                    if (element.ValueKind == JsonValueKind.Object)
+                        throw new NotImplementedException();
+                }
+                
+                throw new NotImplementedException();
+            }
+
+            public EntryDto(string path, string spawnTimeUtc, object value)
             {
                 Path = path;
                 SpawnTimeUtc = spawnTimeUtc;
                 Value = value;
-                TypeFullName = typeFullName;
+                TypeName = value.GetType().FullName;
             }
         }
     }

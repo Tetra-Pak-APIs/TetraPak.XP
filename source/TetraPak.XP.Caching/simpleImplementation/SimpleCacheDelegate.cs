@@ -14,8 +14,12 @@ namespace TetraPak.XP.Caching
         readonly IDictionary<string, SimpleCacheEntry> _values;
         TaskCompletionSource<bool>? _purgingTcs;
         DateTime _lastPurge;
-        readonly ILog? _log;
         string? _targetRepository;
+
+        /// <summary>
+        ///   Gets a log provider, if available.
+        /// </summary>
+        protected ILog? Log { get; }
 
         /// <summary>
         ///   Gets or sets an (optional) target repository name, allowing simple filtering for requests. 
@@ -122,7 +126,7 @@ namespace TetraPak.XP.Caching
 
                 if (!entry.IsLive())
                 {
-                    _log.Trace($"Updating dead cached value '{path}'. Removing and re-adding it");
+                    Log.Trace($"Updating dead cached value '{path}'. Removing and re-adding it");
                     _values.Remove(path);
                     _values.Add(path, newEntry);
                 }
@@ -242,7 +246,7 @@ namespace TetraPak.XP.Caching
                     return Task.CompletedTask;
             }
             
-            _log.Debug($"Commences automatic purging from {this} ...");
+            Log.Debug($"Commences automatic purging from {this} ...");
             
             _purgingTcs = new TaskCompletionSource<bool>();
             Task.Run(async () =>
@@ -258,7 +262,7 @@ namespace TetraPak.XP.Caching
                 _lastPurge = DateTime.Now;
                 _purgingTcs.SetResult(true);
                 _purgingTcs = null;
-                _log.Debug($"Automatic purging from {this} is DONE");
+                Log.Debug($"Automatic purging from {this} is DONE");
             });
             return _purgingTcs.Task;
             
@@ -322,7 +326,7 @@ namespace TetraPak.XP.Caching
         public SimpleCacheDelegate(ILog? log = null)
         {
             _values = new Dictionary<string, SimpleCacheEntry>();
-            _log = log;
+            Log = log;
         }
     }
 }

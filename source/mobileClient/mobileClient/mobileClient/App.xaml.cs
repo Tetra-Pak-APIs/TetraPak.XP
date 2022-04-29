@@ -5,6 +5,7 @@ using mobileClient.ViewModels;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Identity;
 using TetraPak.XP.Logging;
+using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Mobile;
 using TetraPak.XP.OAuth2;
 using TetraPak.XP.OAuth2.ClientCredentials;
@@ -23,9 +24,9 @@ namespace mobileClient
         public App()
         {
             InitializeComponent();
-            // spike
             this.BuildTetraPakMobileHost(collection =>
             {
+                var consoleLogOptions = LogFormatOptions.Default.WithOmitTimestamp(true);
                 collection
                     .AddTetraPakWebServices()
                     .AddMobileTokenCache()
@@ -36,9 +37,9 @@ namespace mobileClient
                     .AddTetraPakTokenExchangeGrant()
                     .AddTetraPakUserInformation()
                     .AddViewModels()
-                    // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog, SemiLog, Log4Net or whatever) obsolete
-                    .AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging());
-                    //.AddMicrosoftLogging(new LogFormatOptions { SuppressRank = true, SuppressPrefix = true});
+                    // just a very basic log (abstracted by the ILog interface, you can abstract and use something else here, like NLog, SemiLog, Log4Net or whatever)
+                    .AddSingleton(p => 
+                        new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging(consoleLogOptions));
             }).ServiceCollection.BuildXpServiceProvider();
             
             DependencyService.Register<MockDataStore>(); // obsolete

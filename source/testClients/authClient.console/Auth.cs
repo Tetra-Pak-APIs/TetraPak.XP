@@ -189,7 +189,7 @@ namespace authClient.console
                     .AddTetraPakUserInformation()
                     // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog, SemiLog, Log4Net or whatever)
                     // .AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging())
-                    .AddMicrosoftLogging(new LogFormatOptions { SuppressRank = true, SuppressPrefix = true});
+                    .AddMicrosoftLogging(new LogFormatOptions { OmitRank = true, OmitPrefix = true});
             });
             Configure.InsertValueDelegate(new ConfigurationVariablesDelegate());
             _serviceProvider = info.ServiceCollection.BuildXpServiceProvider();
