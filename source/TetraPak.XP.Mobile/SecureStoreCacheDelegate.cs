@@ -1,6 +1,6 @@
 using System;
-using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using TetraPak.XP.Caching;
@@ -116,11 +116,10 @@ namespace TetraPak.XP.Mobile
             public static Task<Outcome<string>> SerializeAsync(ITimeLimitedRepositoryEntry entry)
             {
                 var value = entry.GetValue();
-                // var serializedValue = JsonSerializer.Serialize(value); obsolete
-                var spawnTimeUtc = entry.SpawnTimeUtc.ToString("O");
+                var spawnTimeUtc = entry.SpawnTimeUtc.ToStandardString(DateTimeDefaultFormatOptions.ForceUtc);
                 try
                 {
-                    var dto = new EntryDto(entry.Path, spawnTimeUtc, value)
+                    var dto = new EntryDto(entry.Path, spawnTimeUtc, value, value.GetType().ShortAssemblyQualifiedName())
                     {
                         CustomLifeSpan = entry is SimpleCacheEntry { CustomLifeSpan: { } } simpleEntry1 
                             ? simpleEntry1.CustomLifeSpan.Value.Ticks.ToString()
@@ -145,9 +144,11 @@ namespace TetraPak.XP.Mobile
                 try
                 {
                     var entryDto = JsonSerializer.Deserialize<EntryDto>(serializedEntryDto)!;
-                    if (!DateTime.TryParseExact(entryDto.SpawnTimeUtc, DateTimeFormat, null, DateTimeStyles.None, out var spawnTimeUtc))
+                    
+                    // deserialize spawn time and timespan values ...
+                    if (!entryDto.SpawnTimeUtc.TryParseStandardDateTime(out var spawnTimeUtc))
                         return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Fail(
-                            $"Illegal date time format specified for {nameof(ITimeLimitedRepositoryEntry.SpawnTimeUtc)}: '{entryDto.SpawnTimeUtc}'"));
+                            $"Illegal date/time format specified for {nameof(ITimeLimitedRepositoryEntry.SpawnTimeUtc)}: '{entryDto.SpawnTimeUtc}'"));
 
                     TimeSpan? customLifeSpan = null;
                     if (entryDto.CustomLifeSpan is { })
@@ -168,12 +169,18 @@ namespace TetraPak.XP.Mobile
                         
                         customMaxLifeSpan = TimeSpan.FromTicks(ticks);
                     }
+                    
+                    // deserialize cached value ...
+                    if (entryDto.Value is not JsonElement { ValueKind: JsonValueKind.Object } jsonElement)
+                        return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Fail(
+                            $"Unexpected internal representation of cached value (expected {typeof(JsonObject)})"));
+
+                    var valueJson = jsonElement.ToString();
                     var type = Type.GetType(entryDto.TypeName);
                     if (type is null)
                         return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Fail($"Could not obtain cached value type with name '{entryDto.TypeName}'"));
 
-                    var serializedValue = entryDto.GetSerializedValue(serializedEntryDto);
-                    var value = JsonSerializer.Deserialize(serializedValue, type)!;
+                    var value = JsonSerializer.Deserialize(valueJson, type)!;
                     var entry = new SimpleCacheEntry(repositories, entryDto.Path, value, spawnTimeUtc, customLifeSpan, customMaxLifeSpan);
                     return Task.FromResult(Outcome<ITimeLimitedRepositoryEntry>.Success(entry));
                 }
@@ -183,25 +190,19 @@ namespace TetraPak.XP.Mobile
                 }
             }
 
-            string GetSerializedValue(string serializedEntryDto)
-            {
-                using var jsonDocument = JsonDocument.Parse(serializedEntryDto);
-                foreach (var element in jsonDocument.RootElement.EnumerateArray())
-                {
-                    if (element.ValueKind == JsonValueKind.Object)
-                        throw new NotImplementedException();
-                }
-                
-                throw new NotImplementedException();
-            }
-
-            public EntryDto(string path, string spawnTimeUtc, object value)
+            public EntryDto(string path, string spawnTimeUtc, object value, string typeName)
             {
                 Path = path;
                 SpawnTimeUtc = spawnTimeUtc;
                 Value = value;
-                TypeName = value.GetType().FullName;
+                TypeName = typeName;
             }
         }
+    }
+
+    static class TypeHelper
+    {
+        public static string ShortAssemblyQualifiedName(this Type type)
+            => $"{type.FullName}, {type.Assembly.GetName().Name}";
     }
 }

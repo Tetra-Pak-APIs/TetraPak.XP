@@ -179,9 +179,14 @@ namespace TetraPak.XP.OAuth2
                 return cachedOutcome;
 
             var remainingLifeSpan = cachedOutcome.GetRemainingLifespan();
-            return cachedOutcome
-                ? Outcome<Grant>.Success(cachedOutcome.Value!.Clone(remainingLifeSpan))
-                : cachedOutcome;
+            if (remainingLifeSpan.TotalSeconds < 1)
+                return Outcome<Grant>.Fail("Cached grant was expired");
+
+            var grant = cachedOutcome.Value!;
+            if (grant.Expires.HasValue && grant.Expires.Value.ToLocalTime() <= DateTime.Now)
+                return Outcome<Grant>.Fail("Cached grant was expired");
+
+            return Outcome<Grant>.Success(cachedOutcome.Value!.Clone(remainingLifeSpan));
         }
 
         protected async Task DeleteCachedGrantAsync(AuthContext context) 

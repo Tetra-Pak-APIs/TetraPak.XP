@@ -129,12 +129,14 @@ namespace TetraPak.XP.Caching
                     {
                         simpleCacheEntry.SourceDelegate = @delegate;
                     }
-                    purgeIfNeeded(repository, @delegate);
                 }
 
                 var validatedOutcome = await @delegate.GetValidItemAsync<T>(entry);
                 if (!validatedOutcome)
+                {
+                    purgeIfNeeded(repository, @delegate);
                     continue;
+                }
                 
                 purgeIfNeeded(repository, @delegate);
                 return Outcome<T>.Success(validatedOutcome.Value.Value).WithValue(CacheHelper.TagRemainingLifespan, remainingTime);
