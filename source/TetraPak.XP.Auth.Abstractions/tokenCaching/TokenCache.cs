@@ -8,7 +8,7 @@ using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.Logging.Abstractions;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.Auth.Abstractions
 {
     sealed class TokenCache : SimpleCache, ITokenCache
     {

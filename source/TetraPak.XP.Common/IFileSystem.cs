@@ -1,4 +1,6 @@
-﻿namespace TetraPak.XP
+﻿using System.IO;
+
+namespace TetraPak.XP
 {
     /// <summary>
     ///   Classes implementing this contract can be used to interact with the local file system.
@@ -8,6 +10,6 @@
         /// <summary>
         ///   Returns the absolute path to the application's cache directory (if any).
         /// </summary>
-        public string GetCacheDirectory();
+        public DirectoryInfo GetCacheDirectory();
     }
 }

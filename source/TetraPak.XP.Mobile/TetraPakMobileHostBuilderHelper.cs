@@ -13,6 +13,9 @@ namespace TetraPak.XP.Mobile
     /// </summary>
     public static class TetraPakMobileHostBuilderHelper
     {
+        static readonly object s_syncRoot = new();
+        static bool s_isTokenCacheAdded;
+        
         /// <summary>
         ///   Builds and configures a host for use with a desktop app.
         /// </summary>
@@ -33,7 +36,8 @@ namespace TetraPak.XP.Mobile
             var collection = XpServices.BuildFor().Mobile()
                 .WithServiceCollection(new ServiceCollection())
                 .addJsonConfiguration(application)
-                .AddTetraPakConfiguration();
+                .AddTetraPakConfiguration()
+                .AddMobileTokenCache();
             configureServices?.Invoke(collection);
             return new TetraPakHostInfo(collection);
         }
@@ -66,7 +70,30 @@ namespace TetraPak.XP.Mobile
             }
 
             return collection;
-        }        
+        }
+        
+        /// <summary>
+        ///   Adds a token cache service for use with a desktop app.
+        /// </summary>
+        /// <param name="collection">
+        ///   The service collection.
+        /// </param>
+        /// <returns>
+        ///   The service <paramref name="collection"/>.
+        /// </returns>
+        public static IServiceCollection AddMobileTokenCache(this IServiceCollection collection)
+        {
+            lock (s_syncRoot)
+            {
+                if (s_isTokenCacheAdded)
+                    return collection;
+
+                s_isTokenCacheAdded = true;
+            }
+            
+            collection.AddTokenCache<SecureStoreTokenCache>();
+            return collection;
+        }
     }
     
     /// <summary>

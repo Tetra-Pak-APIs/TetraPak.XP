@@ -15,7 +15,7 @@ namespace TetraPak.XP.Caching
 
         internal TimeSpan? CustomLifeSpan { get; private set; }
 
-        readonly TimeSpan? _customMaxLifeSpan;
+        internal TimeSpan? CustomMaxLifeSpan { get; private set; }
         
         object _value;
         
@@ -62,7 +62,7 @@ namespace TetraPak.XP.Caching
 
         TimeSpan getLifeSpan() => CustomLifeSpan ?? Repositories.GetLifeSpan(_path.Repository);
 
-        TimeSpan getMaxLifeSpan() => _customMaxLifeSpan ?? Repositories.GetMaxLifeSpan(_path.Repository);
+        TimeSpan getMaxLifeSpan() => CustomMaxLifeSpan ?? Repositories.GetMaxLifeSpan(_path.Repository);
 
         TimeSpan getAdjustedLifeSpan() => Repositories.GetAdjustedLifeSpan(_path.Repository);
 
@@ -127,7 +127,7 @@ namespace TetraPak.XP.Caching
             _value = value ?? throw new ArgumentNullException(nameof(value));
             Repositories = repositories;
             CustomLifeSpan = customLifeSpan;
-            _customMaxLifeSpan = customMaxLifeSpan;
+            CustomMaxLifeSpan = customMaxLifeSpan;
             InitialSpawnTimeUtc = SpawnTimeUtc = spawnTimeUtc;
         }
     }

@@ -131,7 +131,7 @@ namespace TetraPak.XP.Caching
             }
         }
 
-        public Task<Outcome> DeleteAsync(DynamicPath path, bool strict)
+        public virtual Task<Outcome> DeleteAsync(DynamicPath path, bool strict)
         {
             lock (_values)
             {

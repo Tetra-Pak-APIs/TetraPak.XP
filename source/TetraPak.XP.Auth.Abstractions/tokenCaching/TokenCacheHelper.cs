@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Caching.Abstractions;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.Auth.Abstractions
 {
     /// <summary>
     ///   
@@ -21,24 +21,24 @@ namespace TetraPak.XP.Auth
         /// <returns>
         ///   The <paramref name="collection"/>.
         /// </returns>
-        public static IServiceCollection UseTokenCache(this IServiceCollection collection)
+        public static IServiceCollection AddTokenCache(this IServiceCollection collection)
         {
             collection.AddSingleton<ITokenCache>(p => new TokenCache(p));
             return collection;
         }
-        
+
         /// <summary>
         ///   (fluent api)<br/>
         ///   Provides a <see cref="ITokenCache"/> implementation and returns the
         ///   <see cref="IServiceCollection"/><br/>.
         /// </summary>
         /// <param name="collection">
-        ///   The service collection. 
+        ///     The service collection. 
         /// </param>
         /// <returns>
         ///   The <paramref name="collection"/>.
         /// </returns>
-        public static IServiceCollection UseTokenCache<T>(this IServiceCollection collection)
+        public static IServiceCollection AddTokenCache<T>(this IServiceCollection collection)
         where T : class, ITokenCache
         {
             collection.AddSingleton<ITokenCache,T>();

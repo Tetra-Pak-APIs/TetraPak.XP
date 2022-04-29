@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.Auth.Abstractions\TetraPak.XP.Auth.Abstractions.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.Auth\TetraPak.XP.Auth.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Browsers\TetraPak.XP.Browsers.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Caching\TetraPak.XP.Caching.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />

@@ -10,6 +10,9 @@ using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Caching
 {
+    /// <summary>
+    ///   Work in progress - not recommended for use - Jonas Rembratt, 2022-04-29
+    /// </summary>
     sealed class FileCacheDelegate : IITimeLimitedRepositoriesDelegate // todo implement FileCacheDelegate
     {
         readonly string _targetRepository;
@@ -120,116 +123,9 @@ namespace TetraPak.XP.Caching
         {
             _targetRepository = targetRepository;
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            Directory = new DirectoryInfo(options.Directory);
+            Directory = options.Directory;
             _log = log;
             _loadEntriesTcs = ensureDirectoryAndLoadEntriesFromFileAsync();
         }
     }
-
-    public class FileCacheOptions
-    {
-        public const string DefaultFileSuffix = ".cache";
-        
-        public string Directory { get; }
-
-        public string FileSuffix { get; private set; }
-
-        public bool RetainInMemory { get; }
-
-        public static FileCacheOptions Default(IFileSystem fileSystem, string? fileSuffix = null) =>
-            new(fileSystem.GetCacheDirectory(), string.IsNullOrWhiteSpace(fileSuffix) ? DefaultFileSuffix : fileSuffix);
-
-        public FileCacheOptions WithFileSuffix(string fileSuffix)
-        {
-            FileSuffix = fileSuffix;
-            return this;
-        }
-
-        public FileCacheOptions(string directory, string? fileSuffix = null, bool retainInMemory = false)
-        {
-            Directory = string.IsNullOrWhiteSpace(directory) 
-                ? throw new ArgumentNullException(nameof(directory)) 
-                : directory;
-            FileSuffix = string.IsNullOrWhiteSpace(fileSuffix) 
-                ? DefaultFileSuffix 
-                : fileSuffix!.EnsurePrefix('.');
-            RetainInMemory = retainInMemory;
-        }
-    }
-
-    [Serializable]
-    class FileCacheEntry : ITimeLimitedRepositoryEntry
-    {
-        // public string CachePath { get; set; }
-        
-        public string FilePath { get; set; }
-
-        public string Path { get; set;  }
-        public DateTime SpawnTimeUtc { get; set; }
-        public TimeSpan GetRemainingTime(DateTime? @from = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Type GetValueType()
-        {
-            throw new NotImplementedException();
-        }
-
-        public object GetValue()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UpdateValue(object value, DateTime? spawnTimeUtc = null, TimeSpan? customLifeSpan = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ExtendLifeSpan(DateTime? spawnTimeUtc = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ITimeLimitedRepositories Repositories { get; private set; }
-        
-        public ITimeLimitedRepositoryEntry Clone()
-        {
-            return new FileCacheEntry(Path, FilePath)
-            {
-                Repositories = Repositories,
-                SpawnTimeUtc = SpawnTimeUtc
-            };
-        }
-
-        public TimeSpan? CustomLifeSpan { get; set; }
-
-        public TimeSpan? CustomMaxLifeSpan { get; set; }
-
-        public DateTime? LastAccessedUtc { get; set; }
-
-        public FileCacheEntry(string cachePath, string filePath)
-        {
-            Path = cachePath;
-            FilePath = filePath;
-        }
-    }
-    
-namespace TetraPak.XP.Caching
-{
-    /// <summary>
-    ///   This implementation of the <see cref="ICache{T}"/> interface relies on files saved within
-    ///   a specified folder of the file system.
-    /// </summary>
-    
-    
-    static class TaskHelper
-    {
-        public static bool IsActive(this Task self)
-        {
-            return self.Status < TaskStatus.RanToCompletion;
-        }
-    }
-
-}
 }

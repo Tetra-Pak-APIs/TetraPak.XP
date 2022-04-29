@@ -34,4 +34,7 @@
     <ProjectReference Include="..\TetraPak.XP.StringValues\TetraPak.XP.StringValues.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Web.Http\TetraPak.XP.Web.Http.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="tokenCaching" />
+  </ItemGroup>
 </Project>

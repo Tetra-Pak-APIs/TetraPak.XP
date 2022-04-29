@@ -1,15 +1,16 @@
-﻿using TetraPak.XP.DependencyInjection;
-using TetraPak.XP.Desktop;
-
-[assembly:XpService(typeof(DesktopFileSystem))]
+﻿using System.IO;
 
 namespace TetraPak.XP.Desktop
 {
-    public class DesktopFileSystem : IFileSystem
+    class DesktopFileSystem : IFileSystem
     {
-        public string GetCacheDirectory()
+        readonly DirectoryInfo _cacheDirectory;
+
+        public DirectoryInfo GetCacheDirectory() => _cacheDirectory;
+
+        public DesktopFileSystem(string cachePath = "./.cache")
         {
-            throw new System.NotImplementedException();
+            _cacheDirectory = new DirectoryInfo(cachePath);
         }
     }
 }

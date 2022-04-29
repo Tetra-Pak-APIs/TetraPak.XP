@@ -1,6 +1,6 @@
 ﻿using TetraPak.XP.Caching.Abstractions;
 
-namespace TetraPak.XP.Auth
+namespace TetraPak.XP.Auth.Abstractions
 {
     /// <summary>
     ///   Classes implementing this interface can be registered as a token cache service, relying on

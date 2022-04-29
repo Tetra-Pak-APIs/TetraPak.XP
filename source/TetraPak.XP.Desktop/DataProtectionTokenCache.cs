@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.Auth;
+using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Logging.Abstractions;
 
@@ -17,16 +17,6 @@ namespace TetraPak.XP.Desktop
         public DataProtectionTokenCache(IDataProtectionProvider protectionProvider,  ILog? log = null) 
         : base(log, new DataProtectionSecureCacheDelegate(protectionProvider, log))
         {
-        }
-    }
-
-    public static class DataProtectionTokenCacheHelper
-    {
-        public static IServiceCollection AddDesktopTokenCache(this IServiceCollection collection)
-        {
-            collection.AddDataProtection();
-            collection.UseTokenCache<DataProtectionTokenCache>();
-            return collection;
         }
     }
 }

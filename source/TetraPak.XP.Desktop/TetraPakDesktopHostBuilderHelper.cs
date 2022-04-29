@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.DependencyInjection;
 
@@ -10,6 +11,10 @@ namespace TetraPak.XP.Desktop
 {
     public static class TetraPakDesktopHostBuilderHelper
     {
+        static readonly object s_syncRoot = new();
+        static bool s_isTokenCacheAdded;
+        static bool s_isFileSystemAdded;
+        
         /// <summary>
         ///   Builds and configures a host for use with a desktop app.
         /// </summary>
@@ -34,7 +39,9 @@ namespace TetraPak.XP.Desktop
                     collection =
                         XpServices
                             .BuildFor().Desktop().WithServiceCollection(collection)
-                            .AddTetraPakConfiguration();
+                            .AddTetraPakConfiguration()
+                            .AddDesktopFileSystem()
+                            .AddDesktopTokenCache();
                     configureServices?.Invoke(collection);
                     tcs.SetResult(collection);
                 })
@@ -44,6 +51,59 @@ namespace TetraPak.XP.Desktop
 
             var collection = tcs.Task.Result;
             return new TetraPakHostInfo(host, collection);
+        }
+        
+        /// <summary>
+        ///   Adds a token cache service for use with a desktop app.
+        /// </summary>
+        /// <param name="collection">
+        ///   The service collection.
+        /// </param>
+        /// <returns>
+        ///   The service <paramref name="collection"/>.
+        /// </returns>
+        public static IServiceCollection AddDesktopTokenCache(this IServiceCollection collection)
+        {
+            lock (s_syncRoot)
+            {
+                if (s_isTokenCacheAdded)
+                    return collection;
+
+                s_isTokenCacheAdded = true;
+            }
+            
+            collection.AddDataProtection();
+            collection.AddTokenCache<DataProtectionTokenCache>();
+            return collection;
+        }
+
+        /// <summary>
+        ///   Adds a token cache service for use with a desktop app.
+        /// </summary>
+        /// <param name="collection">
+        ///   The service collection.
+        /// </param>
+        /// <param name="cachePath">
+        ///   (optional; default=./.cache)<br/>
+        ///   Specifies the path to the file cache folder.
+        /// </param>
+        /// <returns>
+        ///   The service <paramref name="collection"/>.
+        /// </returns>
+        public static IServiceCollection AddDesktopFileSystem(
+            this IServiceCollection collection, 
+            string cachePath = "./.cache")
+        {
+            lock (s_syncRoot)
+            {
+                if (s_isFileSystemAdded)
+                    return collection;
+
+                s_isFileSystemAdded = true;
+            }
+            
+            collection.AddSingleton<IFileSystem>(_ => new DesktopFileSystem(cachePath));
+            return collection;
         }
     }
 
