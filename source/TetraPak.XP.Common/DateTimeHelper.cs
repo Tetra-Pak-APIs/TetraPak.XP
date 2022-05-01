@@ -168,6 +168,11 @@ namespace TetraPak.XP
                 out value);
         }
 
+        /// <summary>
+        ///   Adds the <see cref="XpDateTime"/> implementation as the current <see cref="IDateTimeSource"/>.
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
         public static IServiceCollection AddXpDateTime(this IServiceCollection collection)
         {
             lock (s_syncRoot)
@@ -178,12 +183,11 @@ namespace TetraPak.XP
                 s_isXpDateTimeAdded = true;
             }
 
-            collection.AddSingleton<IDateTimeSource>(p =>
-            {
-                var xpDateTime = new XpDateTime(p.GetService<IConfiguration>());
-                XpDateTime.Current = xpDateTime;
-                return xpDateTime;
-            });
+            var provider = collection.BuildServiceProvider();
+            var configuration = provider.GetService<IConfiguration>();
+            var xpDateTime = new XpDateTime(configuration);
+            DateTimeSource.Current = xpDateTime;
+            collection.AddSingleton<IDateTimeSource>(_ => xpDateTime);
 
             return collection;
         }

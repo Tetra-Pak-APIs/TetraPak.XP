@@ -3,47 +3,82 @@ using Microsoft.Extensions.Configuration;
 
 namespace TetraPak.XP
 {
+    /// <summary>
+    ///   A default implementation of the <see cref="IDateTimeSource"/>. Objects of this class
+    ///   can also be used to manipulate date/time such as time acceleration/deceleration and setting
+    ///   a custom start time.
+    /// </summary>
     public sealed class XpDateTime : IDateTimeSource
     {
-        readonly DateTime _startTime;
-        readonly DateTime _realStartTime;
+        readonly DateTime _realUtcStartTime;
+        readonly bool _isCustomStartTime;
 
-        public static IDateTimeSource Current { get; set; } = new XpDateTime();
+        public const string ConfigurationSectionKey = nameof(IDateTimeSource);
+        
+        // public static IDateTimeSource Current { get; set; } = new XpDateTime();
 
+        /// <summary>
+        ///   Gets the set start date and time. 
+        /// </summary>
         public DateTime StartTime { get; }
         
+        /// <summary>
+        ///   Gets the current time acceleration factor value. 
+        /// </summary>
         public double TimeAcceleration { get; }
+
+        /// <inheritdoc />
+        public bool IsTimeSkewed => _isCustomStartTime || IsTimeAccelerated;
+
+        bool IsTimeAccelerated => TimeAcceleration != 0d;
         
+        /// <inheritdoc />
         public DateTime GetNow() => getNow(DateTimeKind.Local);
 
+        /// <inheritdoc />
         public DateTime GetUtcNow() => getNow(DateTimeKind.Utc);
 
+        /// <inheritdoc />
         public DateTime GetToday() => getToday();
 
-        public static DateTime Now => Current.GetNow();
+        /// <summary>
+        ///   Gets the current (or skewed) local date and time.
+        /// </summary>
+        public static DateTime Now => DateTimeSource.Current.GetNow();
 
-        public static DateTime UtcNow => Current.GetUtcNow();
-
-        public static DateTime Today => Current.GetToday();
+        /// <summary>
+        ///   Gets a <see cref="DateTime"/> object that is set to the current (or skewed) date and time on
+        ///   this computer, expressed as the Coordinated Universal Time (UTC).
+        /// </summary>
+        public static DateTime UtcNow => DateTimeSource.Current.GetUtcNow();
+        
+        /// <summary>
+        ///   Gets the current (or skewed) date that is set to today's date, with the time component set to 00:00:00.
+        /// </summary>
+        public static DateTime Today => DateTimeSource.Current.GetToday();
         
         DateTime getNow(DateTimeKind kind)
         {
-            if (Math.Abs(TimeAcceleration - 1.0) < double.Epsilon)
+            var now = DateTime.Now;
+            if (!_isCustomStartTime && Math.Abs(TimeAcceleration - 1.0) < double.Epsilon)
                 return kind switch
                 {
-                    DateTimeKind.Unspecified => DateTime.Now,
-                    DateTimeKind.Local => DateTime.Now,
-                    DateTimeKind.Utc => DateTime.UtcNow,
+                    DateTimeKind.Unspecified => now,
+                    DateTimeKind.Local => now,
+                    DateTimeKind.Utc => now.ToUniversalTime(),
                     _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
                 };
-            
-            var now = XpDateTime.Now;
-            if (Math.Abs(TimeAcceleration - 1.0d) < double.Epsilon)
-                return now;
 
-            var diff = now.Subtract(_startTime);
+            var diff = now.ToUniversalTime().Subtract(_realUtcStartTime);
             var elapsed = (long) (diff.Ticks * TimeAcceleration);
-            return _startTime.Add(TimeSpan.FromTicks(elapsed));
+            var utcNow = StartTime.Add(TimeSpan.FromTicks(elapsed));
+            return kind switch
+            {
+                DateTimeKind.Unspecified => utcNow.ToLocalTime(),
+                DateTimeKind.Local => utcNow.ToLocalTime(),
+                DateTimeKind.Utc => utcNow,
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            };
         }
 
         DateTime getToday()
@@ -57,7 +92,7 @@ namespace TetraPak.XP
 
         static DateTime getConfiguredStartTime(IConfiguration configuration, DateTime useDefault)
         {
-            var section = configuration.GetSection($"{nameof(XpDateTime)}:{nameof(StartTime)}");
+            var section = configuration.GetSection($"{ConfigurationSectionKey}:{nameof(StartTime)}");
             return string.IsNullOrWhiteSpace(section.Value) || !section.Value.TryParseStandardDateTime(out var value)
                 ? useDefault
                 : value;
@@ -65,19 +100,40 @@ namespace TetraPak.XP
 
         static double getConfiguredTimeAcceleration(IConfiguration configuration, double useDefault)
         {
-            var section = configuration.GetSection($"{nameof(XpDateTime)}:{nameof(TimeAcceleration)}");
+            var section = configuration.GetSection($"{ConfigurationSectionKey}:{nameof(TimeAcceleration)}");
             return string.IsNullOrWhiteSpace(section.Value) || !double.TryParse(section.Value, out var value)
                 ? useDefault
                 : value;
         }
 
-        public XpDateTime(DateTime? startTime = null, double acceleration = 1.0)
+        /// <summary>
+        ///   Initializes the <see cref="XpDateTime"/>, optionally with a custom start time and
+        ///   time acceleration.
+        /// </summary>
+        /// <param name="startTime">
+        ///   (optional; default = <see cref="DateTime.UtcNow"/>)<br/>
+        ///    Specifies a custom start time, allowing for time simulation.
+        /// </param>
+        /// <param name="timeAcceleration">
+        ///   (optional; default=1.0)<br/>
+        ///   Sets a custom time acceleration factor. Values more than 1.0 will accelerate system time
+        ///   whereas value lower than 1.0 will make system time appear slower than real time.
+        /// </param>
+        public XpDateTime(DateTime? startTime = null, double timeAcceleration = 1.0)
         {
-            _startTime = startTime ?? DateTime.UtcNow;
-            _realStartTime = DateTime.UtcNow;
-            TimeAcceleration = Math.Max(0d, acceleration);
+            _isCustomStartTime = startTime is { };
+            _realUtcStartTime = DateTime.UtcNow;
+            StartTime = startTime ?? DateTime.UtcNow;
+            TimeAcceleration = Math.Max(0d, timeAcceleration);
         }
         
+        /// <summary>
+        ///   Initializes the <see cref="XpDateTime"/>, configuring its functionality from the
+        ///   <see cref="IConfiguration"/> framework.
+        /// </summary>
+        /// <param name="configuration">
+        ///   A configuration framework api.
+        /// </param>
         public XpDateTime(IConfiguration configuration)
         : this(getConfiguredStartTime(configuration, DateTime.UtcNow), getConfiguredTimeAcceleration(configuration, 1d))
         {
