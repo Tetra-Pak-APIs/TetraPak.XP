@@ -26,7 +26,7 @@ namespace mobileClient
             InitializeComponent();
             this.BuildTetraPakMobileHost(collection =>
             {
-                var consoleLogOptions = LogFormatOptions.Default.WithOmitTimestamp(true);
+                var logOptions = LogFormatOptions.Default.WithOmitTimestamp(true);
                 collection
                     .AddTetraPakWebServices()
                     .AddMobileTokenCache()
@@ -39,7 +39,7 @@ namespace mobileClient
                     .AddViewModels()
                     // just a very basic log (abstracted by the ILog interface, you can abstract and use something else here, like NLog, SemiLog, Log4Net or whatever)
                     .AddSingleton(p => 
-                        new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging(consoleLogOptions));
+                        new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging(logOptions));
             }).ServiceCollection.BuildXpServiceProvider();
             
             DependencyService.Register<MockDataStore>(); // obsolete

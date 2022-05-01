@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
@@ -47,7 +46,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
             if (string.IsNullOrWhiteSpace(tokenIssuerUri))
                 return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             
-            var ctSource = options.CancellationTokenSource ?? new CancellationTokenSource();
+            var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
                 var basicAuthCredentials = clientCredentials.ToBasicAuthCredentials();
@@ -80,8 +79,6 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 var keyValues = formsValues.Select(kvp 
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                
-                
                 var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {
                     Content = new FormUrlEncodedContent(keyValues)
@@ -94,11 +91,27 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                             .WithDefaultHeaders(client.DefaultRequestHeaders))
                     : null;
 
-                var response = await client.SendAsync(request, ctSource.Token);
+                HttpResponseMessage response;
+                try
+                {
+                    response = await client.SendAsync(request, cts.Token);
+                }
+                catch
+                {
+                    if (sb is null)
+                        throw;
+                    Log.Trace(sb.ToString(), messageId);
+                    throw;
+                }
                 
                 if (sb is { })
                 {
                     sb.AppendLine();
+                    if (cts.IsCancellationRequested)
+                    {
+                        sb.AppendLine("<<< OPERATION WAS CANCELED >>>");
+                    }
+
                     await (await response.ToGenericHttpResponseAsync()).ToStringBuilderAsync(sb);
                     Log.Trace(sb.ToString(), messageId);
                 }
@@ -107,14 +120,14 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                     return loggedFailedOutcome(response);
 
 #if NET5_0_OR_GREATER
-                var stream = await response.Content.ReadAsStreamAsync(ctSource.Token);
+                var stream = await response.Content.ReadAsStreamAsync(cts.Token);
 #else
                 var stream = await response.Content.ReadAsStreamAsync();
 #endif
                 var responseBody =
                     await JsonSerializer.DeserializeAsync<ClientCredentialsResponseBody>(
                         stream,
-                        cancellationToken: ctSource.Token);
+                        cancellationToken: cts.Token);
 
                 var outcome = ClientCredentialsResponse.TryParse(responseBody!);
                 if (outcome)

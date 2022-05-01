@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Diagnostics;
@@ -41,30 +40,30 @@ namespace TetraPak.XP.OAuth2.AuthCode
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
             
-            var context = authContextOutcome.Value!;
-            var clientCredentialsOutcome = await GetClientCredentialsAsync(context);
+            var authContext = authContextOutcome.Value!;
+            var clientCredentialsOutcome = await GetClientCredentialsAsync(authContext);
             if (!clientCredentialsOutcome)
                 return Outcome<Grant>.Fail(clientCredentialsOutcome.Exception!);
             
             var clientCredentials = clientCredentialsOutcome.Value!;
             var clientId = clientCredentials.Identity; 
 
-            var conf = context.Configuration;
-            var redirectUriString = context.GetRedirectUri();
+            var conf = authContext.Configuration;
+            var redirectUriString = authContext.GetRedirectUri();
             if (string.IsNullOrWhiteSpace(redirectUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
                 return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri), redirectUriString);
 
-            var authorityUriString = context.GetAuthorityUri();
+            var authorityUriString = authContext.GetAuthorityUri();
             if (string.IsNullOrWhiteSpace(authorityUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri));
             
             if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var authorityUri))
                 return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri), authorityUriString);
             
-            var tokenIssuerUriString = context.GetTokenIssuerUri();
+            var tokenIssuerUriString = authContext.GetTokenIssuerUri();
             if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             
@@ -75,22 +74,22 @@ namespace TetraPak.XP.OAuth2.AuthCode
             var isPkceUsed = conf.OidcPkce;
             var authState = new AuthState(isStateUsed, isPkceUsed, clientId);
             
-            var cachedGrantOutcome = await GetCachedGrantAsync(context);
+            var cachedGrantOutcome = await GetCachedGrantAsync(authContext);
             if (cachedGrantOutcome)
                 return cachedGrantOutcome;
             
-            if (!IsRefreshingGrants(context))
+            if (!IsRefreshingGrants(authContext))
                 return await onAuthorizationDoneAsync(
                     await acquireTokenViaWebUIAsync(authorityUri,  
                         tokenIssuerUri,
                         authState, 
                         clientCredentials, 
                         redirectUri, 
-                        context,
+                        authContext,
                         messageId));
 
             // attempt refresh token ...
-            var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(context);
+            var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(authContext);
             if (!cachedRefreshTokenOutcome)
                 return await onAuthorizationDoneAsync(
                     await acquireTokenViaWebUIAsync(authorityUri,
@@ -98,7 +97,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                         authState,
                         clientCredentials,
                         redirectUri,
-                        context,
+                        authContext,
                         messageId));
             
             var refreshToken = cachedRefreshTokenOutcome.Value!;
@@ -113,7 +112,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     authState, 
                     clientCredentials,  
                     redirectUri,
-                    context, 
+                    authContext, 
                     messageId));
             
             async Task<Outcome<Grant>> onAuthorizationDoneAsync(Outcome<Grant> outcome)
@@ -122,10 +121,10 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     return outcome;
                     
                 var grant = outcome.Value!;
-                await CacheGrantAsync(context, grant);
+                await CacheGrantAsync(authContext, grant);
                 if (grant.RefreshToken is { })
                 {
-                    await CacheRefreshTokenAsync(context, grant.RefreshToken);
+                    await CacheRefreshTokenAsync(authContext, grant.RefreshToken);
                 }
                 return outcome;
             }
@@ -270,6 +269,11 @@ namespace TetraPak.XP.OAuth2.AuthCode
             }
             catch (Exception ex)
             {
+                if (sb is {})
+                {
+                    Log.Trace(sb.ToString(), messageId);
+                }
+                Log.Error(ex);
                 return Outcome<Grant>.Fail(HttpServerException.InternalServerError($"Unexpected Server error: {ex}"));
             }
             

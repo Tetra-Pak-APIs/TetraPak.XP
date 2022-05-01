@@ -11,27 +11,33 @@
     </ContentPage.BindingContext>
     
     <ContentPage.Content>
-        <Grid>
+        <Grid Margin="25,20">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="80" />
             </Grid.RowDefinitions>
             
-            <StackLayout Padding="10,20">
-                <Label Text="{Binding Introduction}"
-                       Padding="10"
-                       VerticalOptions="CenterAndExpand"
-                       HorizontalOptions="Start" />
-                <Button Text="Silent Grant Request" 
-                        Command="{Binding AcquireTokenCommand}" />
-                <Button Text="Force Grant Request" 
-                        Command="{Binding ForceAcquireTokenCommand}" />
-                <Button Text="{Binding OutcomeCaption}"
-                        BackgroundColor="{Binding GrantOutcome, 
-                            Converter={StaticResource OutcomeBackgroundColorConverter}}"
-                        Command="{Binding OutcomeCommand}" 
-                        IsVisible="{Binding IsOutcomeAvailable}" />
-            </StackLayout>
+            <ScrollView Grid.Row="0" Padding="0,15" VerticalOptions="Fill" >
+                <Label
+                    Text="{Binding Introduction}"
+                    VerticalOptions="Start"
+                    HorizontalOptions="Start" />
+            </ScrollView>
+            <Button Grid.Row="1" 
+                    Text="Silent Grant Request" 
+                    Command="{Binding AcquireTokenCommand}" />
+            <Button Grid.Row="2" 
+                    Text="Force Grant Request"
+                    Command="{Binding ForceAcquireTokenCommand}" />
+            <Button Grid.Row="3" 
+                    Text="{Binding OutcomeCaption}"
+                    BackgroundColor="{Binding GrantOutcome,
+                    Converter={StaticResource OutcomeBackgroundColorConverter}}"
+                    Command="{Binding OutcomeCommand}"
+                    IsVisible="{Binding IsOutcomeAvailable}" />
         </Grid>
         
     </ContentPage.Content>

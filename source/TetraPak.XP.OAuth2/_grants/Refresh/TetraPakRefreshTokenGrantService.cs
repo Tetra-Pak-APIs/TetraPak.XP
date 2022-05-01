@@ -77,7 +77,18 @@ namespace TetraPak.XP.OAuth2.Refresh
             
             try
             {
-                var response = await client.SendAsync(request, ctx.CancellationToken);
+                HttpResponseMessage response;
+                try
+                {
+                    response = await client.SendAsync(request, ctx.CancellationToken);
+                }
+                catch
+                {
+                    if (sb is null)
+                        throw;
+                    Log.Trace(sb.ToString());
+                    throw;
+                }
                 if (sb is { })
                 {
                     sb.AppendLine();

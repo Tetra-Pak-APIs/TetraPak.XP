@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
@@ -98,7 +97,19 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                             .WithDefaultHeaders(client.DefaultRequestHeaders))
                     : null;
 
-                var response = await client.SendAsync(request, cts.Token);
+                HttpResponseMessage response;
+                try
+                {
+                    response = await client.SendAsync(request, cts.Token);
+                }
+                catch
+                {
+                    if (sb is { })
+                    {
+                        Log.Trace(sb.ToString());
+                    }
+                    throw;
+                }
                 if (sb is { })
                 {
                     sb.AppendLine();

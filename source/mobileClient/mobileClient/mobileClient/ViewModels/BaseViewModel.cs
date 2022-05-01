@@ -21,6 +21,8 @@ namespace mobileClient.ViewModels
             get => _isBusy;
             set => SetProperty(ref _isBusy, value);
         }
+
+        public double TabBarHeight => 60;
         
         public string Title
         {
