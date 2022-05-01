@@ -70,13 +70,13 @@ namespace TetraPak.XP
             CancellationTokenSource? cts = null)
         {
             var awaiter = task.ConfigureAwait(false).GetAwaiter();
-            var useTimeout = timeout.HasValue ? DateTime.Now.Add(timeout.Value) : DateTime.MaxValue;
+            var useTimeout = timeout.HasValue ? XpDateTime.Now.Add(timeout.Value) : DateTime.MaxValue;
             var isTimedOut = false;
             var isCancelled = false;
             while (!awaiter.IsCompleted && !isTimedOut && !isCancelled)
             {
                 Task.Delay(10);
-                isTimedOut = DateTime.Now >= useTimeout;
+                isTimedOut = XpDateTime.Now >= useTimeout;
                 isCancelled = cts?.IsCancellationRequested ?? false;
             }
 
@@ -114,11 +114,11 @@ namespace TetraPak.XP
             if (tcs.Task.Status < TaskStatus.RanToCompletion)
             {
                 var awaiter = tcs.Task.ConfigureAwait(false).GetAwaiter();
-                var useTimeout = timeout.HasValue ? DateTime.Now.Add(timeout.Value) : DateTime.MaxValue;
+                var useTimeout = timeout.HasValue ? XpDateTime.Now.Add(timeout.Value) : DateTime.MaxValue;
                 while (!awaiter.IsCompleted && !isTimedOut && !isCancelled)
                 {
                     Task.Delay(10);
-                    isTimedOut = DateTime.Now >= useTimeout;
+                    isTimedOut = XpDateTime.Now >= useTimeout;
                     isCancelled = cts?.IsCancellationRequested ?? false;
                 }
             }

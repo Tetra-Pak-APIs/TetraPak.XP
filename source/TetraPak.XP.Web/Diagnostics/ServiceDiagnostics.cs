@@ -34,7 +34,7 @@ namespace TetraPak.XP.Web.Diagnostics
         public void StartTimer(string source)
         {
             source = source == TimerPrefix ? source : timerKey(source); 
-            _values[source] = new Timer(DateTime.Now.Ticks);
+            _values[source] = new Timer(XpDateTime.Now.Ticks);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace TetraPak.XP.Web.Diagnostics
             /// </returns>
             public long ElapsedMs(bool stop = true)
             {
-                var end = DateTime.Now.Ticks;
+                var end = XpDateTime.Now.Ticks;
                 if (stop && !Ended.HasValue)
                     Ended = end;
                 

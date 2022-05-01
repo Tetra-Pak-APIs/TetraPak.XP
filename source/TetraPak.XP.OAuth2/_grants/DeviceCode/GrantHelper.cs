@@ -25,7 +25,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                     return Outcome<Grant>.Fail(
                         new FormatException($"Unexpected response value for '{DeviceCodePollVerificationResponseBody.KeyExpiresIn}': \"{pollVerificationResponse.ExpiresIn}\""));
                 
-                expires = DateTime.UtcNow.Add(TimeSpan.FromSeconds(dValue));
+                expires = XpDateTime.UtcNow.Add(TimeSpan.FromSeconds(dValue));
             }
              
             var tokens = new List<TokenInfo>

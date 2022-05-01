@@ -10,7 +10,7 @@ namespace TetraPak.XP.StringValues
     [DebuggerDisplay("{" + nameof(StringValue) + "}")]
     public class RandomString : IStringValue
     {
-        static readonly Random s_rnd = new Random(DateTime.Now.Millisecond);
+        static readonly Random s_rnd = new Random(XpDateTime.Now.Millisecond);
         static readonly char[] s_lowercase = makeLowercaseLetters();
         static readonly char[] s_uppercase = makeUppercaseLetters();
         static readonly char[] s_letters = makeLetters();

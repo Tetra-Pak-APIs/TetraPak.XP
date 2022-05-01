@@ -88,7 +88,7 @@ namespace TetraPak.XP.Caching.Abstractions
         public static DateTime ExpiresUtc(this ITimeLimitedRepositoryEntry self, out TimeSpan remainingTime)
         {
             remainingTime = self.GetRemainingTime();
-            return DateTime.UtcNow.Add(remainingTime);
+            return XpDateTime.UtcNow.Add(remainingTime);
         }
     }
 }

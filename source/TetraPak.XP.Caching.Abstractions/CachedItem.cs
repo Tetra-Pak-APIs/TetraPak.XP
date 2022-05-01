@@ -9,7 +9,7 @@ namespace TetraPak.XP.Caching.Abstractions
     {
         internal DateTime ExpiresUtc { get; }
         public string Path { get; set; }
-        public bool IsExpired => DateTime.Now >= ExpiresUtc;
+        public bool IsExpired => XpDateTime.Now >= ExpiresUtc;
         public TValue Value { get; }
 
         public CachedItem(string path, TValue value, DateTime expiresUtc)

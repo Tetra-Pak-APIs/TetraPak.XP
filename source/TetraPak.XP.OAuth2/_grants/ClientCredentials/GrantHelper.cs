@@ -14,7 +14,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
             DateTime? expires = null;
             if (response.ExpiresIn != TimeSpan.Zero)
             {
-                expires = DateTime.UtcNow.Add(response.ExpiresIn);
+                expires = XpDateTime.UtcNow.Add(response.ExpiresIn);
             }
              
             var tokens = new List<TokenInfo>()

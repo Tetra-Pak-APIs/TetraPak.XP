@@ -38,7 +38,7 @@ namespace mobileClient.ViewModels
             {
                 UserCode = e.UserCode;
                 VerificationUri = e.VerificationUri.ToString();
-                Expires = DateTime.Now.Add(e.ExpiresIn).ToString("U");
+                Expires = XpDateTime.Now.Add(e.ExpiresIn).ToString("U");
             });
         }
 

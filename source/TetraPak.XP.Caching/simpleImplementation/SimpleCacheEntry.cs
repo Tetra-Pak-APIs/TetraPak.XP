@@ -35,7 +35,7 @@ namespace TetraPak.XP.Caching
 
         public TimeSpan GetRemainingTime(DateTime? from = null)
         {
-            from ??= DateTime.UtcNow;
+            from ??= XpDateTime.UtcNow;
             var maxLifeSpan = getMaxLifeSpan();
             var spawnTime = maxLifeSpan == TimeSpan.Zero
                 ? SpawnTimeUtc
@@ -70,7 +70,7 @@ namespace TetraPak.XP.Caching
 
         public void UpdateValue(object value, DateTime? spawnTimeUtc = null, TimeSpan? customLifeSpan = null)
         {
-            spawnTimeUtc ??= DateTime.UtcNow;
+            spawnTimeUtc ??= XpDateTime.UtcNow;
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
             
@@ -98,7 +98,7 @@ namespace TetraPak.XP.Caching
 
         public void ExtendLifeSpan(DateTime? spawnTimeUtc = null)
         {
-            SpawnTimeUtc = spawnTimeUtc ?? DateTime.UtcNow;
+            SpawnTimeUtc = spawnTimeUtc ?? XpDateTime.UtcNow;
         }
 
         public SimpleCacheEntry(
@@ -111,7 +111,7 @@ namespace TetraPak.XP.Caching
             Path = path;
             _value = value ?? throw new ArgumentNullException(nameof(value));
             Repositories = repositories;
-            InitialSpawnTimeUtc = SpawnTimeUtc = spawnTimeUtc ?? DateTime.UtcNow;
+            InitialSpawnTimeUtc = SpawnTimeUtc = spawnTimeUtc ?? XpDateTime.UtcNow;
         }
 
         public SimpleCacheEntry(

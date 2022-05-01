@@ -66,7 +66,7 @@ namespace TetraPak.XP.Auth.Abstractions
             {
                 if (token.Role == TokenRole.AccessToken)
                 {
-                    tokens.Add(token.Clone(DateTime.UtcNow.Add(remainingLifeSpan.Subtract(SubtractFromExpires))));
+                    tokens.Add(token.Clone(XpDateTime.UtcNow.Add(remainingLifeSpan.Subtract(SubtractFromExpires))));
                     continue;
                 }
                 tokens.Add(token.Clone(null));
@@ -78,7 +78,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <summary>
         ///   Gets a value indicating whether the <see cref="Grant"/> is expired. 
         /// </summary>
-        public bool IsExpired => Expires <= DateTime.UtcNow;
+        public bool IsExpired => Expires <= XpDateTime.UtcNow;
 
         public Grant(params TokenInfo[] tokens)
         { 

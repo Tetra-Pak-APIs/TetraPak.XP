@@ -46,7 +46,7 @@ namespace TetraPak.XP.Caching
                 {
                     var setEntry = entry is SimpleCacheEntry simpleCacheEntry
                         ? simpleCacheEntry
-                        : new SimpleCacheEntry(entry.Repositories, path, entry.GetValue(), DateTime.UtcNow);
+                        : new SimpleCacheEntry(entry.Repositories, path, entry.GetValue(), XpDateTime.UtcNow);
                     _values.Add(path, setEntry); 
                 }
                 else
@@ -109,7 +109,7 @@ namespace TetraPak.XP.Caching
             lock (_values)
             {
                 var simpleCacheEntry = entry as SimpleCacheEntry; 
-                var spawnTimeUTC = simpleCacheEntry?.SpawnTimeUtc ?? DateTime.UtcNow;
+                var spawnTimeUTC = simpleCacheEntry?.SpawnTimeUtc ?? XpDateTime.UtcNow;
                 var customLifeSpan = simpleCacheEntry?.CustomLifeSpan ?? null;                    
                 var newEntry = new SimpleCacheEntry(
                     entry.Repositories, 
@@ -242,7 +242,7 @@ namespace TetraPak.XP.Caching
                 if (_purgingTcs is { })
                     return _purgingTcs.Task;
                 
-                if (AutoPurgeInterval == TimeSpan.MaxValue || _lastPurge.Add(AutoPurgeInterval) < DateTime.Now)
+                if (AutoPurgeInterval == TimeSpan.MaxValue || _lastPurge.Add(AutoPurgeInterval) < XpDateTime.Now)
                     return Task.CompletedTask;
             }
             
@@ -259,7 +259,7 @@ namespace TetraPak.XP.Caching
                     var e = purgedEntries[i];
                     await DeleteAsync((RepositoryPath) e.Path, true);
                 }
-                _lastPurge = DateTime.Now;
+                _lastPurge = XpDateTime.Now;
                 _purgingTcs.SetResult(true);
                 _purgingTcs = null;
                 Log.Debug($"Automatic purging from {this} is DONE");

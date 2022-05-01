@@ -95,7 +95,7 @@ namespace TetraPak.XP.Auth
 
                 var content = await response.Content.ReadAsStringAsync();
                 var discoDocument = JsonSerializer.Deserialize<DiscoveryDocument>(content)!;
-                discoDocument.LastUpdated = DateTime.UtcNow;
+                discoDocument.LastUpdated = XpDateTime.UtcNow;
                 // DiscoveryDocument.SetCurrent(discoDocument); obsolete
                 saveToCache(discoDocument);
                 return Outcome<DiscoveryDocument>.Success(discoDocument);

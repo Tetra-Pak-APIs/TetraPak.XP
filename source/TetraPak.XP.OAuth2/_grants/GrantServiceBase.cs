@@ -146,7 +146,7 @@ namespace TetraPak.XP.OAuth2
                 grant,
                 key,
                 context.GetGrantCacheRepository(),
-                spawnTimeUtc: DateTime.UtcNow);
+                spawnTimeUtc: XpDateTime.UtcNow);
         }
 
         /// <summary>
@@ -234,7 +234,7 @@ namespace TetraPak.XP.OAuth2
                 refreshToken,
                 key,
                 cacheRepository,
-                spawnTimeUtc: DateTime.UtcNow);
+                spawnTimeUtc: XpDateTime.UtcNow);
         }
         
         protected async Task<Outcome<ActorToken>> GetCachedRefreshTokenAsync( 

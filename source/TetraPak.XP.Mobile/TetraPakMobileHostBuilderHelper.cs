@@ -33,9 +33,9 @@ namespace TetraPak.XP.Mobile
             this Xamarin.Forms.Application application,
             Action<IServiceCollection>? configureServices = null)
         {
-            var collection = XpServices.BuildFor().Mobile()
-                .WithServiceCollection(new ServiceCollection())
+            var collection = XpServices.BuildFor().Mobile().WithServiceCollection(new ServiceCollection())
                 .addJsonConfiguration(application)
+                .AddXpDateTime()
                 .AddTetraPakConfiguration()
                 .AddMobileTokenCache();
             configureServices?.Invoke(collection);

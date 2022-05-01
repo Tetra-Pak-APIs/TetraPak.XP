@@ -128,9 +128,9 @@ namespace TetraPak.XP.OAuth2.DeviceCode
 #pragma warning disable CS4014
                 Task.Run(() => verificationUriHandler(args), cts.Token);
 #pragma warning restore CS4014
-                var timeout = DateTime.Now.Add(args.ExpiresIn);
+                var timeout = XpDateTime.Now.Add(args.ExpiresIn);
                 var interval = TimeSpan.FromSeconds(codeResponseBody.Interval);
-                while (DateTime.Now < timeout && !cts.Token.IsCancellationRequested)
+                while (XpDateTime.Now < timeout && !cts.Token.IsCancellationRequested)
                 {
                     await Task.Delay(interval, cts.Token);
                     if (cts.IsCancellationRequested)

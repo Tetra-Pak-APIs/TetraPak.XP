@@ -1,6 +1,8 @@
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TetraPak.XP
 {
@@ -9,6 +11,9 @@ namespace TetraPak.XP
     /// </summary>
     public static class DateTimeHelper
     {
+        static readonly object s_syncRoot = new();
+        static bool s_isXpDateTimeAdded;
+        
         /// <summary>
         ///   Used to qualify a standardized string representation of a <see cref="DateTime"/> value
         ///   (see <see cref="ToStandardString"/>). 
@@ -87,7 +92,7 @@ namespace TetraPak.XP
             }
         }
 
-        public static TimeFrame Subtract(this TimeFrame self, TimeSpan timeSpan) => new TimeFrame(self.From.Subtract(timeSpan), self.To.Subtract(timeSpan));
+        public static TimeFrame Subtract(this TimeFrame self, TimeSpan timeSpan) => new(self.From.Subtract(timeSpan), self.To.Subtract(timeSpan));
         
         /// <summary>
         ///   Serializes the <see cref="DateTime"/> value into a 'standard' format that can be easily
@@ -161,6 +166,26 @@ namespace TetraPak.XP
                 null, 
                 DateTimeStyles.None, 
                 out value);
+        }
+
+        public static IServiceCollection AddXpDateTime(this IServiceCollection collection)
+        {
+            lock (s_syncRoot)
+            {
+                if (s_isXpDateTimeAdded)
+                    return collection;
+
+                s_isXpDateTimeAdded = true;
+            }
+
+            collection.AddSingleton<IDateTimeSource>(p =>
+            {
+                var xpDateTime = new XpDateTime(p.GetService<IConfiguration>());
+                XpDateTime.Current = xpDateTime;
+                return xpDateTime;
+            });
+
+            return collection;
         }
     }
 }

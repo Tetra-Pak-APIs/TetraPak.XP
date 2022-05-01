@@ -50,9 +50,8 @@ namespace TetraPak.XP.Logging.Abstractions
             Message = message;
             Exception = exception;
             MessageId = messageId;
-            Timestamp = timestamp ?? DateTime.UtcNow;
+            Timestamp = timestamp ?? XpDateTime.UtcNow;
         }
-
     }
 
     public static class LogEventArgsHelper
@@ -70,17 +69,24 @@ namespace TetraPak.XP.Logging.Abstractions
 
     public sealed class LogFormatOptions
     {
-        public bool OmitTimestamp { get; set; } = false;
+        public bool OmitTimestamp { get; set; }
 
-        public bool OmitSource { get; set; } = false;
+        public bool OmitSource { get; set; }
 
-        public bool OmitRank { get; set; } = false;
+        public bool OmitRank { get; set; }
 
-        public bool OmitPrefix { get; set; } = false;
+        public bool OmitPrefix { get; set; }
 
-        public bool OmitMessageId { get; set; } = false;
+        public bool OmitMessageId { get; set; }
 
-        public static LogFormatOptions Default => new();
+        public static LogFormatOptions Default => new()
+        {
+            OmitTimestamp = false,
+            OmitSource = false,
+            OmitRank = false,
+            OmitPrefix = false,
+            OmitMessageId = false
+        };
     }
 
     public static class LogFormatOptionsHelper

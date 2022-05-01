@@ -285,7 +285,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     return Outcome<Grant>.Fail(new Exception("Could not get a valid access token."));
 
                 var expires = dict.TryGetValue("expires_in", out var exp) && int.TryParse(exp, out var seconds)
-                    ? DateTime.Now.AddSeconds(seconds)
+                    ? XpDateTime.Now.AddSeconds(seconds)
                     : (DateTime?)null;
                 var tokens = new List<TokenInfo>
                 {

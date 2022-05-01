@@ -39,6 +39,7 @@ namespace TetraPak.XP.Desktop
                     collection =
                         XpServices
                             .BuildFor().Desktop().WithServiceCollection(collection)
+                            .AddXpDateTime()
                             .AddTetraPakConfiguration()
                             .AddDesktopFileSystem()
                             .AddDesktopTokenCache();

@@ -49,7 +49,7 @@ namespace TetraPak.XP.Auth.Abstractions
             return isValid;
         }
 
-        bool isTokenExpired() => Expires.HasValue && Expires.Value <= DateTime.Now;
+        bool isTokenExpired() => Expires.HasValue && Expires.Value <= XpDateTime.Now;
 
         //[JsonConstructor]
         public TokenInfo(

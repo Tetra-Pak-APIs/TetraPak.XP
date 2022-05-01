@@ -80,7 +80,7 @@ namespace TetraPak.XP.Auth.Debugging
                 Assembly.GetEntryAssembly()?.FullName ?? "simulated-client",
                 claims,
                 null,
-                DateTime.Now.Add(IdTokenLongevity),
+                XpDateTime.Now.Add(IdTokenLongevity),
                 credentials);
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.WriteToken(jwtSecurityToken);

@@ -90,7 +90,7 @@ namespace TetraPak.XP.Caching
             if (firstDelegate is null)
                 return;
             
-            spawnTimeUtc ??= DateTime.UtcNow;
+            spawnTimeUtc ??= XpDateTime.UtcNow;
             var resolvedRepository = repository.EnsureAssigned(nameof(repository), DefaultRepository);
             var path = new RepositoryPath(resolvedRepository, key);
             var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc.Value, customLifeSpan);
@@ -154,7 +154,7 @@ namespace TetraPak.XP.Caching
             DateTime? spawnTimeUtc = null)
         {
             var path = new RepositoryPath(resolveRepository(repository), key);
-            var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc ?? DateTime.UtcNow, customLifeSpan);
+            var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc ?? XpDateTime.UtcNow, customLifeSpan);
             foreach (var @delegate in _delegates)
             {
                 if (!await @delegate.UpdateAsync(entry, IsStrict))
@@ -173,7 +173,7 @@ namespace TetraPak.XP.Caching
             DateTime? spawnTimeUtc = null)
         {
             var path = new RepositoryPath(resolveRepository(repository), key);
-            var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc ?? DateTime.UtcNow, customLifeSpan);
+            var entry = new SimpleCacheEntry(this, path, value, spawnTimeUtc ?? XpDateTime.UtcNow, customLifeSpan);
             foreach (var @delegate in _delegates)
             {
                 if (!await @delegate.CreateOrUpdateAsync(entry, IsStrict))
@@ -354,7 +354,7 @@ namespace TetraPak.XP.Caching
         
         void purgeIfNeeded(string? repositoryName, IITimeLimitedRepositoriesDelegate @delegate)
         {
-            var now = DateTime.Now;
+            var now = XpDateTime.Now;
 
             repositoryName ??= DefaultRepository;
             if (string.IsNullOrWhiteSpace(repositoryName))

@@ -55,7 +55,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 if (cachedOutcome)
                 {
                     var cachedGrant = cachedOutcome.Value!;
-                    if (cachedGrant.Expires <= DateTime.UtcNow)
+                    if (cachedGrant.Expires <= XpDateTime.UtcNow)
                         return cachedOutcome;
                 }
                 
@@ -125,7 +125,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
 
                 var g = outcome.Value!;
                 return Outcome<Grant>.Success(
-                    new Grant().ForClientCredentials(g.AccessToken, DateTime.UtcNow.Add(g.ExpiresIn))); // todo consider subtracting a bit from the 'expires' timespan
+                    new Grant().ForClientCredentials(g.AccessToken, XpDateTime.UtcNow.Add(g.ExpiresIn))); // todo consider subtracting a bit from the 'expires' timespan
             }
             catch (TaskCanceledException ex)
             {
