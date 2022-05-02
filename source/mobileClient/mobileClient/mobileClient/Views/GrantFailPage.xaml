@@ -2,12 +2,33 @@
 
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="mobileClient.Views.GrantFailPage">
+             xmlns:viewModels="clr-namespace:mobileClient.ViewModels;assembly=mobileClient"
+             x:Class="mobileClient.Views.GrantFailPage"
+             Title="{Binding Title}">
+    <ContentPage.BindingContext>
+        <viewModels:GrantFailVM/>
+    </ContentPage.BindingContext>
+    
     <ContentPage.Content>
-        <StackLayout>
-            <Label Text="Hello, world!"
-                   VerticalOptions="CenterAndExpand"
-                   HorizontalOptions="CenterAndExpand" />
-        </StackLayout>
+        <Grid Margin="20,10,20,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" 
+                Text="Grant Request Failed" 
+                FontSize="Title"
+                HorizontalOptions="Start" />
+            <Label Grid.Row="1"
+                Text="The grant request failed with the following message:"
+                FontSize="Body" />
+            <ScrollView Grid.Row="2">
+                <Label
+                    Text="{Binding Message}"
+                    FontSize="Small" 
+                    FontAttributes="Italic"/>
+            </ScrollView>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>

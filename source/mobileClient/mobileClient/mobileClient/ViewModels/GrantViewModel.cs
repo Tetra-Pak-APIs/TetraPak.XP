@@ -9,8 +9,6 @@ namespace mobileClient.ViewModels
 {
     public abstract class GrantViewModel : BaseViewModel
     {
-        static INavigation Navigation => ((App)Application.Current).Navigation;
-        
         Outcome<Grant>? _grantOutcome;
 
         public Outcome<Grant>? GrantOutcome
@@ -42,7 +40,7 @@ namespace mobileClient.ViewModels
         {
             Page page = GrantOutcome!
                 ? new GrantSuccessPage(new GrantSuccessVM(GrantOutcome!))
-                : new GrantFailPage(new GrantFailVM(GrantOutcome!));
+                : new GrantFailPage(new GrantFailVM(GrantOutcome!, Title));
             await PushAsync(page);
         }
 

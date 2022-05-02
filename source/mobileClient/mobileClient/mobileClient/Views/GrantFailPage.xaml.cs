@@ -10,8 +10,8 @@ namespace mobileClient.Views
     {
         public GrantFailPage(GrantFailVM vm)
         {
-            BindingContext = vm;
             InitializeComponent();
+            BindingContext = vm;
         }
     }
 }
