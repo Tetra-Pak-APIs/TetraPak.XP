@@ -84,11 +84,16 @@ namespace TetraPak.XP.Browsers
             }
             finally
             {
-                _loopbackHost.Dispose();
-                _loopbackHost = null;
+                DisposeLoopbackHost();
             }
         }
-        
+
+        protected void DisposeLoopbackHost()
+        {
+            _loopbackHost?.Dispose();
+            _loopbackHost = null;
+        }
+
         internal static Task<LoopbackFilterOutcome> DefaultLoopbackFilter(HttpRequest request)
         {
             return Task.FromResult(

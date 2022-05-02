@@ -8,6 +8,7 @@ using TetraPak.XP.Mobile;
 using TetraPak.XP.Web.Abstractions;
 using TetraPak.XP.Web.Http;
 using Xamarin.Essentials;
+using Xamarin.Forms;
 
 [assembly:XpService(typeof(ILoopbackBrowser), typeof(MobileLoopbackBrowser))]
 
@@ -19,14 +20,23 @@ namespace TetraPak.XP.Mobile
 
         protected override async Task OnOpenBrowserAsync(Uri uri)
         {
+            Application.Current.PageAppearing += onPageAppearing;
+            
             Log.Trace(uri.ToStringBuilderAsync(ToString(), null).Result.ToString());
             // todo make choice of internal/external browser configurable 
             await Browser.OpenAsync(uri, new BrowserLaunchOptions
             {
                 LaunchMode = BrowserLaunchMode.SystemPreferred,
-            } );
+            });
         }
-        
+
+        void onPageAppearing(object sender, Page e)
+        {
+            Log.Trace("PAGE APPEARING"); // nisse
+            Application.Current.PageAppearing -= onPageAppearing;
+            DisposeLoopbackHost();
+        }
+
         public MobileLoopbackBrowser(ITetraPakConfiguration tetraPakConfig, ILog? log = null) 
         : base(log)
         {
