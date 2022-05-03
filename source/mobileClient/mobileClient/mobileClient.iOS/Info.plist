@@ -23,7 +23,7 @@
 	<key>MinimumOSVersion</key>
 	<string>8.0</string>
 	<key>CFBundleDisplayName</key>
-	<string>mobileClient</string>
+	<string>Tetra Pak SDK demo</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.tetrapak.sdk.demo</string>
 	<key>CFBundleVersion</key>
