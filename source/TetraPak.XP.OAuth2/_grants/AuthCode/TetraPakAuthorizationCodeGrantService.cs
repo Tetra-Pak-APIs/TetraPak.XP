@@ -54,24 +54,24 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri), redirectUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri), redirectUriString!);
 
             var authorityUriString = authContext.GetAuthorityUri();
             if (string.IsNullOrWhiteSpace(authorityUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri));
             
             if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var authorityUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri), authorityUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri), authorityUriString!);
             
             var tokenIssuerUriString = authContext.GetTokenIssuerUri();
             if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             
             if (!Uri.TryCreate(tokenIssuerUriString, UriKind.Absolute, out var tokenIssuerUri))
-                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri), tokenIssuerUriString);
+                return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri), tokenIssuerUriString!);
 
-            var isStateUsed = conf.OidcState;
-            var isPkceUsed = conf.OidcPkce;
+            var isStateUsed = conf?.OidcState ?? false;
+            var isPkceUsed = conf?.OidcPkce ?? false;
             var authState = new AuthState(isStateUsed, isPkceUsed, clientId);
             
             var cachedGrantOutcome = await GetCachedGrantAsync(authContext);
@@ -143,7 +143,12 @@ namespace TetraPak.XP.OAuth2.AuthCode
             Log.Debug($"Listens for authorization code on {redirectUri} ...");
             
             // make the call for auth code and await callback from redirect ...
-            var authCodeRequestOutcome = await buildAuthRequestAsync(authorityUri, redirectUri, authState, appCredentials, authContext.Configuration);
+            var authCodeRequestOutcome = await buildAuthRequestAsync(
+                authorityUri, 
+                redirectUri, 
+                authState, 
+                appCredentials, 
+                authContext.Configuration);
             if (!authCodeRequestOutcome)
                 return Outcome<Grant>.Fail(authCodeRequestOutcome.Exception!);
             
@@ -193,14 +198,14 @@ namespace TetraPak.XP.OAuth2.AuthCode
             Uri redirectUri, 
             AuthState authState,
             Credentials appCredentials,
-            IAuthConfiguration conf)
+            IAuthConfiguration? conf)
         {
             var sb = new StringBuilder();
             var clientId =  appCredentials.Identity;
             if (string.IsNullOrWhiteSpace(clientId))
                 return Task.FromResult(conf.MissingConfigurationOutcome<string>(nameof(IAuthConfiguration.ClientId)));
 
-            var scope = conf.OidcScope;
+            var scope = conf?.OidcScope;
             
             sb.Append($"{authorityUri.AbsoluteUri}?response_type=code");
             sb.Append($"&redirect_uri={Uri.EscapeDataString(redirectUri.AbsoluteUri)}");
@@ -263,7 +268,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     Log.Trace(sb.ToString(), messageId);
                 }
                 if (!response.IsSuccessStatusCode)
-                    return logFailedOutcome(response);
+                    return await logFailedOutcomeAsync(response);
                 
                 return await buildGrantAsync(response);
             }
@@ -318,7 +323,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                     : Outcome<ActorToken>.Fail(validateOutcome.Exception!);
             }
             
-            Outcome<Grant> logFailedOutcome(HttpResponseMessage response)
+            async Task<Outcome<Grant>> logFailedOutcomeAsync(HttpResponseMessage response)
             {
                 var ex = new HttpServerException(response); 
                 if (Log?.IsEnabled(LogRank.Debug) ?? false)
@@ -328,7 +333,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 var message = new StringBuilder();
                 message.AppendLine("Authorization Code service failure (state dump to follow if DEBUG log level is enabled)");
                 var dump = new StateDump().WithStackTrace();
-                dump.AddAsync(TetraPakConfig, "AuthConfig");
+                await dump.AddAsync(TetraPakConfig, "AuthConfig");
                 message.AppendLine(dump.ToString());
                 Log.Error(ex, message.ToString(), messageId);
                 return Outcome<Grant>.Fail(ex);
