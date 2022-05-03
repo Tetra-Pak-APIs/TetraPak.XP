@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
@@ -21,10 +22,18 @@ namespace mobileClient.ViewModels
 
         internal async Task<Outcome<IDictionary<string,object>>> GetUserInformationAsync()
         {
-            var outcome = await _service.GetUserInformationAsync(_grant, GrantOptions.Default());
-            return outcome
-                ? buildDictionary(outcome.Value!)
-                : Outcome<IDictionary<string, object>>.Fail(outcome.Exception!);
+            IsBusy = true;
+            try
+            {
+                var outcome = await _service.GetUserInformationAsync(_grant, GrantOptions.Default());
+                return outcome
+                    ? buildDictionary(outcome.Value!)
+                    : Outcome<IDictionary<string, object>>.Fail(outcome.Exception!);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         Outcome<IDictionary<string,object>> buildDictionary(UserInformation userInformation)
