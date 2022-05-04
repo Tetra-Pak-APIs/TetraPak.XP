@@ -1,17 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using mobileClient.ViewModels;
-using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace mobileClient.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class DeviceCodeVerificationPage : ContentPage
+    public partial class DeviceCodeVerificationPage
     {
+        protected override void OnDisappearing()
+        {
+            if (BindingContext is DeviceCodeVM vm)
+            {
+                vm.CancelCommand.Execute(CancelButton.CommandParameter);
+            }
+            base.OnDisappearing();
+        }
+
         public DeviceCodeVerificationPage()
         {
             InitializeComponent();

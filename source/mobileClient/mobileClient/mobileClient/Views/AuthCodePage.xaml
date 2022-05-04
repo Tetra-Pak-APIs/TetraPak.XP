@@ -34,8 +34,7 @@
                     Command="{Binding ForceAcquireTokenCommand}" />
             <Button Grid.Row="3" 
                     Text="{Binding OutcomeCaption}"
-                    BackgroundColor="{Binding GrantOutcome,
-                    Converter={StaticResource OutcomeBackgroundColorConverter}}"
+                    BackgroundColor="{Binding GrantOutcome, Converter={StaticResource OutcomeBackgroundColorConverter}}"
                     Command="{Binding OutcomeCommand}"
                     IsVisible="{Binding IsOutcomeAvailable}" />
         </Grid>

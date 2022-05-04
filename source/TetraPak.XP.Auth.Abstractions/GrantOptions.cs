@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace TetraPak.XP.Auth.Abstractions
@@ -6,6 +7,7 @@ namespace TetraPak.XP.Auth.Abstractions
     /// <summary>
     ///   Specifies options for a <see cref="Grant"/> request.
     /// </summary>
+    [DebuggerDisplay("{ToString()}")]
     public sealed class GrantOptions
     {
         readonly Dictionary<string, object> _data = new();
@@ -40,6 +42,11 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Gets a value indicating whether cached grants are permitted. 
         /// </summary>
         public bool IsCaching => (Flags & GrantFlags.Cached) == GrantFlags.Cached;
+
+        public override string ToString()
+        {
+            return $"{base.ToString()} [{Flags}]" ;
+        }
 
         /// <summary>
         ///   Sets an arbitrary value to be carried by the <see cref="GrantOptions"/>.

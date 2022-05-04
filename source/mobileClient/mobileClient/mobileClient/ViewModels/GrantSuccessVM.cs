@@ -25,12 +25,18 @@ namespace mobileClient.ViewModels
             var page = new UserInformationPage(vm);
             await this.PushAsync(page);
         }
-        
-        public GrantSuccessVM(Outcome<Grant> outcome)
+
+        public GrantSuccessVM()
         {
-            _outcome = outcome;
+            _outcome = null!;
             // ReSharper disable once AsyncVoidLambda
             UserInformationCommand = new Command(async () => await onNavigateUserInformation());
+        }
+        
+        public GrantSuccessVM(Outcome<Grant> outcome)
+        : this()
+        {
+            _outcome = outcome;
         }
     }
 }
