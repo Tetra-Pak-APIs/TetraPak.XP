@@ -12,8 +12,9 @@ namespace TetraPak.XP
     {
         readonly DateTime _realUtcStartTime;
         readonly bool _isCustomStartTime;
+        DateTime? _pausedTime;
 
-        public const string ConfigurationSectionKey = nameof(IDateTimeSource);
+        public const string ConfigurationSectionKey = nameof(DateTimeSource);
         
         // public static IDateTimeSource Current { get; set; } = new XpDateTime();
 
@@ -40,6 +41,25 @@ namespace TetraPak.XP
 
         /// <inheritdoc />
         public DateTime GetToday() => getToday();
+        
+        public Outcome<DateTime> TryStop()
+        {
+            if (_pausedTime is {})
+                return Outcome<DateTime>.Fail("Time was already paused");
+
+            _pausedTime = Now;
+            return Outcome<DateTime>.Success(_pausedTime.Value);
+        }
+
+        public Outcome<DateTime> TryResume()
+        {
+            if (_pausedTime is null)
+                return Outcome<DateTime>.Fail("Cannot resume time. Time was not stopped");
+
+            var now = _pausedTime.Value;
+            _pausedTime = null;
+            return Outcome<DateTime>.Success(now);
+        }
 
         /// <summary>
         ///   Gets the current (or skewed) local date and time.
@@ -56,10 +76,18 @@ namespace TetraPak.XP
         ///   Gets the current (or skewed) date that is set to today's date, with the time component set to 00:00:00.
         /// </summary>
         public static DateTime Today => DateTimeSource.Current.GetToday();
+
+
+        public static Outcome<DateTime> TryStopTime() => DateTimeSource.Current.TryStop();
+
+        public static Outcome<DateTime> TryResumeTime() => DateTimeSource.Current.TryResume();
         
         DateTime getNow(DateTimeKind kind)
         {
             var now = DateTime.Now;
+            if (_pausedTime is { })
+                return _pausedTime.Value;
+            
             if (!_isCustomStartTime && Math.Abs(TimeAcceleration - 1.0) < double.Epsilon)
                 return kind switch
                 {
