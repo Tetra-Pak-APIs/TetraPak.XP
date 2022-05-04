@@ -26,5 +26,23 @@ namespace TetraPak.XP
         ///   Gets the current (or skewed) date that is set to today's date, with the time component set to 00:00:00.
         /// </summary>
         DateTime GetToday();
+
+        /// <summary>
+        ///   Attempts pausing the passage of time and returns the outcome.    
+        /// </summary>
+        /// <returns>
+        ///   An <see cref="Outcome"/> to indicate success/failure. A failed outcome also carries an
+        ///   <see cref="Outcome.Exception"/> and <see cref="Outcome.Message"/>.
+        /// </returns>
+        Outcome<DateTime> TryStop();
+        
+        /// <summary>
+        ///   Attempts pausing the passage of time and returns the outcome.    
+        /// </summary>
+        /// <returns>
+        ///   An <see cref="Outcome"/> to indicate success/failure. A failed outcome also carries an
+        ///   <see cref="Outcome.Exception"/> and <see cref="Outcome.Message"/>.
+        /// </returns>
+        Outcome<DateTime> TryResume();
     }
 }
