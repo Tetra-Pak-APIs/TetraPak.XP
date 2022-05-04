@@ -14,7 +14,7 @@ namespace TetraPak.XP
         readonly bool _isCustomStartTime;
         DateTime? _pausedTime;
 
-        public const string ConfigurationSectionKey = nameof(IDateTimeSource);
+        public const string ConfigurationSectionKey = nameof(DateTimeSource);
         
         // public static IDateTimeSource Current { get; set; } = new XpDateTime();
 
