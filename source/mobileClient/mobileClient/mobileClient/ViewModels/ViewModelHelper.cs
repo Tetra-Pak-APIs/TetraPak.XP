@@ -12,8 +12,6 @@ namespace mobileClient.ViewModels
             collection.AddSingleton(p 
                 => new AuthCodeVM(p.GetRequiredService<IAuthorizationCodeGrantService>()));
             collection.AddSingleton(p 
-                => new ClientCredentialsVM(p.GetRequiredService<IClientCredentialsGrantService>()));
-            collection.AddSingleton(p 
                 => new DeviceCodeVM(p.GetRequiredService<IDeviceCodeGrantService>()));
             return collection;
         }

@@ -34,23 +34,25 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.ClientCredentials, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
-            var ctx = authContextOutcome.Value!;
+            
+            var authContext = authContextOutcome.Value!;
+            SetCancellation(authContext.Options.CancellationTokenSource);
 
-            var appCredentialsOutcome = await GetClientCredentialsAsync(ctx);
+            var appCredentialsOutcome = await GetClientCredentialsAsync(authContext);
             if (!appCredentialsOutcome)
                 return Outcome<Grant>.Fail(appCredentialsOutcome.Exception!);
             var clientCredentials = appCredentialsOutcome.Value!;
             
             
-            var tokenIssuerUri = ctx.GetTokenIssuerUri();
+            var tokenIssuerUri = authContext.GetTokenIssuerUri();
             if (string.IsNullOrWhiteSpace(tokenIssuerUri))
-                return ctx.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
+                return authContext.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             
             var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
                 var basicAuthCredentials = clientCredentials.ToBasicAuthCredentials();
-                var cachedOutcome = await GetCachedGrantAsync(ctx);
+                var cachedOutcome = await GetCachedGrantAsync(authContext);
                 if (cachedOutcome)
                 {
                     var cachedGrant = cachedOutcome.Value!;
@@ -133,7 +135,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 if (outcome)
                 {
                     var grant = outcome.Value!.ToGrant();
-                    await CacheGrantAsync(ctx, grant);
+                    await CacheGrantAsync(authContext, grant);
                 }
 
                 var g = outcome.Value!;

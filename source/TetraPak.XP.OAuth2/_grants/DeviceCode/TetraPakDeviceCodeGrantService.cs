@@ -27,7 +27,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
         /// <inheritdoc />
         public async Task<Outcome<Grant>> AcquireTokenAsync(
             GrantOptions options,
-            Action<VerificationArgs> verificationUriHandler)
+            Func<VerificationArgs,Task> verificationUriAsyncHandler)
         {
             // todo Consider decomposing this method (it's too big) 
             var messageId = GetMessageId();
@@ -35,16 +35,16 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
 
-            var context = authContextOutcome.Value!;
-            var clientCredentialsOutcome = await GetClientCredentialsAsync(context);
+            var authContext = authContextOutcome.Value!;
+            var clientCredentialsOutcome = await GetClientCredentialsAsync(authContext);
             if (!clientCredentialsOutcome)
                 return Outcome<Grant>.Fail(clientCredentialsOutcome.Exception!);
 
+            SetCancellation(authContext.Options.CancellationTokenSource);
             var clientCredentials = clientCredentialsOutcome.Value!;
-            var cts = options.CancellationTokenSource ?? new CancellationTokenSource();
             try
             {
-                var cachedOutcome = await GetCachedGrantAsync(context);
+                var cachedOutcome = await GetCachedGrantAsync(authContext);
                 if (cachedOutcome)
                 {
                     var cachedGrant = cachedOutcome.Value!;
@@ -52,13 +52,13 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                         return cachedOutcome;
                 }
 
-                var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(context);
+                var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(authContext);
                 if (cachedRefreshTokenOutcome)
                 {
                     var refreshToken = cachedRefreshTokenOutcome.Value!;
                     var refreshOutcome = await RefreshTokenGrantService!.AcquireTokenAsync(refreshToken, options);
                     if (refreshOutcome)
-                        return await onAuthorizationDoneAsync(refreshOutcome, context);
+                        return await onAuthorizationDoneAsync(refreshOutcome, authContext);
                 }
 
                 var clientOutcome = await GetHttpClientAsync();
@@ -81,9 +81,9 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 var keyValues = formsValues.Select(kvp
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var deviceCodeIssuerUri = context.GetDeviceCodeIssuerUri(); 
+                var deviceCodeIssuerUri = authContext.GetDeviceCodeIssuerUri(); 
                 if (string.IsNullOrWhiteSpace(deviceCodeIssuerUri))
-                    return context.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.DeviceCodeIssuerUri));
+                    return authContext.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.DeviceCodeIssuerUri));
                 
                 var request = new HttpRequestMessage(HttpMethod.Post, deviceCodeIssuerUri)
                 {
@@ -100,20 +100,33 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 HttpResponseMessage response;
                 try
                 {
-                    response = await client.SendAsync(request, cts.Token);
+                    if (IsCancellationRequested)
+                        return Outcome<Grant>.Cancel("Device Code grant request was cancelled");
+                        
+                    response = await client.SendAsync(request, CancellationToken);
+                    if (IsCancellationRequested)
+                        return Outcome<Grant>.Cancel("Device Code grant request was cancelled");
                 }
                 catch
                 {
                     if (sb is { })
                     {
+                        sb.AppendLine();
+                        if (IsCancellationRequested)
+                        {
+                            sb.AppendLine("<<< OPERATION WAS CANCELED >>>");
+                        }
                         Log.Trace(sb.ToString());
                     }
+                    if (IsCancellationRequested)
+                        return Outcome<Grant>.Cancel("Device Code grant request was cancelled");
+                    
                     throw;
                 }
                 if (sb is { })
                 {
                     sb.AppendLine();
-                    if (cts.IsCancellationRequested)
+                    if (IsCancellationRequested)
                     {
                         sb.AppendLine("<<< OPERATION WAS CANCELED >>>");
                     }
@@ -123,39 +136,39 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 }
 
                 if (!response.IsSuccessStatusCode)
-                    return loggedFailedOutcome(response, false, cts.Token);
+                    return await loggedFailedOutcomeAsync(response, false, CancellationToken);
 
 #if NET5_0_OR_GREATER
-                var stream = await response.Content.ReadAsStreamAsync(cts.Token);
+                var stream = await response.Content.ReadAsStreamAsync(CancellationToken);
 #else
                 var stream = await response.Content.ReadAsStreamAsync();
 #endif
                 var codeResponseBody =
                     (await JsonSerializer.DeserializeAsync<DeviceCodeAuthCodeResponseBody>(
                         stream,
-                        cancellationToken: cts.Token))!;
+                        cancellationToken: CancellationToken))!;
 
-                var args = new VerificationArgs(codeResponseBody, cts);
+                var args = new VerificationArgs(this, codeResponseBody);
 #pragma warning disable CS4014
-                Task.Run(() => verificationUriHandler(args), cts.Token);
+                Task.Run(() => verificationUriAsyncHandler(args), CancellationToken);
 #pragma warning restore CS4014
                 var timeout = XpDateTime.Now.Add(args.ExpiresIn);
                 var interval = TimeSpan.FromSeconds(codeResponseBody.Interval);
-                while (XpDateTime.Now < timeout && !cts.Token.IsCancellationRequested)
+                while (XpDateTime.Now < timeout && !IsCancellationRequested)
                 {
-                    await Task.Delay(interval, cts.Token);
-                    if (cts.IsCancellationRequested)
+                    await Task.Delay(interval, CancellationToken);
+                    if (IsCancellationRequested)
                         return Outcome<Grant>.Fail(new Exception());
 
                     var codeVerificationOutcome = await pollCodeVerificationAsync(codeResponseBody);
                     if (codeVerificationOutcome.Value?.IsPendingVerification() ?? false)
                         continue;
 
-                    return await onAuthorizationDoneAsync(codeVerificationOutcome, context);
+                    return await onAuthorizationDoneAsync(codeVerificationOutcome, authContext);
                 }
 
-                return cts.Token.IsCancellationRequested
-                    ? Outcome<Grant>.Fail(new Exception("Device Code Grant request was cancelled"))
+                return IsCancellationRequested
+                    ? Outcome<Grant>.Cancel("Device Code Grant request was cancelled")
                     : Outcome<Grant>.Fail(new Exception("Device Code Grant request timed out"));
             }
             catch (TaskCanceledException ex)
@@ -185,11 +198,11 @@ namespace TetraPak.XP.OAuth2.DeviceCode
 
                 var client = clientOutcome.Value!;
 
-                var tokenRequestBodyOutcome = makeTokenRequestBody(clientCredentials.Identity, deviceCode, context);
+                var tokenRequestBodyOutcome = makeTokenRequestBody(clientCredentials.Identity, deviceCode, authContext);
                 if (!tokenRequestBodyOutcome)
                     return Outcome<Grant>.Fail(tokenRequestBodyOutcome.Exception!);
 
-                var tokenIssuerUri = context.GetTokenIssuerUri();
+                var tokenIssuerUri = authContext.GetTokenIssuerUri();
                 var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {
                     Content = tokenRequestBodyOutcome.Value!
@@ -205,36 +218,49 @@ namespace TetraPak.XP.OAuth2.DeviceCode
 
                 try
                 {
-                    var response = await client.SendAsync(request, cts.Token);
+                    var response = await client.SendAsync(request, CancellationToken);
                     if (sb is { })
                     {
                         sb.AppendLine();
-                        if (cts.IsCancellationRequested)
-                        {
-                            sb.AppendLine("<<< OPERATION WAS CANCELED >>>");
-                        }
-                        await (await response.ToGenericHttpResponseAsync(contentAsString:true)).ToStringBuilderAsync(sb);
+                        await (await response.ToGenericHttpResponseAsync(contentAsString: true))
+                            .ToStringBuilderAsync(sb);
                         Log.Trace(sb.ToString(), messageId);
                     }
 
                     if (!response.IsSuccessStatusCode)
-                        return loggedFailedOutcome(response, await isPendingUserCodeAsync(response, cts.Token), cts.Token);
+                        return await loggedFailedOutcomeAsync(
+                            response,
+                            await isPendingUserCodeAsync(response, CancellationToken), CancellationToken);
 
 #if NET5_0_OR_GREATER
-                    await using var stream = await response.Content.ReadAsStreamAsync(cts.Token);
+                    await using var stream = await response.Content.ReadAsStreamAsync(CancellationToken);
 #else
                     using var stream = await response.Content.ReadAsStreamAsync();
 #endif
                     var body = (await JsonSerializer.DeserializeAsync<DeviceCodePollVerificationResponseBody>(
-                        stream, 
-                        cancellationToken: cts.Token))!;
+                        stream,
+                        cancellationToken: CancellationToken))!;
 
-                    var grant = body.ToGrant(); 
+                    var grant = body.ToGrant();
                     if (grant)
                         return Outcome<Grant>.Success(grant.Value!);
-                
+
                     Log.Error(grant.Exception!);
                     return Outcome<Grant>.Fail(grant.Exception!);
+                }
+                catch (TaskCanceledException)
+                {
+                    if (sb is { })
+                    {
+                        sb.AppendLine();
+                        if (IsCancellationRequested)
+                        {
+                            sb.AppendLine("<<< OPERATION WAS CANCELED >>>");
+                        }
+                        Log.Trace(sb.ToString(), messageId);
+                    }
+                    Log.Information("Device Code grant was cancelled");
+                    return Outcome<Grant>.Cancel();
                 }
                 catch (Exception ex)
                 {
@@ -244,7 +270,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 }
             }
             
-            Outcome<Grant> loggedFailedOutcome(
+            async Task<Outcome<Grant>> loggedFailedOutcomeAsync(
                 HttpResponseMessage response,
                 bool isPendingUserCodeAsync, 
                 CancellationToken cancellationToken)
@@ -272,8 +298,8 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 if (Log?.IsEnabled(LogRank.Debug) ?? false)
                 {
                     var dump = new StateDump().WithStackTrace();
-                    dump.AddAsync(TetraPakConfig, "AuthConfig");
-                    dump.AddAsync(clientCredentials, "Credentials");
+                    await dump.AddAsync(TetraPakConfig, "AuthConfig");
+                    await dump.AddAsync(clientCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
                 Log.Error(outcome.Exception!, message.ToString(), messageId);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace TetraPak.XP
@@ -128,5 +129,10 @@ namespace TetraPak.XP
         {
             Value = value;
         }
+    }
+
+    public static class OutcomeHelper
+    {
+        public static bool WasCancelled(this Outcome outcome) => outcome.Exception is TaskCanceledException;
     }
 }

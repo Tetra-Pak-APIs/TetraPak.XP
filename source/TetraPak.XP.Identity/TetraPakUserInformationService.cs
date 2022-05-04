@@ -151,10 +151,19 @@ namespace TetraPak.XP.Identity
                         var dictionary = new Dictionary<string, string>();
                         foreach (var pair in objDictionary)
                         {
-                            if (pair.Value is not JsonElement jsonElement)
-                                throw new Exception();
+                            if (pair.Value is null)
+                            {
+                                dictionary[pair.Key] = string.Empty;
+                                continue;
+                            }
 
-                            dictionary[pair.Key] = jsonElement.GetRawText();
+                            if (pair.Value is JsonElement jsonElement)
+                            {
+                                dictionary[pair.Key] = jsonElement.GetRawText();
+                                continue;
+                            }
+
+                            dictionary[pair.Key] = pair.Value.ToString();
                         }
 
                         var userInformation = new UserInformation(dictionary);

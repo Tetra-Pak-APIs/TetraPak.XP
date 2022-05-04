@@ -24,9 +24,21 @@ namespace mobileClient.ViewModels
 
         public bool IsOutcomeAvailable => GrantOutcome is { };
 
-        public string OutcomeCaption => IsOutcomeAvailable && GrantOutcome!
-            ? "Grant was acquired"
-            : "Grant was denied";
+        public string OutcomeCaption
+        {
+            get
+            {
+                if (!IsOutcomeAvailable)
+                    return "(pending)";
+
+                if (GrantOutcome!.WasCancelled())
+                    return "Grant request cancelled";
+                    
+                return GrantOutcome!
+                    ? "Grant was acquired"
+                    : "Request failed";
+            }
+        }
 
         public ICommand AcquireTokenCommand { get; }
 

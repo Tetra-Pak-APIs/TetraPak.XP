@@ -39,7 +39,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
             var authContextOutcome = TetraPakConfig.GetAuthContext(GrantType.AC, options);
             if (!authContextOutcome)
                 return Outcome<Grant>.Fail(authContextOutcome.Exception!);
-            
+
             var authContext = authContextOutcome.Value!;
             var clientCredentialsOutcome = await GetClientCredentialsAsync(authContext);
             if (!clientCredentialsOutcome)
@@ -74,6 +74,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
             var isPkceUsed = conf?.OidcPkce ?? false;
             var authState = new AuthState(isStateUsed, isPkceUsed, clientId);
             
+            SetCancellation(authContext.Options.CancellationTokenSource);
             var cachedGrantOutcome = await GetCachedGrantAsync(authContext);
             if (cachedGrantOutcome)
                 return cachedGrantOutcome;
@@ -129,7 +130,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return outcome;
             }
         }
-        
+
         async Task<Outcome<Grant>> acquireTokenViaWebUIAsync(
             Uri authorityUri,
             Uri tokenIssuerUri,
@@ -260,7 +261,13 @@ namespace TetraPak.XP.OAuth2.AuthCode
 
             try
             {
+                if (IsCancellationRequested)
+                    return Outcome<Grant>.Cancel();
+
                 var response = await client.SendAsync(request, authContext.CancellationToken);
+                if (IsCancellationRequested)
+                    return Outcome<Grant>.Cancel();
+                    
                 if (sb is { })
                 {
                     sb.AppendLine();

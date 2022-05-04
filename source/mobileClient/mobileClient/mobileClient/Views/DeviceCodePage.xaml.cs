@@ -5,12 +5,12 @@ using Xamarin.Forms.Xaml;
 namespace mobileClient.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class AuthCodePage
+    public partial class DeviceCodePage
     {
-        public AuthCodePage()
+        public DeviceCodePage()
         {
             InitializeComponent();
-            BindingContext = XpServices.GetRequired<AuthCodeVM>();
+            BindingContext = XpServices.GetRequired<DeviceCodeVM>();
         }
     }
 }
