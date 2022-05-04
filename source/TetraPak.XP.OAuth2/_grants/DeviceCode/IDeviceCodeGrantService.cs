@@ -17,13 +17,13 @@ namespace TetraPak.XP.OAuth2.DeviceCode
         /// <param name="options">
         ///   Specifies the details for how to perform the grant request.
         /// </param>
-        /// <param name="verificationUriHandler">
+        /// <param name="verificationUriAsyncHandler">
         ///   A handler to be called back with the requested device code and verification URL.
         /// </param>
         /// <returns>
-        ///   An <see cref="Exception"/> instance indicating success/failure, and the requested token
-        ///   when successful; otherwise an <see cref="Outcome"/>.
+        ///   An <see cref="Outcome"/> to indicate success/failure and, on success, also carry
+        ///   the <see cref="Grant"/> or, on failure, <see cref="Outcome.Exception"/> and <see cref="Outcome.Message"/>.
         /// </returns>
-        Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options, Action<VerificationArgs> verificationUriHandler);
+        Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options, Func<VerificationArgs,Task> verificationUriAsyncHandler);
     }
 }

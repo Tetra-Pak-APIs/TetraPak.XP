@@ -3,11 +3,11 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:mobileClient.ViewModels;assembly=mobileClient"
-             x:Class="mobileClient.Views.AuthCodePage"
+             x:Class="mobileClient.Views.DeviceCodePage"
              Title="{Binding Title}">
     
     <ContentPage.BindingContext>
-        <vm:AuthCodeVM />
+        <vm:DeviceCodeVM />
     </ContentPage.BindingContext>
     
     <ContentPage.Content>
@@ -34,8 +34,7 @@
                     Command="{Binding ForceAcquireTokenCommand}" />
             <Button Grid.Row="3" 
                     Text="{Binding OutcomeCaption}"
-                    BackgroundColor="{Binding GrantOutcome,
-                    Converter={StaticResource OutcomeBackgroundColorConverter}}"
+                    BackgroundColor="{Binding GrantOutcome, Converter={StaticResource OutcomeBackgroundColorConverter}}"
                     Command="{Binding OutcomeCommand}"
                     IsVisible="{Binding IsOutcomeAvailable}" />
         </Grid>

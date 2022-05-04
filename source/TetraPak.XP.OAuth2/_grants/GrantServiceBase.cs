@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
@@ -20,6 +19,7 @@ namespace TetraPak.XP.OAuth2
     public abstract class GrantServiceBase : IGrantService
     {
         readonly IAppCredentialsDelegate? _appCredentialsDelegate;
+        CancellationTokenSource? _cts;
 
         /// <summary>
         ///   The Tetra Pak configuration object.
@@ -41,6 +41,36 @@ namespace TetraPak.XP.OAuth2
         protected ILog? Log  { get; }
 
         protected abstract GrantType GetGrantType();
+        
+        /// <summary>
+        ///   Assigns the current cancellation token source, allowing the service to be cancelled.
+        /// </summary>
+        /// <param name="cts">
+        ///   A cancellation token source.
+        /// </param>
+        protected void SetCancellation(CancellationTokenSource? cts) => _cts = cts;
+
+        protected CancellationTokenSource? CancellationTokenSource => _cts;
+
+        protected CancellationToken CancellationToken => _cts?.Token ?? CancellationToken.None;
+        
+        /// <inheritdoc />
+        public bool CanBeCanceled => _cts?.Token.CanBeCanceled ?? false;
+
+        /// <summary>
+        ///   Gets a value indicating whether a request to cancel the service has been made. 
+        /// </summary>
+        protected bool IsCancellationRequested => _cts?.Token.IsCancellationRequested ?? false;
+
+        /// <inheritdoc />
+        public Task<bool> CancelAsync()
+        {
+            if (!CanBeCanceled)
+                return Task.FromResult(false);
+            
+            _cts!.Cancel();
+            return Task.FromResult(true);
+        }
 
         /// <summary>
         ///   Examines passed state and returns a value indicating whether the current <see cref="Grant"/> request

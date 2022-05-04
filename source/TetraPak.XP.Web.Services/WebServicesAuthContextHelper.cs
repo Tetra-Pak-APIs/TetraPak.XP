@@ -24,9 +24,6 @@ namespace TetraPak.XP.Web.Services
             GrantType grantType, 
             GrantOptions options)
         {
-            // if (self is null)
-            //     return Outcome<AuthContext>.Fail("Configuration is unassigned"); obsolete
-            
             if (self is null || string.IsNullOrWhiteSpace(options.Service))
                 return Outcome<AuthContext>.Success(new AuthContext(grantType, options, self));
 

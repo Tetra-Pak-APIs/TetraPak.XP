@@ -51,6 +51,8 @@ namespace mobileClient.ViewModels
         
         protected Task PushAsync(Page page) => ((App)Application.Current).Navigation.PushAsync(page);
 
+        protected Task PopAsync() => ((App)Application.Current).Navigation.PopAsync();
+
         #region .  INotifyPropertyChanged  .
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")

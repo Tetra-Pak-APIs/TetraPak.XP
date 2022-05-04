@@ -33,7 +33,7 @@ namespace TetraPak.XP.Auth
         
         async Task<Outcome<DiscoveryDocument>> downloadAndSetCurrentAsync(IStringValue? idToken)
         {
-            var outcome = await downloadAsync(idToken!.StringValue);
+            var outcome = await downloadAsync(idToken?.StringValue);
             if (!outcome && _cache is {})
             {
                 outcome = await tryLoadCachedAsync();

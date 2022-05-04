@@ -56,7 +56,7 @@ namespace authClient.console
                         var dc = provider.GetRequiredService<IDeviceCodeGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("Device Code grant requested ...");
-                        onOutcome(await dc.AcquireTokenAsync(options, requestUSerCodeVerification));
+                        onOutcome(await dc.AcquireTokenAsync(options, requestUserCodeVerificationAsync));
                         break;
                 
                     case GrantType.TX:
@@ -90,7 +90,11 @@ namespace authClient.console
             onOutcome(await ui.GetUserInformationAsync(_lastGrant, GrantOptions.Default()));
         }
 
-        static void requestUSerCodeVerification(VerificationArgs args) => Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
+        static Task requestUserCodeVerificationAsync(VerificationArgs args)
+        {
+            Console.WriteLine($"Please very code '{args.UserCode}' on: {args.VerificationUri} ...");
+            return Task.CompletedTask;
+        }
 
         void onOutcome(Outcome<Grant> outcome)
         {
