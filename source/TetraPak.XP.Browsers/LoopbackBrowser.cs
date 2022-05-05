@@ -73,10 +73,14 @@ namespace TetraPak.XP.Browsers
                 OnOpenBrowserAsync(targetUri);
 #pragma warning restore CS4014
                 var request = await _loopbackHost.WaitForCallbackUrlAsync(timeout.Value);
-                return request is { }
+                return await OnOutcomeAsync(request is { }
                     ? Outcome<HttpRequest>.Success(request)
                     : Outcome<HttpRequest>.Fail(
-                        new Exception($"Did not obtain a callback from browser interaction with {targetUri}"));
+                        new Exception($"Did not obtain a callback from browser interaction with {targetUri}")));
+                // return request is { }
+                //     ? Outcome<HttpRequest>.Success(request) obsolete
+                //     : Outcome<HttpRequest>.Fail(
+                //         new Exception($"Did not obtain a callback from browser interaction with {targetUri}"));
             }
             catch (Exception ex)
             {
@@ -86,6 +90,11 @@ namespace TetraPak.XP.Browsers
             {
                 DisposeLoopbackHost();
             }
+        }
+
+        protected virtual Task<Outcome<HttpRequest>> OnOutcomeAsync(Outcome<HttpRequest> outcome)
+        {
+            return Task.FromResult(outcome);
         }
 
         protected void DisposeLoopbackHost()

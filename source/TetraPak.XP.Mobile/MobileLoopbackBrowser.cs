@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Browsers;
 using TetraPak.XP.DependencyInjection;
@@ -26,8 +27,18 @@ namespace TetraPak.XP.Mobile
             // todo make choice of internal/external browser configurable 
             await Browser.OpenAsync(uri, new BrowserLaunchOptions
             {
-                LaunchMode = BrowserLaunchMode.SystemPreferred,
+                LaunchMode = BrowserLaunchMode.SystemPreferred
             });
+        }
+
+        protected override async Task<Outcome<HttpRequest>> OnOutcomeAsync(Outcome<HttpRequest> outcome)
+        {
+            var platformService = XpServices.Get<IPlatformService>();
+            if (platformService is { })
+            {
+                await platformService.CloseTopWindowAsync(true);
+            }
+            return await base.OnOutcomeAsync(outcome);
         }
 
         void onPageAppearing(object sender, Page e)
@@ -37,7 +48,9 @@ namespace TetraPak.XP.Mobile
             DisposeLoopbackHost();
         }
 
-        public MobileLoopbackBrowser(ITetraPakConfiguration tetraPakConfig, ILog? log = null) 
+        public MobileLoopbackBrowser(
+            ITetraPakConfiguration tetraPakConfig, 
+            ILog? log = null) 
         : base(log)
         {
             _tetraPakConfig = tetraPakConfig;

@@ -70,6 +70,7 @@
     <Compile Include="AppDelegate.cs" />
     <None Include="Entitlements.plist" />
     <None Include="Info.plist" />
+    <Compile Include="PlatformService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -155,6 +156,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\..\..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj">
+      <Project>{da4bb014-0ad1-476a-87ec-5c1e765a385c}</Project>
+      <Name>TetraPak.XP.DependencyInjection</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\TetraPak.XP.Mobile\TetraPak.XP.Mobile.csproj">
       <Project>{3c8db621-3b0e-4c12-86e5-39fbf2e4252f}</Project>
       <Name>TetraPak.XP.Mobile</Name>
