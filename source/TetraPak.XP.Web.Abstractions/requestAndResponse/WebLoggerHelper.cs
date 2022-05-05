@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using TetraPak.XP.Streaming;
-using TetraPak.XP.Web.Http.Debugging;
+using TetraPak.XP.Web.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace TetraPak.XP.Web.Http

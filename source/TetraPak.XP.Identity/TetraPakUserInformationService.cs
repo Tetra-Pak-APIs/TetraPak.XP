@@ -12,8 +12,9 @@ using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Caching.Abstractions;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.StringValues;
+using TetraPak.XP.Web.Abstractions;
+using TetraPak.XP.Web.Abstractions.Debugging;
 using TetraPak.XP.Web.Http;
-using TetraPak.XP.Web.Http.Debugging;
 
 namespace TetraPak.XP.Identity
 {

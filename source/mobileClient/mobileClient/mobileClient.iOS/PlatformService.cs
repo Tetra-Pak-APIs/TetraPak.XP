@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using mobileClient.iOS;
+using TetraPak.XP;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Mobile;
 using UIKit;
@@ -11,19 +12,27 @@ namespace mobileClient.iOS
 {
     public class PlatformService : IPlatformService
     {
-        public async Task CloseTopWindowAsync(bool isModalWindow, bool animated = true)
+        public async Task<Outcome> TryCloseTopWindowAsync(bool isModalWindow, bool animated = true)
         {
             var window = UIApplication.SharedApplication.KeyWindow;
             var viewController = window?.RootViewController;
             if (viewController is null)
-                return;
+                return Outcome.Fail("Couldn't obtain top window view controller");
 
-            if (isModalWindow)
+            try
             {
-                viewController.DismissModalViewController(animated);
-                return;
+                if (isModalWindow)
+                {
+                    viewController.DismissModalViewController(animated);
+                    return Outcome.Success();
+                }
+                await viewController.DismissViewControllerAsync(animated);
+                return Outcome.Success();
             }
-            await viewController.DismissViewControllerAsync(animated);
+            catch (Exception ex)
+            {
+                return Outcome.Fail(ex);
+            }
         }
 
         public PlatformService()

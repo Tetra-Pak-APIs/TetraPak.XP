@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Streaming;
-using TetraPak.XP.Web.Http.Debugging;
+using TetraPak.XP.Web.Abstractions;
+using TetraPak.XP.Web.Abstractions.Debugging;
 using HttpMethod=Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpMethod;
 
 namespace TetraPak.XP.Web.Http

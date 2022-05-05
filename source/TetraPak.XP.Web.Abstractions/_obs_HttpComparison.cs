@@ -2,13 +2,14 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using TetraPak.XP.StringValues;
+using TetraPak.XP.Web.Http;
 
-namespace TetraPak.XP.Web.Http
+namespace TetraPak.XP.Web.Abstractions 
 {
     /// <summary>
     ///   A string compatible (criteria) expression for use with HTTP requests.
     /// </summary>
-    public class HttpComparison : StringValueBase
+    public class HttpComparison : StringValueBase // todo Remove HttpComparison class and replace with scripted expression support
     {
         static readonly Regex s_regex = new Regex(@"(?<element>[a-zA-Z]+)\s*\[\s*(?<key>.+)\s*\]\s*(?<operator>[\=\!]+)\s*(?<value>.+)", 
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Browsers;
 using TetraPak.XP.DependencyInjection;
@@ -31,12 +30,12 @@ namespace TetraPak.XP.Mobile
             });
         }
 
-        protected override async Task<Outcome<HttpRequest>> OnOutcomeAsync(Outcome<HttpRequest> outcome)
+        protected override async Task<Outcome<GenericHttpRequest>> OnOutcomeAsync(Outcome<GenericHttpRequest> outcome)
         {
             var platformService = XpServices.Get<IPlatformService>();
             if (platformService is { })
             {
-                await platformService.CloseTopWindowAsync(true);
+                await platformService.TryCloseTopWindowAsync(true);
             }
             return await base.OnOutcomeAsync(outcome);
         }

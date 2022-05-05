@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
-using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Abstractions;
 using HttpMethod = Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpMethod;
@@ -38,7 +37,7 @@ namespace TetraPak.XP.Web.Http
         /// <param name="request">
         ///   The <see cref="HttpRequest"/>.
         /// </param>
-        /// <param name="tetraPakConfig">
+        /// <param name="webConfig">
         ///   Carries the Tetra Pak authorization configuration.
         /// </param>
         /// <param name="enforce">
@@ -50,10 +49,10 @@ namespace TetraPak.XP.Web.Http
         /// </returns>
         public static LogMessageId? GetMessageId(
             this HttpRequest request,
-            ITetraPakConfiguration? tetraPakConfig,
+            IWebConfiguration? webConfig,
             bool enforce = false)
         {
-            var key = tetraPakConfig?.MessageIdHeader ?? Headers.MessageId;
+            var key = webConfig?.MessageIdHeader ?? Headers.MessageId;
             var value = request.Headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
             return value is { }
                 ? (LogMessageId?) value
@@ -66,7 +65,7 @@ namespace TetraPak.XP.Web.Http
         /// <param name="headers">
         ///   The collection of request/response headers.
         /// </param>
-        /// <param name="tetraPakConfig">
+        /// <param name="webConfig">
         ///   Carries the Tetra Pak authorization configuration.
         /// </param>
         /// <param name="enforce">
@@ -78,10 +77,10 @@ namespace TetraPak.XP.Web.Http
         /// </returns>
         public static LogMessageId? GetMessageId(
             this HttpHeaders headers,
-            ITetraPakConfiguration? tetraPakConfig,
+            IWebConfiguration? webConfig,
             bool enforce = false)
         {
-            var key = tetraPakConfig?.MessageIdHeader ?? Headers.MessageId;
+            var key = webConfig?.MessageIdHeader ?? Headers.MessageId;
             var value = headers.GetSingleValue(key, enforce ? new RandomString() : null, enforce);
             return value is { }
                 ? (LogMessageId?) value
@@ -90,10 +89,10 @@ namespace TetraPak.XP.Web.Http
         
         public static LogMessageId? GetMessageId(
             this HttpClient client,
-            ITetraPakConfiguration? tetraPakConfig,
+            IWebConfiguration? webConfig,
             bool enforce = false)
         {
-            return client.DefaultRequestHeaders.GetMessageId(tetraPakConfig, enforce);
+            return client.DefaultRequestHeaders.GetMessageId(webConfig, enforce);
         }
         
         /// <summary>

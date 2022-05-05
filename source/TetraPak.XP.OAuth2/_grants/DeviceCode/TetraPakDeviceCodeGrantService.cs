@@ -11,8 +11,9 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Diagnostics;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.Refresh;
+using TetraPak.XP.Web.Abstractions;
+using TetraPak.XP.Web.Abstractions.Debugging;
 using TetraPak.XP.Web.Http;
-using TetraPak.XP.Web.Http.Debugging;
 using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2.DeviceCode

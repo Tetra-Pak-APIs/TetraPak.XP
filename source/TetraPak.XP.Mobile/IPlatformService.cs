@@ -4,6 +4,6 @@ namespace TetraPak.XP.Mobile
 {
     public interface IPlatformService
     {
-        Task CloseTopWindowAsync(bool isModalWindow, bool animated = true);
+        Task<Outcome> TryCloseTopWindowAsync(bool isModalWindow, bool animated = true);
     }
 }

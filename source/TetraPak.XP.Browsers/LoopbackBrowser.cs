@@ -38,7 +38,7 @@ namespace TetraPak.XP.Browsers
         }
         
         /// <inheritdoc />
-        public Task<Outcome<HttpRequest>> GetLoopbackAsync(
+        public Task<Outcome<GenericHttpRequest>> GetLoopbackAsync(
             Uri target, 
             Uri loopbackHost, 
             LoopbackFilter? filter = null,
@@ -53,11 +53,11 @@ namespace TetraPak.XP.Browsers
             }
             catch (Exception ex)
             {
-                return Task.FromResult(Outcome<HttpRequest>.Fail(ex));
+                return Task.FromResult(Outcome<GenericHttpRequest>.Fail(ex));
             }
         }
         
-        async Task<Outcome<HttpRequest>> invokeAsync(
+        async Task<Outcome<GenericHttpRequest>> invokeAsync(
             Uri targetUri,
             Uri loopbackHostUri,
             CancellationToken cancellationToken,
@@ -73,9 +73,11 @@ namespace TetraPak.XP.Browsers
                 OnOpenBrowserAsync(targetUri);
 #pragma warning restore CS4014
                 var request = await _loopbackHost.WaitForCallbackUrlAsync(timeout.Value);
+Console.WriteLine($"nisse/LoopbackBrowser.invokeAsync ---> {request.Method} {request.Path}");                
+                
                 return await OnOutcomeAsync(request is { }
-                    ? Outcome<HttpRequest>.Success(request)
-                    : Outcome<HttpRequest>.Fail(
+                    ? Outcome<GenericHttpRequest>.Success(await request.ToGenericHttpRequestAsync())
+                    : Outcome<GenericHttpRequest>.Fail(
                         new Exception($"Did not obtain a callback from browser interaction with {targetUri}")));
                 // return request is { }
                 //     ? Outcome<HttpRequest>.Success(request) obsolete
@@ -84,7 +86,7 @@ namespace TetraPak.XP.Browsers
             }
             catch (Exception ex)
             {
-                return Outcome<HttpRequest>.Fail(ex);
+                return Outcome<GenericHttpRequest>.Fail(ex);
             }
             finally
             {
@@ -92,7 +94,7 @@ namespace TetraPak.XP.Browsers
             }
         }
 
-        protected virtual Task<Outcome<HttpRequest>> OnOutcomeAsync(Outcome<HttpRequest> outcome)
+        protected virtual Task<Outcome<GenericHttpRequest>> OnOutcomeAsync(Outcome<GenericHttpRequest> outcome)
         {
             return Task.FromResult(outcome);
         }

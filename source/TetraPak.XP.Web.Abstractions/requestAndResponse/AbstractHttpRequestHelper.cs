@@ -4,8 +4,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using TetraPak.XP.Web.Http;
 
-namespace TetraPak.XP.Web.Http.Debugging
+namespace TetraPak.XP.Web.Abstractions
 {
     /// <summary>
     ///   Convenient methods for working with <see cref="GenericHttpRequest"/>s.
@@ -89,7 +90,7 @@ namespace TetraPak.XP.Web.Http.Debugging
                 Headers = request.Headers.ToKeyValuePairs(),
                 Content = request.GetRequestStream()
             });
-        
+
         /// <summary>
         ///   Constructs and returns the textual representation of the <see cref="HttpRequest"/>'s URI (if any). 
         /// </summary>

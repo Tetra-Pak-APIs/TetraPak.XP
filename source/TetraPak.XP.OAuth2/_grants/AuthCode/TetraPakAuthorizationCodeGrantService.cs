@@ -16,8 +16,8 @@ using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.StringValues;
 using TetraPak.XP.Web.Abstractions;
+using TetraPak.XP.Web.Abstractions.Debugging;
 using TetraPak.XP.Web.Http;
-using TetraPak.XP.Web.Http.Debugging;
 using TetraPak.XP.Web.Services;
 
 namespace TetraPak.XP.OAuth2.AuthCode
@@ -167,8 +167,6 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 return Outcome<Grant>.Fail(new AuthenticationException("No state found in authority callback"));
             
             // check the PKCE and get the access code ...
-            // var authCode = callbackOutcome.Value!.TryGetQueryValue("code").Value; // todo Possible null value here
-            // var inState = callbackOutcome.Value!.TryGetQueryValue("state").Value;
             Log.Debug("[END - Authorization Code request]", messageId);
             if (authState.IsUsed && inState != authState.State)
                 return Outcome<Grant>.Fail(

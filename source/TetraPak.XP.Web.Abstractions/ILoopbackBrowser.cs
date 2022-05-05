@@ -37,7 +37,7 @@ namespace TetraPak.XP.Web.Abstractions
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="HttpRequest"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        Task<Outcome<HttpRequest>> GetLoopbackAsync(
+        Task<Outcome<GenericHttpRequest>> GetLoopbackAsync(
             Uri target, 
             Uri loopbackHost, 
             LoopbackFilter? filter = null,

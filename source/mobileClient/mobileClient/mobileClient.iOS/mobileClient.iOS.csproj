@@ -156,6 +156,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\..\..\TetraPak.XP.Common\TetraPak.XP.Common.csproj">
+      <Project>{710e2d54-9db9-4513-bf40-3e89733aa206}</Project>
+      <Name>TetraPak.XP.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj">
       <Project>{da4bb014-0ad1-476a-87ec-5c1e765a385c}</Project>
       <Name>TetraPak.XP.DependencyInjection</Name>

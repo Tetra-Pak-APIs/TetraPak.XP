@@ -3,11 +3,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using TetraPak.XP.Logging;
-using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.StringValues;
+using TetraPak.XP.Web.Abstractions.Debugging;
 
-namespace TetraPak.XP.Web.Http.Debugging
+namespace TetraPak.XP.Web.Abstractions
 {
     public abstract class AbstractTraceHttpMessageOptions
     {

@@ -1,25 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.WebUtilities;
 
-namespace TetraPak.XP.Web.Http.Debugging
+namespace TetraPak.XP.Web.Abstractions
 {
     /// <summary>
     ///   An abstract representation of a HTTP request.
     /// </summary>
     public abstract class AbstractHttpMessage
     {
+        Uri? _uri;
+        IQueryCollection? _query;
+
         /// <summary>
         ///   (optional)<br/>
         ///   A unique string value for tracking a request/response (mainly for diagnostics purposes).
         /// </summary>
         public string? MessageId { get; set; }
-        
+
         /// <summary>
         ///   Gets or sets a request URI.
         /// </summary>
-        public Uri? Uri { get; set; }
-        
+        public Uri? Uri
+        {
+            get => _uri;
+            set
+            {
+                _uri = value;
+                invalidateQuery();
+            }
+        }
+
+        /// <summary>
+        ///   Gets the query value collection parsed from the request.
+        /// </summary>
+        public IQueryCollection Query => getQuery();
+
+        IQueryCollection getQuery()
+        {
+            if (_query is { })
+                return _query;
+
+            if (_uri is null)
+                return new QueryCollection();
+
+            return _query = new QueryCollection(QueryHelpers.ParseQuery(_uri.Query));
+        }
+
+        void invalidateQuery() => _query = null;
+
         /// <summary>
         ///   Gets or sets a request HTTP method.
         /// </summary>

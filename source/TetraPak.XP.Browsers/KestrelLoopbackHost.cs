@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Http;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Web;
 using TetraPak.XP.Web.Abstractions;
+using TetraPak.XP.Web.Abstractions.Debugging;
 using TetraPak.XP.Web.Http;
-using TetraPak.XP.Web.Http.Debugging;
 
 namespace TetraPak.XP.Browsers
 {
@@ -100,7 +100,7 @@ namespace TetraPak.XP.Browsers
                             var filter = LoopbackFilter ?? LoopbackBrowser.DefaultLoopbackFilter;
                             switch (await filter.Invoke(ctx.Request))
                             {
-                                case LoopbackFilterOutcome.Accept:
+                                case LoopbackFilterOutcome.Accept: 
                                     await setResultAsync(ctx);
                                     return;
                                 

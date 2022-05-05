@@ -1,4 +1,4 @@
-﻿namespace TetraPak.XP.Web.Http.Debugging
+﻿namespace TetraPak.XP.Web.Abstractions.Debugging
 {
     static class TraceRequest
     {

@@ -2,9 +2,9 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using TetraPak.XP.Web.Http;
 
-
-namespace TetraPak.XP.Web.Http.Debugging
+namespace TetraPak.XP.Web.Abstractions
 {
     /// <summary>
     ///   Convenient methods for working with <see cref="GenericHttpResponse"/>s.
