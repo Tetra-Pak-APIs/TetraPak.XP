@@ -31,7 +31,7 @@ namespace TetraPak.XP
         /// <inheritdoc />
         public bool IsTimeSkewed => _isCustomStartTime || IsTimeAccelerated;
 
-        bool IsTimeAccelerated => TimeAcceleration != 0d;
+        bool IsTimeAccelerated => Math.Abs(TimeAcceleration - 1d) > double.Epsilon;
         
         /// <inheritdoc />
         public DateTime GetNow() => getNow(DateTimeKind.Local);
@@ -118,7 +118,7 @@ namespace TetraPak.XP
             return new DateTime(now.Year, now.Month, now.Day);
         }
 
-        static DateTime getConfiguredStartTime(IConfiguration configuration, DateTime useDefault)
+        static DateTime? getConfiguredStartTime(IConfiguration configuration, DateTime? useDefault = null)
         {
             var section = configuration.GetSection($"{ConfigurationSectionKey}:{nameof(StartTime)}");
             return string.IsNullOrWhiteSpace(section.Value) || !section.Value.TryParseStandardDateTime(out var value)
@@ -163,7 +163,7 @@ namespace TetraPak.XP
         ///   A configuration framework api.
         /// </param>
         public XpDateTime(IConfiguration configuration)
-        : this(getConfiguredStartTime(configuration, DateTime.UtcNow), getConfiguredTimeAcceleration(configuration, 1d))
+        : this(getConfiguredStartTime(configuration), getConfiguredTimeAcceleration(configuration, 1d))
         {
         }
     }
