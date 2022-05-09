@@ -32,27 +32,28 @@ namespace TetraPak.XP.Browsers
 
         static int methodNotAllowed() => (int) HttpStatusCode.MethodNotAllowed;
 
-        async Task setResultAsync(HttpContext ctx)
+        Task setResultAsync(HttpContext ctx, string htmlResponse)
         {
             _loopbackTcs.TrySetResult(ctx.Request);
             ctx.Response.OnStarting(async () =>
             {
-                // bug (see: https://github.com/dotnet/aspnetcore/issues/41416 )
+                // bug in .NET Standard 2.0 (see: https://github.com/dotnet/aspnetcore/issues/41416 )
                 ctx.Response.StatusCode = 200;
                 ctx.Response.ContentType = "text/html";
                 try
                 {
-                    await ctx.Response.WriteAsync("<h1>You can now return to the application.</h1>");
+                    await ctx.Response.WriteAsync(htmlResponse);
                     await ctx.Response.Body.FlushAsync();
                 }
-                catch (Exception ex)
+                catch
                 {
                     ctx.Response.StatusCode = 400;
                     ctx.Response.ContentType = "text/html";
-                    await ctx.Response.WriteAsync("<h1>Invalid request.</h1>");
+                    await ctx.Response.WriteAsync("<h2>Invalid request.</h2>");
                     await ctx.Response.Body.FlushAsync();
                 }
             });
+            return Task.CompletedTask;
         }
         
         public Task<HttpRequest?> WaitForCallbackUrlAsync(TimeSpan timeout)
@@ -66,7 +67,7 @@ namespace TetraPak.XP.Browsers
             return _loopbackTcs.Task;
         }
         
-        public LoopbackHost(Uri loopbackHost, ILog? log)
+        internal LoopbackHost(Uri loopbackHost, string htmlResponse, ILog? log)
         {
             try
             {
@@ -101,7 +102,7 @@ namespace TetraPak.XP.Browsers
                             switch (await filter.Invoke(ctx.Request))
                             {
                                 case LoopbackFilterOutcome.Accept: 
-                                    await setResultAsync(ctx);
+                                    await setResultAsync(ctx, htmlResponse);
                                     return;
                                 
                                 case LoopbackFilterOutcome.Ignore:

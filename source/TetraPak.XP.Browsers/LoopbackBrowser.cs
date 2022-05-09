@@ -14,17 +14,23 @@ namespace TetraPak.XP.Browsers
     /// </summary>
     public abstract class LoopbackBrowser : ILoopbackBrowser
     {
-        LoopbackHost? _loopbackHost;
+        const string DefaultHtmlResponse = "<h2>You can now return to the application.</h2>";
         
+        LoopbackHost? _loopbackHost;
+        string _htmlResponse;
+
         protected ILog? Log { get; }
 
-        public LoopbackFilter? LoopbackFilter { get; set; }
-
-        public LoopbackBrowser WithLoopBackFilter(LoopbackFilter filter)
+        /// <summary>
+        ///   HTML content to be sent to the loopback browser after the request/response roundtrip is complete.
+        /// </summary>
+        public string HtmlResponse
         {
-            LoopbackFilter = filter;
-            return this;
+            get => _htmlResponse;
+            set => _htmlResponse = string.IsNullOrWhiteSpace(value) ? DefaultHtmlResponse : value;
         }
+
+        public LoopbackFilter? LoopbackFilter { get; set; }
 
         public static Uri BuildLoopbackUri(string path, int port = -1, HttpScheme scheme = HttpScheme.Http)
         {
@@ -47,7 +53,7 @@ namespace TetraPak.XP.Browsers
         {
             try
             {
-                WithLoopBackFilter(filter ?? DefaultLoopbackPatternFilter);
+                this.WithLoopBackFilter(filter ?? DefaultLoopbackPatternFilter);
                 return invokeAsync(target, loopbackHost, cancellationToken ?? CancellationToken.None, timeout);
 
             }
@@ -64,7 +70,7 @@ namespace TetraPak.XP.Browsers
             TimeSpan? timeout = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _loopbackHost = new LoopbackHost(loopbackHostUri, Log);
+            _loopbackHost = new LoopbackHost(loopbackHostUri, HtmlResponse, Log);
             try
             {
                 _loopbackHost.LoopbackFilter = LoopbackFilter;
@@ -73,16 +79,10 @@ namespace TetraPak.XP.Browsers
                 OnOpenBrowserAsync(targetUri);
 #pragma warning restore CS4014
                 var request = await _loopbackHost.WaitForCallbackUrlAsync(timeout.Value);
-Console.WriteLine($"nisse/LoopbackBrowser.invokeAsync ---> {request.Method} {request.Path}");                
-                
                 return await OnOutcomeAsync(request is { }
                     ? Outcome<GenericHttpRequest>.Success(await request.ToGenericHttpRequestAsync())
                     : Outcome<GenericHttpRequest>.Fail(
                         new Exception($"Did not obtain a callback from browser interaction with {targetUri}")));
-                // return request is { }
-                //     ? Outcome<HttpRequest>.Success(request) obsolete
-                //     : Outcome<HttpRequest>.Fail(
-                //         new Exception($"Did not obtain a callback from browser interaction with {targetUri}"));
             }
             catch (Exception ex)
             {
@@ -132,6 +132,23 @@ Console.WriteLine($"nisse/LoopbackBrowser.invokeAsync ---> {request.Method} {req
         public LoopbackBrowser(ILog? log)
         {
             Log = log;
+            _htmlResponse = DefaultHtmlResponse;
         }
-     }
+    }
+
+    public static class LoopbackBrowserHelper
+    {
+        public static LoopbackBrowser WithHtmlResponse(this LoopbackBrowser browser, string htmlResponse)
+        {
+            browser.HtmlResponse = htmlResponse;
+            return browser;
+        }
+        
+        public static LoopbackBrowser WithLoopBackFilter(this LoopbackBrowser browser, LoopbackFilter filter)
+        {
+            browser.LoopbackFilter = filter;
+            return browser;
+        }
+
+    }
 }

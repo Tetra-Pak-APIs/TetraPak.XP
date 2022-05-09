@@ -12,7 +12,12 @@ namespace TetraPak.XP.Web.Abstractions
     public interface ILoopbackBrowser : IDisposable
     {
         /// <summary>
-        ///   Sends a request to the browser and returns a loopback request to a specified loopback host address.
+        ///   HTML content to be sent to the loopback browser after the request/response roundtrip is complete.
+        /// </summary>
+        string? HtmlResponse { get; set; }
+        
+        /// <summary>
+        ///   Sends a request to the browser and returns a request to a specified loopback host address.
         /// </summary>
         /// <param name="target">
         ///   The initial target <see cref="Uri"/>. 
@@ -30,7 +35,7 @@ namespace TetraPak.XP.Web.Abstractions
         ///   Enables cancellation of the operation.
         /// </param>
         /// <param name="timeout">
-        ///   (optional)
+        ///   (optional)<br/>
         ///   Specifies a timeout for the operation, after which it will end (and return a failed outcome). 
         /// </param>
         /// <returns>
