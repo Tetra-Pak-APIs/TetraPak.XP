@@ -16,30 +16,36 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Label Grid.Row="0" 
                    Text="{Binding IntroductionUserCode}"
                    VerticalOptions="CenterAndExpand"
                    HorizontalOptions="CenterAndExpand" />
-            <Button Grid.Row="1" 
-                Text="{Binding UserCode}"
-                BackgroundColor="Transparent"
-                Command="{Binding UserCodeCommand}"
-                TextColor="CornflowerBlue"
-                VerticalOptions="CenterAndExpand"
-                HorizontalOptions="CenterAndExpand" />
-            <Button Grid.Row="2" 
-                Text="{Binding VerificationUri}"
-                BackgroundColor="Transparent"
-                TextColor="CornflowerBlue"
-                Command="{Binding UrlCommand}"
-                VerticalOptions="CenterAndExpand"
-                HorizontalOptions="CenterAndExpand" />
-            <Button Grid.Row="3" 
-                Text="Cancel"
-                Command="{Binding CancelCommand}"
-                VerticalOptions="CenterAndExpand"
-                HorizontalOptions="CenterAndExpand" />
+            <Button Grid.Row="1"
+                    Text="{Binding UserCode}"
+                    BackgroundColor="Transparent"
+                    Command="{Binding UserCodeCommand}"
+                    TextColor="CornflowerBlue"
+                    VerticalOptions="CenterAndExpand"
+                    HorizontalOptions="CenterAndExpand" />
+            <Button Grid.Row="2"
+                    Text="{Binding VerificationUri}"
+                    BackgroundColor="Transparent"
+                    TextColor="CornflowerBlue"
+                    Command="{Binding UrlCommand}"
+                    VerticalOptions="CenterAndExpand"
+                    HorizontalOptions="CenterAndExpand" />
+            <ActivityIndicator Grid.Row="3"
+                    Margin="0,15"           
+                    IsRunning="True"
+                    VerticalOptions="CenterAndExpand"
+                    HorizontalOptions="CenterAndExpand" />
+            <Button Grid.Row="4" x:Name="CancelButton"
+                    Text="Cancel"
+                    Command="{Binding CancelCommand}"
+                    VerticalOptions="CenterAndExpand"
+                    HorizontalOptions="Fill" />
         </Grid>
     </ContentPage.Content>
 </ContentPage>

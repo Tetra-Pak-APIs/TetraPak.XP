@@ -139,7 +139,7 @@ namespace TetraPak.XP.OAuth2
                     return Task.FromResult(outcome);
             }
 
-            var credentials = context.GetClientCredentials();// Configuration.ClientId;
+            var credentials = context.GetClientCredentials();
             return Task.FromResult(credentials is { }
                 ? Outcome<Credentials>.Success(credentials)
                 : Outcome<Credentials>.Fail(
@@ -271,16 +271,16 @@ namespace TetraPak.XP.OAuth2
             AuthContext context,
             CancellationToken? cancellationToken = null)
         {
-            if (TokenCache is null)
-                return Outcome<ActorToken>.Fail("No token cache is available");
-        
+            if (!IsGrantCachingEnabled(context, false))
+                return Outcome<ActorToken>.Fail("Token caching is unavailable or not allowed");
+
             var appCredentialsOutcome = await GetClientCredentialsAsync(context);
             if (!appCredentialsOutcome)
                 return Outcome<ActorToken>.Fail("Could not resolve app credentials");
 
             var key = appCredentialsOutcome.Value!.Identity;
             var cacheRepository = context.GetRefreshTokenCacheRepository();
-            var cachedOutcome = await TokenCache.ReadAsync<ActorToken>(
+            var cachedOutcome = await TokenCache!.ReadAsync<ActorToken>(
                 key,
                 cacheRepository,
                 cancellationToken);
@@ -326,27 +326,6 @@ namespace TetraPak.XP.OAuth2
             var ctx = ctxOutcome.Value!;
             await DeleteCachedRefreshTokenAsync(ctx);
         }
-
-        // /// <summary>
-        // ///   Validates <see cref="Credentials"/> to be used as <see cref="BasicAuthCredentials"/>. obsolete 
-        // /// </summary>
-        // /// <param name="credentials"></param>
-        // /// <returns>
-        // ///   
-        // /// </returns>
-        // /// <exception cref="InvalidOperationException">
-        // ///   The <paramref name="credentials"/> lacks either the <see cref="Credentials.Identity"/> or
-        // ///   <see cref="Credentials.Secret"/> elements.
-        // /// </exception>
-        // protected BasicAuthCredentials ValidateBasicAuthCredentials(Credentials credentials)
-        // {
-        //     if (string.IsNullOrWhiteSpace(credentials.Identity) || string.IsNullOrWhiteSpace(credentials.Secret))
-        //         throw new InvalidOperationException("Invalid credentials. Please specify client id and secret");
-        //     
-        //     return credentials is BasicAuthCredentials bac
-        //         ? bac
-        //         : new BasicAuthCredentials(credentials.Identity, credentials.Secret!);
-        // }
 
         /// <summary>
         ///   Initializes the grant service.

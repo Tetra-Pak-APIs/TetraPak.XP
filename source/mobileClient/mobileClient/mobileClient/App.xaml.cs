@@ -44,7 +44,6 @@ namespace mobileClient
             
             DependencyService.Register<MockDataStore>(); // obsolete
             MainPage = new AppShell();
-            
         }
 
         protected override void OnStart()

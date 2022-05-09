@@ -1,6 +1,4 @@
-﻿using mobileClient.Models;
-using mobileClient.Services;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -12,9 +10,7 @@ namespace mobileClient.ViewModels
     public class BaseViewModel : INotifyPropertyChanged
     {
         string _title = string.Empty;
-        bool _isBusy = false;
-
-        public IDataStore<Item> DataStore => DependencyService.Get<IDataStore<Item>>();
+        bool _isBusy;
 
         public bool IsBusy
         {
@@ -32,7 +28,7 @@ namespace mobileClient.ViewModels
 
         protected bool SetProperty<T>(ref T backingStore, T value,
             [CallerMemberName] string propertyName = "",
-            Action onChanged = null, 
+            Action onChanged = null!, 
             params string[] triggerOtherProperties)
         {
             if (EqualityComparer<T>.Default.Equals(backingStore, value))

@@ -79,8 +79,7 @@ namespace mobileClient.ViewModels
                     UserCode = e.UserCode;
                     VerificationUri = e.VerificationUri.ToString();
                     Expires = XpDateTime.Now.Add(e.ExpiresIn).ToString("U");
-                    // ReSharper disable once AsyncVoidLambda
-                    MainThread.BeginInvokeOnMainThread(async () =>
+                    await Device.InvokeOnMainThreadAsync(async () =>
                     {
                         authPage = new DeviceCodeVerificationPage(this);
                         await PushAsync(authPage);
