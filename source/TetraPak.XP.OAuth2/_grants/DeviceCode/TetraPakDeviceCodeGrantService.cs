@@ -337,7 +337,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             var tokenIssuerUri = ctx.GetTokenIssuerUri();
             return string.IsNullOrWhiteSpace(tokenIssuerUri) 
                 ? ctx.Configuration.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(IAuthConfiguration.TokenIssuerUri))
-                : Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(formsValues!));
+                : Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(formsValues));
         }
 
         static async Task<bool> isPendingUserCodeAsync(HttpResponseMessage response, CancellationToken cancellationToken)

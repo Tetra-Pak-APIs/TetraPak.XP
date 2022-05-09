@@ -81,7 +81,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
             
             if (!IsRefreshingGrants(authContext))
                 return await onAuthorizationDoneAsync(
-                    await acquireTokenViaWebUIAsync(authorityUri,  
+                    await acquireTokenViaWebUIAsync(
+                        options,
+                        authorityUri,  
                         tokenIssuerUri,
                         authState, 
                         clientCredentials, 
@@ -93,7 +95,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
             var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(authContext);
             if (!cachedRefreshTokenOutcome)
                 return await onAuthorizationDoneAsync(
-                    await acquireTokenViaWebUIAsync(authorityUri,
+                    await acquireTokenViaWebUIAsync(
+                        options,
+                        authorityUri,
                         tokenIssuerUri,
                         authState,
                         clientCredentials,
@@ -108,7 +112,9 @@ namespace TetraPak.XP.OAuth2.AuthCode
 
             // run the OIDC 'dance' through a browser ... 
             return await onAuthorizationDoneAsync(
-                await acquireTokenViaWebUIAsync(authorityUri, 
+                await acquireTokenViaWebUIAsync(
+                    options,
+                    authorityUri,
                     tokenIssuerUri, 
                     authState, 
                     clientCredentials,  
@@ -132,6 +138,7 @@ namespace TetraPak.XP.OAuth2.AuthCode
         }
 
         async Task<Outcome<Grant>> acquireTokenViaWebUIAsync(
+            GrantOptions options,
             Uri authorityUri,
             Uri tokenIssuerUri,
             AuthState authState,
@@ -155,7 +162,13 @@ namespace TetraPak.XP.OAuth2.AuthCode
             
             var loopbackHostUri = new Uri(redirectUri.AbsoluteUri); 
             var target = new Uri(authCodeRequestOutcome.Value!);
-            var outcome = await _browser.GetLoopbackAsync(target, loopbackHostUri, loopbackFilter, CancellationToken.None); // todo support timeout
+            _browser.HtmlResponseOnSuccess = options.GetHtmlResponseOnSuccess();
+            _browser.HtmlResponseOnError = options.GetHtmlResponseOnError();
+            var outcome = await _browser.GetLoopbackAsync(
+                target,
+                loopbackHostUri,
+                loopbackFilter,
+                CancellationToken.None); // todo support timeout
             if (!outcome)
                 return Outcome<Grant>.Fail(new AuthenticationException("Authority never returned authorization code"));
 

@@ -32,7 +32,7 @@ namespace TetraPak.XP.Browsers
 
         static int methodNotAllowed() => (int) HttpStatusCode.MethodNotAllowed;
 
-        Task setResultAsync(HttpContext ctx, string htmlResponse)
+        Task setResultAsync(HttpContext ctx, string htmlResponseOnSuccess, string htmlResponseOnError)
         {
             _loopbackTcs.TrySetResult(ctx.Request);
             ctx.Response.OnStarting(async () =>
@@ -42,14 +42,13 @@ namespace TetraPak.XP.Browsers
                 ctx.Response.ContentType = "text/html";
                 try
                 {
-                    await ctx.Response.WriteAsync(htmlResponse);
+                    await ctx.Response.WriteAsync(htmlResponseOnSuccess);
                     await ctx.Response.Body.FlushAsync();
                 }
                 catch
                 {
                     ctx.Response.StatusCode = 400;
-                    ctx.Response.ContentType = "text/html";
-                    await ctx.Response.WriteAsync("<h2>Invalid request.</h2>");
+                    await ctx.Response.WriteAsync(htmlResponseOnError);
                     await ctx.Response.Body.FlushAsync();
                 }
             });
@@ -67,7 +66,7 @@ namespace TetraPak.XP.Browsers
             return _loopbackTcs.Task;
         }
         
-        internal LoopbackHost(Uri loopbackHost, string htmlResponse, ILog? log)
+        internal LoopbackHost(Uri loopbackHost, string htmlResponseOnSuccess, string htmlResponseOnError, ILog? log)
         {
             try
             {
@@ -102,7 +101,7 @@ namespace TetraPak.XP.Browsers
                             switch (await filter.Invoke(ctx.Request))
                             {
                                 case LoopbackFilterOutcome.Accept: 
-                                    await setResultAsync(ctx, htmlResponse);
+                                    await setResultAsync(ctx, htmlResponseOnSuccess, htmlResponseOnError);
                                     return;
                                 
                                 case LoopbackFilterOutcome.Ignore:

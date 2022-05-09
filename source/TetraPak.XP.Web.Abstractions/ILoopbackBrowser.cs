@@ -14,7 +14,12 @@ namespace TetraPak.XP.Web.Abstractions
         /// <summary>
         ///   HTML content to be sent to the loopback browser after the request/response roundtrip is complete.
         /// </summary>
-        string? HtmlResponse { get; set; }
+        string? HtmlResponseOnSuccess { get; set; }
+        
+        /// <summary>
+        ///   HTML content to be sent to the loopback browser when request/response roundtrip resulted in exceptions.
+        /// </summary>
+        string? HtmlResponseOnError { get; set; }
         
         /// <summary>
         ///   Sends a request to the browser and returns a request to a specified loopback host address.

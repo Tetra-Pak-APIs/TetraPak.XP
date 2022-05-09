@@ -8,7 +8,7 @@ namespace TetraPak.XP.Auth.Abstractions
     ///   Specifies options for a <see cref="Grant"/> request.
     /// </summary>
     [DebuggerDisplay("{ToString()}")]
-    public sealed class GrantOptions
+    public class GrantOptions
     {
         readonly Dictionary<string, object> _data = new();
 
