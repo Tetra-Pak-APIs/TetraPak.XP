@@ -33,11 +33,11 @@ namespace TetraPak.XP.OAuth2.AuthCode
         {
             if (htmlResponseFileOnSuccessDelegate is {})
             {
-                options.SetDataHandler(DataKeyHtmlResponseOnSuccess, () => htmlResponseFileOnSuccessDelegate);
+                options.SetDataFactory(DataKeyHtmlResponseOnSuccess, () => htmlResponseFileOnSuccessDelegate);
             }
             if (htmlResponseFileOnErrorDelegate is {})
             {
-                options.SetDataHandler(DataKeyHtmlResponseOnError, () => htmlResponseFileOnErrorDelegate);
+                options.SetDataFactory(DataKeyHtmlResponseOnError, () => htmlResponseFileOnErrorDelegate);
             }
 
             return options;

@@ -63,16 +63,17 @@ namespace TetraPak.XP.Auth.Abstractions
         public void SetData(string key, object data) => _data[key] = data;
 
         /// <summary>
-        ///   Sets a callback handler for reading an arbitrary value to be carried by the <see cref="GrantOptions"/>.
+        ///   Sets a callback handler ("factory") for reading an arbitrary value
+        ///   to be carried by the <see cref="GrantOptions"/>.
         /// </summary>
         /// <param name="key">
         ///   Identifies the data value. 
         /// </param>
-        /// <param name="handler">
-        ///   The data value being added.
+        /// <param name="factory">
+        ///   The data value factory added.
         /// </param>
         /// <seealso cref="GetDataAsync{T}"/>
-        public void SetDataHandler<T>(string key, Func<T> handler) => _data[key] = handler;
+        public void SetDataFactory<T>(string key, Func<T> factory) => _data[key] = factory;
 
         /// <summary>
         ///   Gets an arbitrary value.
@@ -96,16 +97,13 @@ namespace TetraPak.XP.Auth.Abstractions
             if (!_data.TryGetValue(key, out var obj))
                 return useDefault;
 
-            if (obj is T tValue)
-                return tValue;
-
-            if (obj is Func<T> func)
-                return func();
-                    
-            if (obj is Func<Task<T>> funcAsync)
-                return await funcAsync();
-
-            return useDefault;
+            return obj switch
+            {
+                T tValue => tValue,
+                Func<T> func => func(),
+                Func<Task<T>> funcAsync => await funcAsync(),
+                _ => useDefault
+            };
         }
 
         /// <summary>
