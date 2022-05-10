@@ -18,8 +18,6 @@ namespace TetraPak.XP.Browsers
         const string DefaultHtmlResponseOnError = "<h2>Invalid request.</h2>";
         
         LoopbackHost? _loopbackHost;
-        string _htmlResponseOnSuccess;
-        string _htmlResponseOnError;
 
         protected ILog? Log { get; }
 
@@ -27,21 +25,17 @@ namespace TetraPak.XP.Browsers
         ///   HTML content to be sent to the loopback browser after the request/response roundtrip
         ///   completed without errors.
         /// </summary>
-        public string HtmlResponseOnSuccess
-        {
-            get => _htmlResponseOnSuccess;
-            set => _htmlResponseOnSuccess = string.IsNullOrWhiteSpace(value) ? DefaultHtmlResponseOnSuccess : value;
-        }
+        public Task<string> HtmlResponseOnSuccessFactory { get; set; }
 
         /// <summary>
         ///   HTML content to be sent to the loopback browser after the request/response roundtrip
         ///   resulted in an exception.
         /// </summary>
-        public string HtmlResponseOnError
-        {
-            get => _htmlResponseOnError;
-            set => _htmlResponseOnError = string.IsNullOrWhiteSpace(value) ? DefaultHtmlResponseOnError : value;
-        }
+        public Task<string> HtmlResponseOnErrorFactory { get; set; }
+
+        Task<string> getDefaultHtmlResponseOnSuccess() => Task.FromResult(DefaultHtmlResponseOnSuccess);
+
+        Task<string> getDefaultHtmlResponseOnError() => Task.FromResult(DefaultHtmlResponseOnError);
 
         public LoopbackFilter? LoopbackFilter { get; set; }
 
@@ -55,7 +49,7 @@ namespace TetraPak.XP.Browsers
             ub.Path = path;
             return ub.Uri;
         }
-        
+
         /// <inheritdoc />
         public Task<Outcome<GenericHttpRequest>> GetLoopbackAsync(
             Uri target, 
@@ -83,7 +77,7 @@ namespace TetraPak.XP.Browsers
             TimeSpan? timeout = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _loopbackHost = new LoopbackHost(loopbackHostUri, HtmlResponseOnSuccess, HtmlResponseOnError, Log);
+            _loopbackHost = new LoopbackHost(loopbackHostUri, HtmlResponseOnSuccessFactory, HtmlResponseOnErrorFactory, Log);
             try
             {
                 _loopbackHost.LoopbackFilter = LoopbackFilter;
@@ -145,22 +139,22 @@ namespace TetraPak.XP.Browsers
         public LoopbackBrowser(ILog? log)
         {
             Log = log;
-            _htmlResponseOnSuccess = DefaultHtmlResponseOnSuccess;
-            _htmlResponseOnError = DefaultHtmlResponseOnError;
+            HtmlResponseOnSuccessFactory = getDefaultHtmlResponseOnSuccess();
+            HtmlResponseOnErrorFactory = getDefaultHtmlResponseOnError();
         }
     }
 
     public static class LoopbackBrowserHelper
     {
-        public static LoopbackBrowser WithHtmlResponseOnSuccess(this LoopbackBrowser browser, string htmlResponse)
+        public static LoopbackBrowser WithHtmlResponseOnSuccess(this LoopbackBrowser browser, Task<string> htmlFactory)
         {
-            browser.HtmlResponseOnSuccess = htmlResponse;
+            browser.HtmlResponseOnSuccessFactory = htmlFactory;
             return browser;
         }
         
-        public static LoopbackBrowser WithHtmlResponseOnError(this LoopbackBrowser browser, string htmlResponse)
+        public static LoopbackBrowser WithHtmlResponseOnError(this LoopbackBrowser browser, Task<string> htmlFactory)
         {
-            browser.HtmlResponseOnError = htmlResponse;
+            browser.HtmlResponseOnErrorFactory = htmlFactory;
             return browser;
         }
         

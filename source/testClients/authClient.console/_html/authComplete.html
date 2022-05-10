@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Avenir, Verdana, sans-serif;
+            margin: 0;
+        }
+        .banner-ok {
+            width: 100%;
+            display: flex;
+            background: whitesmoke;
+        }
+        .banner-error {
+            width: 100%;
+            display: flex;
+            background: salmon;
+        }
+        .logo {
+            width: 100px;
+            margin-left: 10px;
+        }
+        .logo img {
+            max-width: 100px;
+        }
+        .flex-item {
+            flex-grow: 1;
+            margin: auto;
+        }
+        [class*="banner-text"] {
+            text-align: right;
+            margin-right: 10px;
+            font-size: small;
+        }
+        .banner-text-sub {
+            font-size: x-small;
+        }
+        .message {
+            margin: auto;
+            text-align: center;
+            font-size: larger;
+            margin-top: 10%;
+        }        
+    </style>
+    <title>Tetra Pak SDK Demo</title>
+</head>
+<body>
+    <div class="banner-#outcome">
+        <div class="logo" >
+          <img alt="Protects what's good" src="https://www.tetrapak.com/content/dam/tetrapak/publicweb/logo/en/tetra-pak-two-liner.png"/>
+        </div>
+        <div class="flex-item">
+            <div class="flex-item banner-text">
+                Authorization Code Grant
+            </div>
+            <div class="flex-item banner-text-sub">
+                Tetra Pak SDK
+            </div>
+        </div>
+    </div>
+    <div class="message">
+        <h3>#message</h3>
+        (please close this page)
+    </div>
+</body>
+</html>

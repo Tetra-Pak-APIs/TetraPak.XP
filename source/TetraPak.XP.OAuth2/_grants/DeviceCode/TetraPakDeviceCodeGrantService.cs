@@ -82,7 +82,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 var keyValues = formsValues.Select(kvp
                     => new KeyValuePair<string?, string?>(kvp.Key, kvp.Value));
 
-                var deviceCodeIssuerUri = authContext.GetDeviceCodeIssuerUri(); 
+                var deviceCodeIssuerUri = await authContext.GetDeviceCodeIssuerUri(); 
                 if (string.IsNullOrWhiteSpace(deviceCodeIssuerUri))
                     return authContext.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.DeviceCodeIssuerUri));
                 
@@ -199,11 +199,11 @@ namespace TetraPak.XP.OAuth2.DeviceCode
 
                 var client = clientOutcome.Value!;
 
-                var tokenRequestBodyOutcome = makeTokenRequestBody(clientCredentials.Identity, deviceCode, authContext);
+                var tokenRequestBodyOutcome = await makeTokenRequestBodyAsync(clientCredentials.Identity, deviceCode, authContext);
                 if (!tokenRequestBodyOutcome)
                     return Outcome<Grant>.Fail(tokenRequestBodyOutcome.Exception!);
 
-                var tokenIssuerUri = authContext.GetTokenIssuerUri();
+                var tokenIssuerUri = await authContext.GetTokenIssuerUriAsync();
                 var request = new HttpRequestMessage(HttpMethod.Post, tokenIssuerUri)
                 {
                     Content = tokenRequestBodyOutcome.Value!
@@ -322,7 +322,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             return outcome;
         }
         
-        static Outcome<FormUrlEncodedContent> makeTokenRequestBody(
+        static async Task<Outcome<FormUrlEncodedContent>> makeTokenRequestBodyAsync(
             string clientId,
             string deviceCode,
             AuthContext ctx)
@@ -334,7 +334,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 ["device_code"] = deviceCode
             };
         
-            var tokenIssuerUri = ctx.GetTokenIssuerUri();
+            var tokenIssuerUri = await ctx.GetTokenIssuerUriAsync();
             return string.IsNullOrWhiteSpace(tokenIssuerUri) 
                 ? ctx.Configuration.MissingConfigurationOutcome<FormUrlEncodedContent>(nameof(IAuthConfiguration.TokenIssuerUri))
                 : Outcome<FormUrlEncodedContent>.Success(new FormUrlEncodedContent(formsValues));

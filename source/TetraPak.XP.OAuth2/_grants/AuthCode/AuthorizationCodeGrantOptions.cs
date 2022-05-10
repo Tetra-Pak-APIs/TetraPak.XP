@@ -1,4 +1,6 @@
-﻿using TetraPak.XP.Auth.Abstractions;
+﻿using System.IO;
+using System.Threading.Tasks;
+using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.OAuth2.AuthCode
 {
@@ -24,14 +26,33 @@ namespace TetraPak.XP.OAuth2.AuthCode
             return options;
         }
 
-        internal static string? GetHtmlResponseOnSuccess(this GrantOptions options)
+        public static GrantOptions WithHtmlResponseHandlers(
+            this GrantOptions options,
+            Task<string>? htmlResponseFileOnSuccessDelegate,
+            Task<string>? htmlResponseFileOnErrorDelegate)
         {
-            return options.GetData<string>(DataKeyHtmlResponseOnSuccess);
+            if (htmlResponseFileOnSuccessDelegate is {})
+            {
+                options.SetDataHandler(DataKeyHtmlResponseOnSuccess, () => htmlResponseFileOnSuccessDelegate);
+            }
+            if (htmlResponseFileOnErrorDelegate is {})
+            {
+                options.SetDataHandler(DataKeyHtmlResponseOnError, () => htmlResponseFileOnErrorDelegate);
+            }
+
+            return options;
+        }
+
+        internal static async Task<string?> GetHtmlResponseOnSuccessAsync(this GrantOptions options)
+        {
+            return await options.GetDataAsync<string>(DataKeyHtmlResponseOnSuccess);
         }
         
-        internal static string? GetHtmlResponseOnError(this GrantOptions options)
+        internal static async Task<string?> GetHtmlResponseOnErrorAsync(this GrantOptions options)
         {
-            return options.GetData<string>(DataKeyHtmlResponseOnError);
+            return await options.GetDataAsync<string>(DataKeyHtmlResponseOnError);
         }
     }
+
+    public delegate Task<string> HtmlFileLoaderDelegate(FileInfo htmlFileInfo);
 }

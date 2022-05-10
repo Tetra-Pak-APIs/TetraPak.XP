@@ -49,21 +49,21 @@ namespace TetraPak.XP.OAuth2.AuthCode
             var clientId = clientCredentials.Identity; 
 
             var conf = authContext.Configuration;
-            var redirectUriString = authContext.GetRedirectUri();
+            var redirectUriString = await authContext.GetRedirectUriAsync();
             if (string.IsNullOrWhiteSpace(redirectUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri));
             
             if (!Uri.TryCreate(redirectUriString, UriKind.Absolute, out var redirectUri))
                 return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.RedirectUri), redirectUriString!);
 
-            var authorityUriString = authContext.GetAuthorityUri();
+            var authorityUriString = await authContext.GetAuthorityUriAsync();
             if (string.IsNullOrWhiteSpace(authorityUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri));
             
             if (!Uri.TryCreate(authorityUriString, UriKind.Absolute, out var authorityUri))
                 return conf.InvalidConfigurationOutcome<Grant>(nameof(IAuthInfo.AuthorityUri), authorityUriString!);
             
-            var tokenIssuerUriString = authContext.GetTokenIssuerUri();
+            var tokenIssuerUriString = await authContext.GetTokenIssuerUriAsync();
             if (string.IsNullOrWhiteSpace(tokenIssuerUriString))
                 return conf.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             
@@ -162,8 +162,8 @@ namespace TetraPak.XP.OAuth2.AuthCode
             
             var loopbackHostUri = new Uri(redirectUri.AbsoluteUri); 
             var target = new Uri(authCodeRequestOutcome.Value!);
-            _browser.HtmlResponseOnSuccess = options.GetHtmlResponseOnSuccess();
-            _browser.HtmlResponseOnError = options.GetHtmlResponseOnError();
+            _browser.HtmlResponseOnSuccessFactory = options.GetHtmlResponseOnSuccessAsync();
+            _browser.HtmlResponseOnErrorFactory = options.GetHtmlResponseOnErrorAsync();
             var outcome = await _browser.GetLoopbackAsync(
                 target,
                 loopbackHostUri,

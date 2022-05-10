@@ -45,7 +45,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
             var clientCredentials = appCredentialsOutcome.Value!;
             
             
-            var tokenIssuerUri = authContext.GetTokenIssuerUri();
+            var tokenIssuerUri = await authContext.GetTokenIssuerUriAsync();
             if (string.IsNullOrWhiteSpace(tokenIssuerUri))
                 return authContext.Configuration.MissingConfigurationOutcome<Grant>(nameof(IAuthInfo.TokenIssuerUri));
             

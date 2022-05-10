@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace TetraPak.XP.Auth.Abstractions
 {
 
@@ -16,9 +18,9 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   A <see cref="Credentials"/> object if client credentials can be resolved from the <see cref="AuthContext"/>;
         ///   otherwise <c>null</c>. 
         /// </returns>
-        public static Credentials? GetClientCredentials(this AuthContext authContext)
+        public static async Task<Credentials?> GetClientCredentialsAsync(this AuthContext authContext)
         {
-            var credentials = authContext.Options.GetClientCredentials();
+            var credentials = await authContext.Options.GetClientCredentials();
             if (credentials is { })
                 return credentials;
 
@@ -28,7 +30,7 @@ namespace TetraPak.XP.Auth.Abstractions
                 : null;
         }
 
-        static IAuthInfo? getAuthorityInfo(this AuthContext authContext) => authContext.Options.GetAuthInfo();
+        static Task<IAuthInfo?> getAuthorityInfoAsync(this AuthContext authContext) => authContext.Options.GetAuthInfoAsync();
 
         /// <summary>
         ///   Gets the authority URI from the <see cref="AuthContext"/>.
@@ -40,8 +42,11 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   A <see cref="string"/> representation of the URI if successfully resolved from the <see cref="AuthContext"/>;
         ///   otherwise <c>null</c>. 
         /// </returns>
-        public static string? GetAuthorityUri(this AuthContext authContext) =>
-            authContext.getAuthorityInfo()?.AuthorityUri;
+        public static async Task<string?> GetAuthorityUriAsync(this AuthContext authContext)
+        {
+            var info = await authContext.getAuthorityInfoAsync();
+            return info?.AuthorityUri;
+        }
 
         /// <summary>
         ///   Gets the token issuer URI from the <see cref="AuthContext"/>.
@@ -53,8 +58,11 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   A <see cref="string"/> representation of the URI if successfully resolved from the <see cref="AuthContext"/>;
         ///   otherwise <c>null</c>. 
         /// </returns>
-        public static string? GetTokenIssuerUri(this AuthContext authContext) =>
-            authContext.getAuthorityInfo()?.TokenIssuerUri;
+        public static async Task<string?> GetTokenIssuerUriAsync(this AuthContext authContext)
+        {
+            var info = await authContext.getAuthorityInfoAsync();
+            return info?.TokenIssuerUri;
+        }
 
         /// <summary>
         ///   Gets the device code issuer service URI from the <see cref="AuthContext"/>.
@@ -66,8 +74,11 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   A <see cref="string"/> representation of the URI if successfully resolved from the <see cref="AuthContext"/>;
         ///   otherwise <c>null</c>. 
         /// </returns>
-        public static string? GetDeviceCodeIssuerUri(this AuthContext authContext) =>
-            authContext.getAuthorityInfo()?.DeviceCodeIssuerUri;
+        public static async Task<string?> GetDeviceCodeIssuerUri(this AuthContext authContext)
+        {
+            var info = await authContext.getAuthorityInfoAsync();
+            return info?.DeviceCodeIssuerUri;
+        }
 
         /// <summary>
         ///   Gets a redirect URI from the <see cref="AuthContext"/>.
@@ -79,7 +90,10 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   A <see cref="string"/> representation of the URI if successfully resolved from the <see cref="AuthContext"/>;
         ///   otherwise <c>null</c>. 
         /// </returns>
-        public static string? GetRedirectUri(this AuthContext authContext) =>
-            authContext.getAuthorityInfo()?.RedirectUri;
+        public static async Task<string?> GetRedirectUriAsync(this AuthContext authContext)
+        {
+            var info = await authContext.getAuthorityInfoAsync();
+            return info?.RedirectUri;
+        }
     }
 }

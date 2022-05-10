@@ -7,7 +7,6 @@ using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Caching;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Logging.Abstractions;
-using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.Refresh;
 using TetraPak.XP.StringValues;
@@ -130,20 +129,20 @@ namespace TetraPak.XP.OAuth2
         ///   An <see cref="Outcome{T}"/> to indicate success/failure and, on success, also carry
         ///   a <see cref="Credentials"/> or, on failure, an <see cref="Exception"/>.
         /// </returns>
-        protected Task<Outcome<Credentials>> GetClientCredentialsAsync(AuthContext context)
+        protected async Task<Outcome<Credentials>> GetClientCredentialsAsync(AuthContext context)
         {
             if (_appCredentialsDelegate is { })
             {
                 var outcome = _appCredentialsDelegate.GetAppCredentials(context);
                 if (outcome)
-                    return Task.FromResult(outcome);
+                    return outcome;
             }
 
-            var credentials = context.GetClientCredentials();
-            return Task.FromResult(credentials is { }
+            var credentials = await context.GetClientCredentialsAsync();
+            return credentials is { }
                 ? Outcome<Credentials>.Success(credentials)
                 : Outcome<Credentials>.Fail(
-                    new ConfigurationException("Client credentials have not been provisioned")));
+                    new ConfigurationException("Client credentials have not been provisioned"));
         }
 
         /// <summary>

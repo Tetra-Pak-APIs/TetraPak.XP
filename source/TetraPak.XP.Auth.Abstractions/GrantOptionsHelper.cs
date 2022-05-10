@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace TetraPak.XP.Auth.Abstractions
 {
     public static class GrantOptionsHelper
@@ -45,14 +47,14 @@ namespace TetraPak.XP.Auth.Abstractions
         public static GrantOptions WithClientCredentials(this GrantOptions options, Credentials? clientCredentials)
             => clientCredentials is {} ? options.WithData(DataKeys.AppCredentials, clientCredentials) : options;
 
-        public static Credentials? GetClientCredentials(this GrantOptions options)
-            => options.GetData<Credentials?>(DataKeys.AppCredentials);
+        public static Task<Credentials?> GetClientCredentials(this GrantOptions options)
+            => options.GetDataAsync<Credentials?>(DataKeys.AppCredentials);
 
         public static GrantOptions WithAuthInfo(this GrantOptions options, IAuthInfo? authInfo)
             => authInfo is {} ? options.WithData(DataKeys.AuthorityInfo, authInfo) : options;
 
-        public static IAuthInfo? GetAuthInfo(this GrantOptions options)
-            => options.GetData<IAuthInfo?>(DataKeys.AuthorityInfo);
+        public static Task<IAuthInfo?> GetAuthInfoAsync(this GrantOptions options)
+            => options.GetDataAsync<IAuthInfo?>(DataKeys.AuthorityInfo);
 
         /// <summary>
         ///   Inspects the <see cref="GrantOptions"/> and, optionally, a <see cref="ITetraPakConfiguration"/>

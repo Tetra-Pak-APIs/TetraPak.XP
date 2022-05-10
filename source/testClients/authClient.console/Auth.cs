@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,9 @@ namespace authClient.console
                         var ac = provider.GetRequiredService<IAuthorizationCodeGrantService>();
                         Console.WriteLine();
                         Console.WriteLine("OIDC grant requested ...");
-                        onOutcome(await ac.AcquireTokenAsync(options)); 
+                        onOutcome(await ac.AcquireTokenAsync(options.WithHtmlResponseHandlers(
+                            loadHtmlAsync(new FileInfo("./_html/authComplete.html"), true), 
+                              loadHtmlAsync(new FileInfo("./_html/authComplete.html"), false))));
                         break;
                 
                     case GrantType.CC:
@@ -75,6 +78,17 @@ namespace authClient.console
                         throw new ArgumentOutOfRangeException(nameof(grantType), grantType, null);
                 }
             });
+        }
+
+        static async Task<string> loadHtmlAsync(FileInfo htmlFile, bool isSuccess)
+        {
+            using var reader = htmlFile.OpenText();
+            var html = await reader.ReadToEndAsync();
+            return html
+                .Replace("#outcome", isSuccess ? "ok" : "error")
+                .Replace("#message", isSuccess
+                    ? "Authorization Code grant was completed"
+                    : "Authorization Code grant failed");
         }
 
         public async Task GetUserInformationAsync(CancellationTokenSource cts)

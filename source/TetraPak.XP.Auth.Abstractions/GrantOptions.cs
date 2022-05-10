@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
@@ -57,9 +59,21 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <param name="data">
         ///   The data value being added.
         /// </param>
-        /// <seealso cref="GetData{T}"/>
+        /// <seealso cref="GetDataAsync{T}"/>
         public void SetData(string key, object data) => _data[key] = data;
-        
+
+        /// <summary>
+        ///   Sets a callback handler for reading an arbitrary value to be carried by the <see cref="GrantOptions"/>.
+        /// </summary>
+        /// <param name="key">
+        ///   Identifies the data value. 
+        /// </param>
+        /// <param name="handler">
+        ///   The data value being added.
+        /// </param>
+        /// <seealso cref="GetDataAsync{T}"/>
+        public void SetDataHandler<T>(string key, Func<T> handler) => _data[key] = handler;
+
         /// <summary>
         ///   Gets an arbitrary value.
         /// </summary>
@@ -77,11 +91,21 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   The requested data value (or <see cref="useDefault"/> if it isn't carried).
         /// </returns>
         /// <seealso cref="SetData"/>
-        public T GetData<T>(string key, T useDefault = default!)
+        public async Task<T> GetDataAsync<T>(string key, T useDefault = default!)
         {
-            return _data.TryGetValue(key, out var obj) && obj is T tValue 
-                ? tValue 
-                : useDefault;
+            if (!_data.TryGetValue(key, out var obj))
+                return useDefault;
+
+            if (obj is T tValue)
+                return tValue;
+
+            if (obj is Func<T> func)
+                return func();
+                    
+            if (obj is Func<Task<T>> funcAsync)
+                return await funcAsync();
+
+            return useDefault;
         }
 
         /// <summary>

@@ -22,7 +22,7 @@ namespace TetraPak.XP.Browsers
             TimeSpan.FromMinutes(1);
 #else        
             TimeSpan.FromMinutes(5);
-#endif        
+#endif
 
         readonly IWebHost _host;
         readonly TaskCompletionSource<HttpRequest?> _loopbackTcs = new();
@@ -32,7 +32,10 @@ namespace TetraPak.XP.Browsers
 
         static int methodNotAllowed() => (int) HttpStatusCode.MethodNotAllowed;
 
-        Task setResultAsync(HttpContext ctx, string htmlResponseOnSuccess, string htmlResponseOnError)
+        Task setResultAsync(
+            HttpContext ctx, 
+            Task<string> htmlResponseOnSuccessAsync, 
+            Task<string> htmlResponseOnErrorAsync)
         {
             _loopbackTcs.TrySetResult(ctx.Request);
             ctx.Response.OnStarting(async () =>
@@ -42,13 +45,13 @@ namespace TetraPak.XP.Browsers
                 ctx.Response.ContentType = "text/html";
                 try
                 {
-                    await ctx.Response.WriteAsync(htmlResponseOnSuccess);
+                    await ctx.Response.WriteAsync(await htmlResponseOnSuccessAsync);
                     await ctx.Response.Body.FlushAsync();
                 }
                 catch
                 {
                     ctx.Response.StatusCode = 400;
-                    await ctx.Response.WriteAsync(htmlResponseOnError);
+                    await ctx.Response.WriteAsync(await htmlResponseOnErrorAsync);
                     await ctx.Response.Body.FlushAsync();
                 }
             });
@@ -66,7 +69,11 @@ namespace TetraPak.XP.Browsers
             return _loopbackTcs.Task;
         }
         
-        internal LoopbackHost(Uri loopbackHost, string htmlResponseOnSuccess, string htmlResponseOnError, ILog? log)
+        internal LoopbackHost(
+            Uri loopbackHost, 
+            Task<string> htmlResponseOnSuccess, 
+            Task<string> htmlResponseOnError, 
+            ILog? log)
         {
             try
             {
