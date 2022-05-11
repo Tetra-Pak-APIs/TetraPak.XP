@@ -4,6 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:mobileClient.ViewModels;assembly=mobileClient"
              xmlns:fonts="clr-namespace:mobileClient.Fonts;assembly=mobileClient"
+             xmlns:system="clr-namespace:System;assembly=netstandard"
              x:Class="mobileClient.Views.DeviceCodePage"
              Title="{Binding Title}">
     
@@ -32,7 +33,14 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="80" />
+                <RowDefinition>
+                    <RowDefinition.Height>
+                        <OnPlatform x:TypeArguments="GridLength">
+                            <On Platform="iOS">80</On>
+                            <On Platform="Android,Windows">0</On>
+                        </OnPlatform>
+                    </RowDefinition.Height>
+                </RowDefinition>
             </Grid.RowDefinitions>
             
             <ScrollView Grid.Row="0" 
@@ -89,7 +97,14 @@
             <ActivityIndicator 
                 Grid.Row="0" Grid.RowSpan="5" 
                 IsRunning="True" 
-                IsVisible="{Binding IsBusy}" />            
+                IsVisible="{Binding IsBusy}">
+                <ActivityIndicator.Scale>
+                    <OnPlatform x:TypeArguments="system:Double">
+                        <On Platform="iOS,Windows">1.0</On>
+                        <On Platform="Android">0.2</On>
+                    </OnPlatform>
+                </ActivityIndicator.Scale>
+            </ActivityIndicator>
         </Grid>
     </ContentPage.Content>
 </ContentPage>
