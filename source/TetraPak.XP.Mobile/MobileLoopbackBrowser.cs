@@ -42,7 +42,6 @@ namespace TetraPak.XP.Mobile
 
         void onPageAppearing(object sender, Page e)
         {
-            Log.Trace("PAGE APPEARING"); // nisse
             Application.Current.PageAppearing -= onPageAppearing;
             DisposeLoopbackHost();
         }

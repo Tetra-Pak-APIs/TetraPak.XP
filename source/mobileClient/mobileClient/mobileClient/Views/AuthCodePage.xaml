@@ -3,12 +3,27 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:mobileClient.ViewModels;assembly=mobileClient"
+             xmlns:fonts="clr-namespace:mobileClient.Fonts;assembly=mobileClient"
              x:Class="mobileClient.Views.AuthCodePage"
              Title="{Binding Title}">
     
     <ContentPage.BindingContext>
         <vm:AuthCodeVM />
     </ContentPage.BindingContext>
+    
+    <ContentPage.ToolbarItems>
+        <ToolbarItem 
+            Order="Primary" Priority="0" 
+            Command="{Binding ToolbarItemCommand}">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource 
+                    FontFamily="FontAwesome6Solid"
+                    Size="Subtitle"
+                    Color="Azure"
+                    Glyph="{x:Static fonts:Icons.Ellipsis}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+    </ContentPage.ToolbarItems>
     
     <ContentPage.Content>
         <Grid Margin="25,20">
@@ -28,15 +43,48 @@
             </ScrollView>
             <Button Grid.Row="1" 
                     Text="Silent Grant Request" 
-                    Command="{Binding AcquireTokenCommand}" />
+                    Command="{Binding AcquireTokenCommand}">
+                <Button.ImageSource>
+                    <FontImageSource 
+                        FontFamily="FontAwesome6Solid"
+                        Size="Subtitle"
+                        Color="Azure"
+                        Glyph="{x:Static fonts:Icons.Ninja}" />
+                </Button.ImageSource>
+            </Button>
             <Button Grid.Row="2" 
                     Text="Force Grant Request"
-                    Command="{Binding ForceAcquireTokenCommand}" />
+                    Command="{Binding ForceAcquireTokenCommand}">
+                <Button.ImageSource>
+                    <FontImageSource 
+                        FontFamily="FontAwesome6Solid"
+                        Size="Subtitle"
+                        Color="Azure"
+                        Glyph="{x:Static fonts:Icons.Jedi}" />
+                </Button.ImageSource>
+            </Button>
             <Button Grid.Row="3" 
                     Text="{Binding OutcomeCaption}"
                     BackgroundColor="{Binding GrantOutcome, Converter={StaticResource OutcomeBackgroundColorConverter}}"
                     Command="{Binding OutcomeCommand}"
-                    IsVisible="{Binding IsOutcomeAvailable}" />
+                    IsVisible="{Binding IsOutcomeAvailable}">
+                <Button.ImageSource>
+                    <FontImageSource 
+                        FontFamily="FontAwesome6Solid"
+                        Size="Subtitle"
+                        Color="Azure"
+                        Glyph="{Binding OutcomeGlyph}" />
+                </Button.ImageSource>
+            </Button>
+            <BoxView 
+                Grid.Row="0" Grid.RowSpan="5" 
+                BackgroundColor="White" 
+                Opacity="0.5" 
+                IsVisible="{Binding IsBusy}" />
+            <ActivityIndicator 
+                Grid.Row="0" Grid.RowSpan="5" 
+                IsRunning="True" 
+                IsVisible="{Binding IsBusy}" />
         </Grid>
     </ContentPage.Content>
 </ContentPage>

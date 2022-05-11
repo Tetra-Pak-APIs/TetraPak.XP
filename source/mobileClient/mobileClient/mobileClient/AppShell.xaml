@@ -2,30 +2,34 @@
 <Shell xmlns="http://xamarin.com/schemas/2014/forms" 
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        xmlns:views="clr-namespace:mobileClient.Views"
+       xmlns:fonts="clr-namespace:mobileClient.Fonts;assembly=mobileClient"
        Title="mobileClient"
        x:Class="mobileClient.AppShell">
 
-    <!--
-        The overall app visual hierarchy is defined here, along with navigation.
-        https://docs.microsoft.com/xamarin/xamarin-forms/app-fundamentals/shell/
-    -->
-
     <TabBar>
-        <!--
-        If you would like to navigate to this content you can do so by calling
-        await Shell.Current.GoToAsync("//AboutPage");
-        -->
         <ShellContent 
             Title="Auth Code" 
-            Icon="icon_auth_code_32.png" 
             Route="AboutPage" 
-            ContentTemplate="{DataTemplate views:AuthCodePage}" />
+            ContentTemplate="{DataTemplate views:AuthCodePage}">
+            <ShellContent.Icon>
+                <FontImageSource 
+                    FontFamily="FontAwesome6Solid"
+                    Size="Subtitle"
+                    Color="Azure"
+                    Glyph="{x:Static fonts:Icons.IdCard}" />
+            </ShellContent.Icon>
+        </ShellContent>
         <ShellContent 
             Title="Device Code" 
-            Icon="icon_device_code_32.png" 
             Route="DeviceCodePage" 
-            ContentTemplate="{DataTemplate views:DeviceCodePage}" />
+            ContentTemplate="{DataTemplate views:DeviceCodePage}">
+            <ShellContent.Icon>
+                <FontImageSource 
+                    FontFamily="FontAwesome6Solid"
+                    Size="Subtitle"
+                    Glyph="{x:Static fonts:Icons.DesktopComputer}" />
+            </ShellContent.Icon>
+        </ShellContent>
     </TabBar>
-
 
 </Shell>

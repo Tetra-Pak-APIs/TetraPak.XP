@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using mobileClient.Services;
 using mobileClient.ViewModels;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Identity;
@@ -14,10 +13,15 @@ using TetraPak.XP.OAuth2.OIDC;
 using TetraPak.XP.OAuth2.TokenExchange;
 using TetraPak.XP.Web.Services;
 using Xamarin.Forms;
+using NavigationPage = Xamarin.Forms.PlatformConfiguration.TizenSpecific.NavigationPage;
+
+[assembly:ExportFont("FontAwesome6Brands.otf", Alias = "FontAwesome6Brands")]
+[assembly:ExportFont("FontAwesome6Regular.otf", Alias = "FontAwesome6Regular")]
+[assembly:ExportFont("FontAwesome6Solid.otf", Alias = "FontAwesome6Solid")]
 
 namespace mobileClient
 {
-    public sealed partial class App : Application
+    public sealed partial class App
     {
         public INavigation Navigation => MainPage.Navigation;
         
@@ -41,9 +45,8 @@ namespace mobileClient
                     .AddSingleton(p => 
                         new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging(logOptions));
             }).ServiceCollection.BuildXpServiceProvider();
-            
-            DependencyService.Register<MockDataStore>(); // obsolete
             MainPage = new AppShell();
+            
         }
 
         protected override void OnStart()

@@ -7,6 +7,7 @@ namespace mobileClient
         public AppShell()
         {
             InitializeComponent();
+            
         }
     }
 }

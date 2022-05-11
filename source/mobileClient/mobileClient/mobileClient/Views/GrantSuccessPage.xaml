@@ -3,11 +3,14 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:mobileClient.ViewModels;assembly=mobileClient"
+             xmlns:fonts="clr-namespace:mobileClient.Fonts;assembly=mobileClient"
              x:Class="mobileClient.Views.GrantSuccessPage">
     
     <ContentPage.BindingContext>
         <vm:GrantSuccessVM/>
     </ContentPage.BindingContext>
+    
+    
     
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -41,7 +44,15 @@
                     Padding="20,5"
                     HorizontalOptions="Fill"
                     Margin="0,10"
-                    Command="{Binding UserInformationCommand}"/>
+                    Command="{Binding UserInformationCommand}">
+                <Button.ImageSource>
+                    <FontImageSource 
+                        FontFamily="FontAwesome6Solid"
+                        Size="Subtitle"
+                        Color="Azure"
+                        Glyph="{x:Static fonts:Icons.UserCheck}" />
+                </Button.ImageSource>
+            </Button>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

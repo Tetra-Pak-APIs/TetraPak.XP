@@ -28,8 +28,25 @@ namespace mobileClient.ViewModels
             return await _grantService.AcquireTokenAsync(options);
         }
 
+        protected override async Task OnClearAllCachesAsync()
+        {
+            await OnClearGrantCacheAsync();
+            await OnClearRefreshCacheAsync();
+        }
+
+        protected override async Task OnClearGrantCacheAsync()
+        {
+            await _grantService.ClearCachedGrantsAsync();
+        }
+
+        protected override async Task OnClearRefreshCacheAsync()
+        {
+            await _grantService.ClearCachedRefreshTokensAsync();
+        }
+
         public AuthCodeVM()
         {
+            _grantService = null!;
             Title = "Auth Code Grant";
         }
         

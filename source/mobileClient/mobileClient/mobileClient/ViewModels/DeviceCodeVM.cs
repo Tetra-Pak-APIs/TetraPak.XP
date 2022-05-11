@@ -97,11 +97,24 @@ namespace mobileClient.ViewModels
             }
 #pragma warning restore CS1998
         }
-
-        async Task onCancelAsync()
+        
+        protected override async Task OnClearAllCachesAsync()
         {
-             await _grantService.CancelAsync();
+            await OnClearGrantCacheAsync();
+            await OnClearRefreshCacheAsync();
         }
+
+        protected override async Task OnClearGrantCacheAsync()
+        {
+            await _grantService.ClearCachedGrantsAsync();
+        }
+
+        protected override async Task OnClearRefreshCacheAsync()
+        {
+            await _grantService.ClearCachedRefreshTokensAsync();
+        }
+
+        async Task onCancelAsync() => await _grantService.CancelAsync();
 
         async Task onUserCodeAsync() => await Clipboard.SetTextAsync(UserCode);
 

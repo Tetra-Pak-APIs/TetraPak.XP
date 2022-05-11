@@ -12,8 +12,26 @@
             <Color x:Key="Primary">#2196F3</Color>
             <Color x:Key="Success">Green</Color>
             <Color x:Key="Failure">DarkRed</Color>
+            <OnPlatform x:TypeArguments="x:String" x:Key="FontAwesomeBrands">
+                <On Platform="Android" Value="FontAwesome6Brands.otf#Regular" />
+                <On Platform="iOS" Value="FontAwesome6Brands" />
+                <On Platform="UWP" Value="/Assets/FontAwesome6Brands.otf#Font Awesome 6 Brands" />
+            </OnPlatform> 
+    
+            <OnPlatform x:TypeArguments="x:String" x:Key="FontAwesomeSolid"> 
+                <On Platform="Android" Value="FontAwesome6Solid.otf#Regular" /> 
+                <On Platform="iOS" Value="FontAwesome6Solid" /> 
+                <On Platform="UWP" Value="/Assets/FontAwesome6Solid.otf#Font Awesome 6 Free" /> 
+            </OnPlatform> 
+    
+            <OnPlatform x:TypeArguments="x:String" x:Key="FontAwesomeRegular">
+                <On Platform="Android" Value="FontAwesome6Regular.otf#Regular" /> 
+                <On Platform="iOS" Value="FontAwesome6Regular" /> 
+                <On Platform="UWP" Value="/Assets/FontAwesome6Regular.otf#Font Awesome 6 Free" /> 
+            </OnPlatform>
             <Style TargetType="Button">
-                <Setter Property="TextColor" Value="White"></Setter>
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="ContentLayout" Value="Left,20" />
                 <Setter Property="VisualStateManager.VisualStateGroups">
                     <VisualStateGroupList>
                         <VisualStateGroup x:Name="CommonStates">

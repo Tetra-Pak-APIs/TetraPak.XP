@@ -7,6 +7,11 @@ namespace mobileClient.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class AuthCodePage
     {
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+        }
+
         public AuthCodePage()
         {
             InitializeComponent();

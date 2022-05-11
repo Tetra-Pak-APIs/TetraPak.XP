@@ -18,46 +18,48 @@
 	
 	
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1df9f9fe_002D345f_002D4132_002Daf97_002D5cd635d76646/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Ensure_can_only_register_concrete_types" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.UnitTest1.Load_configuration_from_specified_file&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Nisse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_append_insert_and_removeAt&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_initialization&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::FC07AD85-EFA4-4A60-9836-1A3509768905::net5.0::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_append_insert_and_removeAt&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::FC07AD85-EFA4-4A60-9836-1A3509768905::net5.0::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_initialization&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_comparison_works&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_increasing_version&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_adjusting_version&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.Test1&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1df9f9fe_002D345f_002D4132_002Daf97_002D5cd635d76646/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Ensure_can_only_register_concrete_types" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.UnitTest1.Load_configuration_from_specified_file&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Nisse&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_append_insert_and_removeAt&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::BABCE468-E34B-46AA-9F12-A7B4408F8C7B::.NETFramework,Version=v4.7.2::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_initialization&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::FC07AD85-EFA4-4A60-9836-1A3509768905::net5.0::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_append_insert_and_removeAt&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::FC07AD85-EFA4-4A60-9836-1A3509768905::net5.0::TetraPak.XP.Common.Tests.MultiStringValueTests.Test_initialization&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.DesktopConfigurationSectionTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests.Load_config_from_specified_file_and_assert_paths&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_comparison_works&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_increasing_version&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_adjusting_version&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.Test1&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7d0a0724_002D101d_002D4d21_002D91b9_002D8699c58c5be8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Load_configuration_from_specified_file_and_assert_paths" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_comparison_works&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.Test1&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.Numeric_values_comparison&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.String_values_comparison&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestScriptContext.Nisse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestContextValue.Nisse&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestContextValues.Nisse&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7d0a0724_002D101d_002D4d21_002D91b9_002D8699c58c5be8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Load_configuration_from_specified_file_and_assert_paths" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_comparison_works&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.Test1&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.Numeric_values_comparison&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.String_values_comparison&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestScriptContext.Nisse&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestContextValue.Nisse&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestContextValues.Nisse&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=13499e8a_002Df932_002D42c4_002Db0b8_002D1360cdb0d575_0023authClient_002Eandroid/@EntryIndexedValue">True</s:Boolean>
 	
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2047eeef_002D41b8_002D4788_002Daa9d_002D04ba6293f107_0023authClient_002Euwp/@EntryIndexedValue">True</s:Boolean>
+	
+	
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=334fd242_002Dbdfd_002D48df_002D9ec7_002Dc5940c13575f_0023TetraPak_002EXP_002EScripting_002ETests/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=38de49cc_002Ddeb8_002D4ac0_002Db11a_002D9c05edef4112_0023mobileClient_002EUWP/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4d7e9698_002Da348_002D4bb9_002Dbd7e_002D0f7c186957c6_0023authClient_002EXamarin/@EntryIndexedValue">True</s:Boolean>
+	
+	
+	
 	
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5baec876_002D8bd9_002D4773_002Db019_002D6538cbe872b3_0023TetraPak_002EXP_002EiOS/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=beb06ab9_002D03a8_002D4815_002D9717_002D004b801d8449_0023TetraPak_002EXP_002EUWP/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c4c17daf_002D21a6_002D4801_002D8d85_002Dba14b453dd8a_0023authClient_002Eios/@EntryIndexedValue">True</s:Boolean>
+	
 	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c8f6ae96_002Dfcc1_002D4bfe_002Da8a8_002Dc15a9d652225_0023TetraPak_002EXP_002EAndroid/@EntryIndexedValue">True</s:Boolean>
 	
 	</wpf:ResourceDictionary>

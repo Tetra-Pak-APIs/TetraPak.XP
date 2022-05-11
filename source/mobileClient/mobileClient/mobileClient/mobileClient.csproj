@@ -26,4 +26,10 @@
     <PackageReference Include="Xamarin.Essentials" Version="1.7.2" />
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2401" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Fonts\FontAwesome6Brands.otf" />
+    <EmbeddedResource Include="Fonts\FontAwesome6Regular.otf" />
+    <EmbeddedResource Include="Fonts\FontAwesome6Solid.otf" />
+  </ItemGroup>
 </Project>
