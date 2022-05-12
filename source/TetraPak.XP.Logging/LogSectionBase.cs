@@ -17,6 +17,7 @@ namespace TetraPak.XP.Logging
         readonly string? _sectionSuffix;
         bool _isDisposed;
         readonly List<LogEventArgs>? _retainedEvents;
+        readonly LogRank _captionRank;
 
         public event EventHandler<LogEventArgs>? Logged;
 
@@ -69,15 +70,15 @@ namespace TetraPak.XP.Logging
             _log.Write(rank, indentMessage(message), exception, messageId, source);
         }
 
-        void doWriteCaption(LogRank rank, string? caption, LogEventSource? source)
+        void doWriteCaption(string? caption, LogEventSource? source)
         {
             if (!IsRetained)
             {
-                _log.Write(rank, indentMessage(caption, -_indentLength), source:source);
+                _log.Write(_captionRank, indentMessage(caption, -_indentLength), source:source);
                 return;
             }
 
-            _retainedEvents!.Add(new LogEventArgs(source, rank, indentMessage(caption, -_indentLength), null, null, XpDateTime.Now));
+            _retainedEvents!.Add(new LogEventArgs(source, _captionRank, indentMessage(caption, -_indentLength), null, null, XpDateTime.Now));
         }
 
         /// <inheritdoc />
@@ -116,6 +117,7 @@ namespace TetraPak.XP.Logging
             string? sectionSuffix = null)
         {
             _log = log;
+            _captionRank = rank;
             _rank = rank == LogRank.Any ? TypeHelper.GetDefaultValue<LogRank>() : rank;
             _indentLength = indentLength;
             _indent = new string(' ', indentLength);
@@ -123,7 +125,7 @@ namespace TetraPak.XP.Logging
             _retainedEvents = isRetained ? new List<LogEventArgs>() : null;
             if (!string.IsNullOrEmpty(caption))
             {
-                doWriteCaption(rank, indentMessage(caption, -_indentLength), source: source);
+                doWriteCaption(indentMessage(caption, -_indentLength), source: source);
             }
         }
 
@@ -138,7 +140,7 @@ namespace TetraPak.XP.Logging
                 _isDisposed = true;
                 return;
             }
-            doWriteCaption(_rank, _sectionSuffix, null);
+            doWriteCaption(_sectionSuffix, null);
             _log.Write(_retainedEvents!.ToArray());
             _isDisposed = true;
         }
