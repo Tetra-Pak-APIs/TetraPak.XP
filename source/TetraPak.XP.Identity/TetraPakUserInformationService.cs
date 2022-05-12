@@ -54,8 +54,7 @@ namespace TetraPak.XP.Identity
                         }
 
                         case UserInformation userInformation:
-                            using (_log?.Section(LogRank.Debug,
-                                       $"Cached user information was found: {userInformation}"))
+                            using (_log?.Section($"Cached user information was found: {userInformation}", LogRank.Debug))
                             {
                                 _log?.LogDictionary(userInformation.ToDictionary(), LogRank.Debug);
                             }
@@ -97,7 +96,7 @@ namespace TetraPak.XP.Identity
             var tcs = new TaskCompletionSource<Outcome<UserInformation>>();
             Task.Run(async () =>
             {
-                using (_log?.Section(LogRank.Trace, "[GET USER INFO BEGIN]"))
+                using (_log?.Section("[GET USER INFO BEGIN]"))
                 {
                     try
                     {

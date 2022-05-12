@@ -14,6 +14,7 @@ namespace TetraPak.XP.Logging
     /// </remarks>
     public class LogBase : ILog
     {
+        readonly object _syncRoot = new();
         readonly IConfiguration? _configuration;
         LogRank _logRank;
 
@@ -32,7 +33,7 @@ namespace TetraPak.XP.Logging
             get => _configuration.ResolveDefaultLogRank(_logRank);
             set => _logRank = value;
         }
-
+        
         /// <inheritdoc />
         public virtual void Write(
             LogRank rank, 
@@ -42,27 +43,47 @@ namespace TetraPak.XP.Logging
             LogEventSource? source = null,
             DateTime? timestamp = null)
         {
-            if (IsEnabled(rank))
-            {
-                Logged?.Invoke(this, new LogEventArgs(source, rank, message, exception!, messageId!, timestamp));
-            }
+            Write(new[] {new LogEventArgs(source, rank, message, exception!, messageId!, timestamp)});
         }
-
+        
         /// <inheritdoc />
-        public void Write(LogEventArgs args) => Write(args.Rank, args.Message, args.Exception, args.MessageId, args.Source);
+        public void Write(params LogEventArgs[] events)
+        {
+            lock (_syncRoot)
+            {
+                if (events.Length == 1)
+                {
+                    var e = events[0];
+                    if (IsEnabled(e.Rank))
+                    {
+                        Logged?.Invoke(this, e);
+                    }
+                    return;
+                }            
+                foreach (var e in events)
+                {
+                    if (IsEnabled(e.Rank))
+                    {
+                        Logged?.Invoke(this, e);
+                    }
+                }
+            }        
+        }
 
         /// <inheritdoc />
         public bool IsEnabled(LogRank rank) => rank >= Rank;
 
+        /// <inheritdoc />
         public ILogSection Section(
-            LogRank? rank = null, 
             string? caption = null, 
-            int indent = 3, 
+            LogRank rank = LogRank.Any, 
+            bool retained = true,
+            int? indent = null, 
             string? sectionSuffix = null, 
             LogEventSource? source = null,
             DateTime? timestamp = null)
         {
-            return new LogSectionBase(this, rank ?? LogRank.Any, caption, source);
+            return new LogSectionBase(this, caption, rank, retained, source, indent ?? 3, sectionSuffix);
         }
 
         public LogBase(IConfiguration? configuration)

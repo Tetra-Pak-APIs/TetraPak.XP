@@ -126,7 +126,7 @@ namespace TetraPak.XP.DynamicEntities
         public static implicit operator string(DynamicPath value) => value.StringValue;
 
         /// <inheritdoc />
-        public override string ToString() => Items.ConcatCollection(Separator);
+        public override string ToString() => Items.ConcatEnumerable(Separator);
         
         #region .  Equality  .
 
@@ -270,7 +270,7 @@ namespace TetraPak.XP.DynamicEntities
             IEnumerable<string> items, 
             string? separator = null, 
             StringComparison comparison = StringComparison.Ordinal)
-        : base(WithArgs(items.ConcatCollection(separator ?? DefaultPathSeparator), separator, comparison))
+        : base(WithArgs(items.ConcatEnumerable(separator ?? DefaultPathSeparator), separator, comparison))
         {
         }
     }

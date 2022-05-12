@@ -71,7 +71,7 @@ namespace authClient.console
             if (args.Count == 0)
                 return null;
 
-            Console.WriteLine(args.ConcatCollection(" "));
+            Console.WriteLine(args.ConcatEnumerable(" "));
             var cmd = args[0];
             return cmd.Length > 1 ? cmd.ToLower() : null;
         }

@@ -312,7 +312,7 @@ namespace TetraPak.XP.DynamicEntities
                 if (log is null)
                     throw;
 
-                using var section = log.Section(LogRank.Debug, $"Error while cloning {this} ({typeof(TEntity)}):");
+                using var section = log.Section($"Error while cloning {this} ({typeof(TEntity)}):", LogRank.Debug);
                 section.Error(ex, "Dumping troublesome JSON ...");
                 section.Debug(json);
                 throw;

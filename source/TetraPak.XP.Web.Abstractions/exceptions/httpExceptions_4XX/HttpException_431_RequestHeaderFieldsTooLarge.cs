@@ -50,7 +50,7 @@ namespace TetraPak.XP
             if (longHeaders?.Any() ?? false)
             {
                 sb.Append("Headers: ");
-                sb.Append(longHeaders.ConcatCollection());
+                sb.Append(longHeaders.ConcatEnumerable());
             }
 
             message = sb.ToString();

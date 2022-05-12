@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace TetraPak.XP.Logging.Abstractions
 {
     /// <summary>
     ///   Describes a log entry.
     /// </summary>
+    [DebuggerDisplay("{ToString()}")]
     public sealed class LogEventArgs : EventArgs
     {
         public LogEventSource? Source { get; }
@@ -33,6 +35,8 @@ namespace TetraPak.XP.Logging.Abstractions
         ///   The date/time when the log event occured.
         /// </summary>
         public DateTime Timestamp { get; set; }
+
+        public override string ToString() => this.Format();
 
         /// <summary>
         ///   Initializes the event arguments.

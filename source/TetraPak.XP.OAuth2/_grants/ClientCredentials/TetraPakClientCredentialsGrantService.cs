@@ -76,7 +76,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 };
                 if (options.Scope is { })
                 {
-                    formsValues.Add("scope", options.Scope.Items.ConcatCollection(" "));
+                    formsValues.Add("scope", options.Scope.Items.ConcatEnumerable(" "));
                 }
 
                 var keyValues = formsValues.Select(kvp 
@@ -120,7 +120,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 }
                 
                 if (!response.IsSuccessStatusCode)
-                    return loggedFailedOutcome(response);
+                    return await loggedFailedOutcome(response);
 
 #if NET5_0_OR_GREATER
                 var stream = await response.Content.ReadAsStreamAsync(cts.Token);
@@ -155,7 +155,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 return Outcome<Grant>.Fail(ex);
             }
             
-            Outcome<Grant> loggedFailedOutcome(HttpResponseMessage response)
+            async Task<Outcome<Grant>> loggedFailedOutcome(HttpResponseMessage response)
             {
                 var ex = new HttpServerException(response); 
                 if (Log is null)
@@ -167,8 +167,8 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 if (Log.IsEnabled(LogRank.Debug))
                 {
                     var dump = new StateDump().WithStackTrace();
-                    dump.AddAsync(TetraPakConfig, "AuthConfig");
-                    dump.AddAsync(clientCredentials, "Credentials");
+                    await dump.AddAsync(TetraPakConfig, "AuthConfig");
+                    await dump.AddAsync(clientCredentials, "Credentials");
                     message.AppendLine(dump.ToString());
                 }
                 Log.Error(ex, message.ToString(), messageId);

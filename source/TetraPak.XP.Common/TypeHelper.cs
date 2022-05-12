@@ -792,16 +792,91 @@ namespace TetraPak.XP
              }
          }
 
-         public static bool IsLessOrGreaterComparisonSupported(this Type self)
-         {
-             throw new NotImplementedException();
-             var nisse = self.GetMethods().Where(m => m.Name.StartsWith("op_"));
-         }
-        
-         public static TValue GetDefaultValue<TValue>() => (TValue) GetDefaultValue(typeof(TValue))!;
+         /// <summary>
+         ///   Gets the default value for a specified <see cref="Type"/>.
+         /// </summary>
+         /// <typeparam name="T">
+         ///   The type.
+         /// </typeparam>
+         /// <returns>
+         ///   <list type="table">
+         ///     <listheader>
+         ///       <term>kind</term>
+         ///       <description>description</description>
+         ///     </listheader>
+         ///     <item>
+         ///       <term>
+         ///         Enum type
+         ///       </term>
+         ///       <description>
+         ///         The lowest (first) enum value
+         ///       </description>
+         ///     </item>
+         ///     <item>
+         ///       <term>
+         ///         Reference type
+         ///       </term>
+         ///       <description>
+         ///         <c>null</c>
+         ///       </description>
+         ///     </item>
+         ///     <item>
+         ///       <term>
+         ///         Value type
+         ///       </term>
+         ///       <description>
+         ///         Instance (activated with non-argument ctor)
+         ///       </description>
+         ///     </item>
+         ///   </list>
+         /// </returns>
+         /// <seealso cref="GetDefaultValue(Type)"/>
+         public static T GetDefaultValue<T>() => (T) GetDefaultValue(typeof(T))!;
 
+         /// <summary>
+         ///   Gets the default value for a specified <see cref="Type"/>.
+         /// </summary>
+         /// <param name="type">
+         ///   The type.
+         /// </param>
+         /// <returns>
+         ///   <list type="table">
+         ///     <listheader>
+         ///       <term>kind</term>
+         ///       <description>description</description>
+         ///     </listheader>
+         ///     <item>
+         ///       <term>
+         ///         Enum type
+         ///       </term>
+         ///       <description>
+         ///         The lowest (first) enum value
+         ///       </description>
+         ///     </item>
+         ///     <item>
+         ///       <term>
+         ///         Reference type
+         ///       </term>
+         ///       <description>
+         ///         <c>null</c>
+         ///       </description>
+         ///     </item>
+         ///     <item>
+         ///       <term>
+         ///         Value type
+         ///       </term>
+         ///       <description>
+         ///         Instance (activated with non-argument ctor)
+         ///       </description>
+         ///     </item>
+         ///   </list>
+         /// </returns>
+         /// <seealso cref="GetDefaultValue{T}"/>
          public static object? GetDefaultValue(this Type type)
          {
+             if (type.IsEnum)
+                 return Enum.GetValues(type).GetValue(0);
+             
              return type.IsValueType 
                  ? Activator.CreateInstance(type) 
                  : null;

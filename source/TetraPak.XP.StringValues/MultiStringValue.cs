@@ -570,7 +570,7 @@ namespace TetraPak.XP.StringValues
             string[] items, 
             string? separator = null, 
             StringComparison comparison = StringComparison.Ordinal) 
-        : base(WithArgs(items.ConcatCollection(), separator, comparison))
+        : base(WithArgs(items.ConcatEnumerable(), separator, comparison))
         {
         }
 #pragma warning restore CS8618

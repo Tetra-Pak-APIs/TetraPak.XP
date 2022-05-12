@@ -108,7 +108,7 @@ namespace TetraPak.XP.Auth.Abstractions
             return DiscoveryDocument.Current is { }
                 ? isScopeSupported(Items, out var unsupportedItems)
                     ? Outcome<string[]>.Success(items)
-                    : Outcome<string[]>.Fail($"Unsupported scope items: {unsupportedItems.ConcatCollection(" ")}")
+                    : Outcome<string[]>.Fail($"Unsupported scope items: {unsupportedItems.ConcatEnumerable(" ")}")
                 : Outcome<string[]>.Success(items);
         }
 

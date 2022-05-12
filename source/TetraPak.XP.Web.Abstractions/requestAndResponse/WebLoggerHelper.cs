@@ -132,7 +132,7 @@ namespace TetraPak.XP.Web.Http
             
                 sb.Append(key);
                 sb.Append('=');
-                sb.AppendLine(valuesArray.ConcatCollection());
+                sb.AppendLine(valuesArray.ConcatEnumerable());
             }
         }
 

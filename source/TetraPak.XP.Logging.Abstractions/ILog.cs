@@ -52,10 +52,10 @@ namespace TetraPak.XP.Logging.Abstractions
         /// <summary>
         ///   Writes a new log entry.
         /// </summary>
-        /// <param name="args">
-        ///   Describes the event to tbe logged.
+        /// <param name="events">
+        ///   Describes the events to tbe logged.
         /// </param>
-        void Write(LogEventArgs args);
+        void Write(params LogEventArgs[] events);
 
         /// <summary>
         ///   Gets a value indicating whether a specified <see cref="LogRank"/> is enabled.
@@ -63,20 +63,30 @@ namespace TetraPak.XP.Logging.Abstractions
         /// <param name="rank">
         ///   The requested <see cref="LogRank"/>
         /// </param>
-        /// <returns></returns>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="LogRank"/> is supported; otherwise <c>false</c>.
+        /// </returns>
         public bool IsEnabled(LogRank rank);
 
         /// <summary>
         ///   Constructs and returns a new <see cref="ILogSection"/>. 
         /// </summary>
-        /// <param name="rank">
-        ///   (optional)<br/>
-        ///   A minimum <see cref="LogRank"/> for the section
-        ///   (implementor should consider defaulting this value to <see cref="LogRank.Any"/>).
-        /// </param>
         /// <param name="caption">
         ///   (optional)<br/>
         ///   A custom section caption.
+        /// </param>
+        /// <param name="rank">
+        ///   (optional; default=<see cref="LogRank.Any"/>)<br/>
+        ///   A minimum <see cref="LogRank"/> for the section
+        ///   (implementor should consider defaulting this value to <see cref="LogRank.Any"/>).
+        /// </param>
+        /// <param name="retained">
+        ///   (optional; default=true)<br/>
+        ///   When set, events logged to the section will be retained until the section is disposed.
+        ///   This ensures all events are presented as one block in the logged output,
+        ///   rather than being distributed at the exact times they happen, which can have them spread out
+        ///   and mixed with other log events, not relating to the section.
+        ///   Retaining the events increases readability.
         /// </param>
         /// <param name="indent">
         ///   (optional; default=3)<br/>
@@ -96,9 +106,10 @@ namespace TetraPak.XP.Logging.Abstractions
         ///   The log section timestamp.
         /// </param>
         ILogSection Section(
-            LogRank? rank = null,
             string? caption = null,
-            int indent = 3,
+            LogRank rank = LogRank.Any,
+            bool retained = true,
+            int? indent = null,
             string? sectionSuffix = null,
             LogEventSource? source = null,
             DateTime? timestamp = null);

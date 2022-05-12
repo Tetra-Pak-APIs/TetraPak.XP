@@ -12,6 +12,10 @@ namespace TetraPak.XP.Logging.Abstractions
 
         public override string ToString() => _stringValue;
 
+        public bool IsRetainedSection => _stringValue == "__retained_section__";
+
+        internal static LogEventSource RetainedSection() => new("__retained_section__");
+
         bool Equals(LogEventSource other)
         {
             return _stringValue == other._stringValue;
@@ -39,10 +43,18 @@ namespace TetraPak.XP.Logging.Abstractions
             return !Equals(left, right);
         }
 
-        public LogEventSource([CallerMemberName] string? caller = null, [CallerFilePath] string? callerFile = null,
+        public LogEventSource(
+            [CallerMemberName] string? caller = null, 
+            [CallerFilePath] string? callerFile = null,
             [CallerLineNumber] int callerLine = 0)
         {
             _stringValue = $"{caller}@{callerFile} (#{callerLine})";
         }
+
+        internal LogEventSource(string caller)
+        {
+            _stringValue = $"{caller}";
+        }
+
     }
 }

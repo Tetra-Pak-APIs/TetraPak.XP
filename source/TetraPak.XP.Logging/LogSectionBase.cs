@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using TetraPak.XP.Logging.Abstractions;
 
 namespace TetraPak.XP.Logging
@@ -10,20 +11,24 @@ namespace TetraPak.XP.Logging
     class LogSectionBase : ILogSection
     {
         readonly ILog _log;
-        readonly LogRank _logRank;
+        readonly LogRank _rank;
         readonly string _indent;
         readonly int _indentLength;
         readonly string? _sectionSuffix;
         bool _isDisposed;
+        readonly List<LogEventArgs>? _retainedEvents;
 
         public event EventHandler<LogEventArgs>? Logged;
 
         public LogQueryAsyncDelegate? QueryAsync { get; set; }
 
-        string indentMessage(string? message)
+        public bool IsRetained => _retainedEvents is { }; 
+
+        string indentMessage(string? message, int indentAdjust = 0)
         {
             if (_isDisposed) throw new InvalidOperationException("Invalid attempt to log using a disposed log section");
-            return message is null ? null! : $"{_indent}{message}";
+            var indent = indentAdjust == 0 ? _indent : new string(' ', Math.Max(0, _indentLength + indentAdjust));
+            return message is null ? null! : $"{indent}{message}";
         }
 
         /// <inheritdoc />
@@ -35,13 +40,44 @@ namespace TetraPak.XP.Logging
             LogEventSource? source = null,
             DateTime? timestamp = null)
         {
-            _log.Write(rank, indentMessage(message), exception, messageId, source);
+            doWrite(rank, message, exception, messageId, source);
         }
 
         /// <inheritdoc />
-        public void Write(LogEventArgs args)
+        public void Write(params LogEventArgs[] events)
         {
-            Write(args.Rank, args.Message, args.Exception, args.MessageId);
+            for (var i = 0; i < events.Length; i++)
+            {
+                var a = events[i];
+                Write(a.Rank, a.Message, a.Exception, a.MessageId);
+            }
+        }
+
+        void doWrite(LogRank rank, string? message, Exception? exception, string? messageId, LogEventSource? source)
+        {
+            if (IsRetained)
+            {
+                _retainedEvents!.Add(
+                    new LogEventArgs(source,
+                        rank, 
+                        indentMessage(message), 
+                        exception, 
+                        messageId, 
+                        XpDateTime.Now));
+                return;
+            }
+            _log.Write(rank, indentMessage(message), exception, messageId, source);
+        }
+
+        void doWriteCaption(LogRank rank, string? caption, LogEventSource? source)
+        {
+            if (!IsRetained)
+            {
+                _log.Write(rank, indentMessage(caption, -_indentLength), source:source);
+                return;
+            }
+
+            _retainedEvents!.Add(new LogEventArgs(source, rank, indentMessage(caption, -_indentLength), null, null, XpDateTime.Now));
         }
 
         /// <inheritdoc />
@@ -52,32 +88,42 @@ namespace TetraPak.XP.Logging
 
         /// <inheritdoc />
         public ILogSection Section(
-            LogRank? rank = LogRank.Any, 
             string? caption = null, 
-            int indent = 3, 
+            LogRank rank = LogRank.Any, 
+            bool retained = true,
+            int? indent = null, 
             string? sectionSuffix = null,
             LogEventSource? source = null,
             DateTime? timestamp = null)
         {
-            return new LogSectionBase(this, rank ?? LogRank.Any, caption, source, _indentLength);
+            return new LogSectionBase(
+                this, 
+                caption, 
+                rank, 
+                retained,
+                source, 
+                _indentLength + indent ?? _indentLength, 
+                sectionSuffix);
         }
         
         public LogSectionBase(
             ILog log, 
-            LogRank logRank,
-            string? caption, 
+            string? caption,
+            LogRank rank,
+            bool isRetained,
             LogEventSource? source = null, 
             int indentLength = 3,
             string? sectionSuffix = null)
         {
             _log = log;
-            _logRank = logRank;
+            _rank = rank == LogRank.Any ? TypeHelper.GetDefaultValue<LogRank>() : rank;
             _indentLength = indentLength;
             _indent = new string(' ', indentLength);
             _sectionSuffix = sectionSuffix;
+            _retainedEvents = isRetained ? new List<LogEventArgs>() : null;
             if (!string.IsNullOrEmpty(caption))
             {
-                log.Write(logRank, caption, source:source);
+                doWriteCaption(rank, indentMessage(caption, -_indentLength), source: source);
             }
         }
 
@@ -85,8 +131,15 @@ namespace TetraPak.XP.Logging
         {
             if (!disposing || _isDisposed) 
                 return;
-            
-            _log.Write(_logRank, _sectionSuffix);
+
+            if (!IsRetained)
+            {
+                _log.Write(_rank, _sectionSuffix);
+                _isDisposed = true;
+                return;
+            }
+            doWriteCaption(_rank, _sectionSuffix, null);
+            _log.Write(_retainedEvents!.ToArray());
             _isDisposed = true;
         }
 

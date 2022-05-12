@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -625,6 +626,7 @@ namespace TetraPak.XP
             return self == match;
         }
 
+
         /// <summary>
         ///   Constructs a textual representation of a collection of values.
         /// </summary>
@@ -633,22 +635,24 @@ namespace TetraPak.XP
         /// <param name="callback"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        public static string ConcatCollection(
-            this IEnumerable<object>? values, 
+        public static string ConcatEnumerable<T>(
+            this IEnumerable<T>? values,
             string separator = ", ",
-            Func<object, string>? callback = null, 
+            Func<object?, string>? callback = null,
             int offset = 0)
         {
             var a = values?.ToArray();
             if (a is null || a.Length == 0)
                 return string.Empty;
-
+                
             var sb = new StringBuilder();
-            sb.Append(callback?.Invoke(a[offset]) ?? SafeToString(a[offset]));
+            var value = a[offset];
+            sb.Append(callback?.Invoke(value) ?? SafeToString(value));
             for (var i = offset + 1; i < a.Length; i++)
             {
                 sb.Append(separator);
-                sb.Append(callback?.Invoke(a[i]) ?? SafeToString(a[i]));
+                value = a[i];
+                sb.Append(callback?.Invoke(value) ?? SafeToString(value));
             }
 
             return sb.ToString();

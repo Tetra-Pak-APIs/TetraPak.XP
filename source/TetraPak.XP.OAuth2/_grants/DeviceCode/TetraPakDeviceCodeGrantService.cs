@@ -76,7 +76,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
                 };
                 if (options.Scope is { })
                 {
-                    formsValues.Add("scope", options.Scope.Items.ConcatCollection(" "));
+                    formsValues.Add("scope", options.Scope.Items.ConcatEnumerable(" "));
                 }
 
                 var keyValues = formsValues.Select(kvp
