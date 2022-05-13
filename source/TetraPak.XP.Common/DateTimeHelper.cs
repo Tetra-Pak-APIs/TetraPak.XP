@@ -169,10 +169,10 @@ namespace TetraPak.XP
         }
 
         /// <summary>
-        ///   Adds the <see cref="XpDateTime"/> implementation as the current <see cref="IDateTimeSource"/>.
+        ///   (fluent api)<br/>
+        ///   Adds the <see cref="XpDateTime"/> implementation as the current <see cref="IDateTimeSource"/>
+        ///   an returns the service <paramref name="collection"/>.
         /// </summary>
-        /// <param name="collection"></param>
-        /// <returns></returns>
         public static IServiceCollection AddXpDateTime(this IServiceCollection collection)
         {
             lock (s_syncRoot)
@@ -191,5 +191,70 @@ namespace TetraPak.XP
 
             return collection;
         }
+
+        /// <summary>
+        ///   Creates and returns a <see cref="DateTime"/> value that applies the time elements
+        ///   (hour, minute and second) from a specified <see cref="DateTime"/> value.
+        /// </summary>
+        /// <param name="dateTime">
+        ///   The value to apply the date elements from (year, month and day).
+        /// </param>
+        /// <param name="time">
+        ///   The value to apply the time elements from (hour, minute and second). 
+        /// </param>
+        /// <returns>
+        ///   A new <see cref="DateTime"/> value.
+        /// </returns>
+        /// <seealso cref="SetTime(DateTime,int,int,int)"/>
+        /// <remarks>
+        ///   The returned value also retains the <paramref name="dateTime"/> value's <see cref="DateTime.Kind"/>
+        ///   value.
+        /// </remarks>
+        public static DateTime SetTime(this DateTime dateTime, DateTime time)
+            => dateTime.SetTime(time.Hour, time.Minute, time.Second);
+
+        /// <summary>
+        ///   Creates and returns a <see cref="DateTime"/> value that applies specified
+        ///   time elements (hour, minute and second).
+        /// </summary>
+        /// <param name="dateTime">
+        ///   The value to apply the date elements from (year, month and day).
+        /// </param>
+        /// <param name="hour">
+        ///   The hour element.
+        /// </param>
+        /// <param name="minute">
+        ///   The minute element.
+        /// </param>
+        /// <param name="second">
+        ///   The second element.
+        /// </param>
+        /// <returns>
+        ///   A new <see cref="DateTime"/> value.
+        /// </returns>
+        /// <remarks>
+        ///   The returned value also retains the <paramref name="dateTime"/> value's <see cref="DateTime.Kind"/>
+        ///   value.
+        /// </remarks>
+        /// <seealso cref="SetTime(DateTime,DateTime)"/>
+        static DateTime SetTime(this DateTime dateTime, int hour, int minute = 0, int second = 0) =>
+            new(dateTime.Year, dateTime.Month, dateTime.Day, hour, minute, second, dateTime.Kind);
+
+        /// <summary>
+        ///   Creates and returns a <see cref="DateTime"/> value after zeroing the date elements
+        ///   (year. month, day), retaining only its time elements (hour, minute second).
+        /// </summary>
+        /// <param name="dateTime">
+        ///   The <see cref="DateTime"/> to return the time elements from.
+        /// </param>
+        /// <returns>
+        ///   A new <see cref="DateTime"/> value.
+        /// </returns>
+        /// <remarks>
+        ///   The returned value also retains the <paramref name="dateTime"/> value's <see cref="DateTime.Kind"/>
+        ///   value.
+        /// </remarks>
+        public static DateTime GetTime(this DateTime dateTime) => 
+            new(1, 1, 1, dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Kind);
     }
 }
