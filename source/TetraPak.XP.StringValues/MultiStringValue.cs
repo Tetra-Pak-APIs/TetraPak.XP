@@ -429,6 +429,17 @@ namespace TetraPak.XP.StringValues
             return new StringValueParseResult(stringValue!, stringValue?.GetHashCode() ?? 0);
         }
 
+        protected static bool TryParseAs(Type type, string? stringValue, out MultiStringValue? multiStringValue)
+        {
+            var noParseStringValue = $"{NoParse}{stringValue}";
+            multiStringValue = Activator.CreateInstance(type, noParseStringValue) as MultiStringValue;
+            if (multiStringValue is null)
+                return false;
+
+            var outcome = multiStringValue.tryParse(stringValue);
+            return outcome;
+        }
+
         Outcome<string[]> tryParse(string? value)
         {
             if (value.IsUnassigned())

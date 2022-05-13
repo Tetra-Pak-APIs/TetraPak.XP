@@ -3,9 +3,9 @@ using TetraPak.XP.Auth.Abstractions;
 
 namespace TetraPak.XP.OAuth2.TokenExchange
 {
-    public interface ITokenExchangeGrantService
+    public interface ITokenExchangeGrantService : IGrantService
     {
         // todo
-        Task<Outcome<Grant>> AcquireTokenAsync(ActorToken token, GrantOptions options);
+        Task<Outcome<Grant>> AcquireTokenAsync(ActorToken subjectToken, GrantOptions options);
     }
 }

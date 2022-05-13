@@ -78,7 +78,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <summary>
         ///   Gets a value indicating whether the <see cref="Grant"/> is expired. 
         /// </summary>
-        public bool IsExpired => Expires <= XpDateTime.UtcNow;
+        public bool IsExpired => Expires.HasValue && Expires.Value.ToUniversalTime() <= XpDateTime.UtcNow;
 
         public Grant(params TokenInfo[] tokens)
         { 

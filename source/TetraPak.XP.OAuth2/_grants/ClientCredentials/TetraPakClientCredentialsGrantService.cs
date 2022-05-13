@@ -120,17 +120,16 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 }
                 
                 if (!response.IsSuccessStatusCode)
-                    return await loggedFailedOutcome(response);
+                    return await loggedFailedOutcomeAsync(response);
 
 #if NET5_0_OR_GREATER
                 var stream = await response.Content.ReadAsStreamAsync(cts.Token);
 #else
                 var stream = await response.Content.ReadAsStreamAsync();
 #endif
-                var responseBody =
-                    await JsonSerializer.DeserializeAsync<ClientCredentialsResponseBody>(
-                        stream,
-                        cancellationToken: cts.Token);
+                var responseBody = await JsonSerializer.DeserializeAsync<ClientCredentialsResponseBody>(
+                    stream,
+                    cancellationToken: CancellationToken);
 
                 var outcome = ClientCredentialsResponse.TryParse(responseBody!);
                 if (outcome)
@@ -155,7 +154,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 return Outcome<Grant>.Fail(ex);
             }
             
-            async Task<Outcome<Grant>> loggedFailedOutcome(HttpResponseMessage response)
+            async Task<Outcome<Grant>> loggedFailedOutcomeAsync(HttpResponseMessage response)
             {
                 var ex = new HttpServerException(response); 
                 if (Log is null)

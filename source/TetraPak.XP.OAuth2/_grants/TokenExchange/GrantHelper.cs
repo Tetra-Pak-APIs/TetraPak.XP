@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using TetraPak.XP.Auth.Abstractions;
 
-namespace TetraPak.XP.OAuth2.ClientCredentials
+namespace TetraPak.XP.OAuth2.TokenExchange
 {
-    static class ClientCredentialsGrantHelper
+    static class TokenExchangeGrantHelper
     {
-        internal static Grant ToGrant(this ClientCredentialsResponse response)
+        internal static Grant ToGrant(this TokenExchangeResponse response)
         {
             DateTime? expires = null;
             if (response.ExpiresIn != TimeSpan.Zero)

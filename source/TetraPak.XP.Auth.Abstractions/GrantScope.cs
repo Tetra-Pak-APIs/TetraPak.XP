@@ -88,6 +88,19 @@ namespace TetraPak.XP.Auth.Abstractions
                 ? Outcome.Success() 
                 : Outcome.Fail($"Unsupported scoped: {scope}");
         }
+        
+        public static bool TryParse(string? stringValue, out GrantScope? value)
+        {
+            if (!MultiStringValue.TryParseAs(typeof(GrantScope), stringValue, out var msv) 
+                || msv is not GrantScope grantScope)
+            {
+                value = null;
+                return false;
+            }
+
+            value = grantScope;
+            return true;
+        }
 
         /// <summary>
         ///   Overrides base method to automatically validate whether scopes are currently supported,

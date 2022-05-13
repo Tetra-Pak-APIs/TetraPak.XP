@@ -1,15 +1,14 @@
 ﻿using System;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.OAuth2.ClientCredentials
 {
-    public class ClientCredentialsResponse : GrantResponse
+    public sealed class ClientCredentialsResponse : GrantResponse
     {
         internal static Outcome<ClientCredentialsResponse> TryParse(ClientCredentialsResponseBody body)
         {
-            var accessToken = string.IsNullOrWhiteSpace(body.TokenType)
+            var accessToken = body.TokenType.IsUnassigned()
                 ? body.AccessToken
                 : $"{body.TokenType} {body.AccessToken}";
             if (!ActorToken.TryParse(accessToken, out var actorToken))
@@ -17,7 +16,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                     new FormatException($"Failed while parsing access_token: {accessToken}"));
 
             var expiresIn = TimeSpan.Zero;
-            if (!string.IsNullOrWhiteSpace(body.ExpiresIn))
+            if (body.ExpiresIn.IsAssigned())
             {
                 if (!int.TryParse(body.ExpiresIn, out var seconds))
                     return Outcome<ClientCredentialsResponse>.Fail(
@@ -25,7 +24,7 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 expiresIn = TimeSpan.FromSeconds(seconds);
             }
 
-            if (string.IsNullOrWhiteSpace(body.Scope))
+            if (body.Scope.IsAssigned())
                 return Outcome<ClientCredentialsResponse>.Success(
                     new ClientCredentialsResponse(accessToken!, expiresIn, null));
 
@@ -33,8 +32,8 @@ namespace TetraPak.XP.OAuth2.ClientCredentials
                 return Outcome<ClientCredentialsResponse>.Fail(
                     new FormatException($"Failed while parsing expires_in: {body.ExpiresIn}"));
 
-            return Outcome<ClientCredentialsResponse>.Success(new ClientCredentialsResponse(
-                actorToken, expiresIn, scope));
+            return Outcome<ClientCredentialsResponse>.Success(
+                new ClientCredentialsResponse(actorToken!, expiresIn, scope));
         }
         
         ClientCredentialsResponse(ActorToken accessToken, TimeSpan expiresIn, MultiStringValue? scope)

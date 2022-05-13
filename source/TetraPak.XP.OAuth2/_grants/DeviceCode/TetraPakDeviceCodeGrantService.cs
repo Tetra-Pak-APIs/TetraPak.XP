@@ -47,11 +47,7 @@ namespace TetraPak.XP.OAuth2.DeviceCode
             {
                 var cachedOutcome = await GetCachedGrantAsync(authContext);
                 if (cachedOutcome)
-                {
-                    var cachedGrant = cachedOutcome.Value!;
-                    if (!cachedGrant.IsExpired)
-                        return cachedOutcome;
-                }
+                    return cachedOutcome;
 
                 var cachedRefreshTokenOutcome = await GetCachedRefreshTokenAsync(authContext);
                 if (cachedRefreshTokenOutcome)
