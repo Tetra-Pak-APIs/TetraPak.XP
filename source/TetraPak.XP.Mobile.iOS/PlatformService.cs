@@ -33,10 +33,5 @@ namespace TetraPak.XP.Mobile.iOS
                 return Outcome.Fail(ex);
             }
         }
-
-        public PlatformService()
-        {
-            Console.WriteLine($"nisse - instantiating iOS {typeof(IPlatformService)}"); // nisse
-        }
     }
 }
