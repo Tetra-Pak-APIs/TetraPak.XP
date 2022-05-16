@@ -165,6 +165,10 @@
       <Project>{da4bb014-0ad1-476a-87ec-5c1e765a385c}</Project>
       <Name>TetraPak.XP.DependencyInjection</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\TetraPak.XP.Mobile.iOS\TetraPak.XP.Mobile.iOS.csproj">
+      <Project>{b5aa2639-bd8a-4c25-8daa-07a2479e83d8}</Project>
+      <Name>TetraPak.XP.Mobile.iOS</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\TetraPak.XP.Mobile\TetraPak.XP.Mobile.csproj">
       <Project>{3c8db621-3b0e-4c12-86e5-39fbf2e4252f}</Project>
       <Name>TetraPak.XP.Mobile</Name>

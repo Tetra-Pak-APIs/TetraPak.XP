@@ -5,16 +5,16 @@ using TetraPak.XP.Mobile;
 using TetraPak.XP.Mobile.iOS;
 using UIKit;
 
-[assembly:XpService(typeof(IPlatformService), typeof(IosPlatformService))]
+[assembly:XpService(typeof(IPlatformService), typeof(PlatformService))]
 
 namespace TetraPak.XP.Mobile.iOS
 {
-    public sealed class IosPlatformService : IPlatformService
+    sealed class PlatformService : IPlatformService
     {
-        public async Task<Outcome> TryCloseTopWindowAsync(bool isModalWindow, bool animated = true)
+        async Task<Outcome> IPlatformService.TryCloseTopWindowAsync(bool isModalWindow, bool animated)
         {
             var window = UIApplication.SharedApplication.KeyWindow;
-            var viewController = window.RootViewController;
+            var viewController = window?.RootViewController;
             if (viewController is null)
                 return Outcome.Fail("Couldn't obtain top window view controller");
 
@@ -34,7 +34,7 @@ namespace TetraPak.XP.Mobile.iOS
             }
         }
 
-        public IosPlatformService()
+        public PlatformService()
         {
             Console.WriteLine($"nisse - instantiating iOS {typeof(IPlatformService)}"); // nisse
         }

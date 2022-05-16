@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Foundation;
+using TetraPak.XP.Mobile.iOS;
 using UIKit;
 
 namespace mobileClient.iOS
@@ -22,9 +23,8 @@ namespace mobileClient.iOS
         //
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
-            global::Xamarin.Forms.Forms.Init();
-            LoadApplication(new App());
-
+            Xamarin.Forms.Forms.Init();
+            LoadApplication(new App().WithTetraPakSDK());
             return base.FinishedLaunching(app, options);
         }
     }
