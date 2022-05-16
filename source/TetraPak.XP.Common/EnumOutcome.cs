@@ -23,27 +23,24 @@ namespace TetraPak.XP
         public string DebugDisplay => $"Count={Count}; Total={TotalCount}";
 #endif
 
-        public static EnumOutcome<T> Success(T singleValue, int totalCount = 0)
-            => new EnumOutcome<T>(true, new T[] { singleValue }, totalCount);
+        public static EnumOutcome<T> Success(T singleValue, int totalCount = 0) =>
+            new(true, new T[] { singleValue }, totalCount);
 
-        public static EnumOutcome<T> Success(IReadOnlyCollection<T> value, int totalCount = 0)
-            => new EnumOutcome<T>(true, value, totalCount == 0 ? value.Count : totalCount);
+        public static EnumOutcome<T> Success(IReadOnlyCollection<T> value, int totalCount = 0) =>
+            new(true, value, totalCount == 0 ? value.Count : totalCount);
 
-        public new static EnumOutcome<T> Fail()
-            => new EnumOutcome<T>(false, default!, 0, null);
+        public static EnumOutcome<T> Fail() => new(false, default!, 0);
 
-        public new static EnumOutcome<T> Fail(Exception exception)
-            => new EnumOutcome<T>(false, default!, 0, exception);
+        public new static EnumOutcome<T> Fail(Exception exception) => new(false, default!, 0, exception);
 
-        public static EnumOutcome<T> Fail(T[] value, Exception exception)
-            => new EnumOutcome<T>(false, value, 0, exception);
+        public static EnumOutcome<T> Fail(T[] value, Exception exception) => new(false, value, 0, exception);
 
         protected EnumOutcome(
             bool evaluated,
-            IReadOnlyCollection<T> value,
+            IReadOnlyCollection<T>? value,
             int totalCount,
             Exception? exception = null)
-            : base(evaluated, null, exception, value)
+        : base(evaluated, null, exception, value)
         {
             TotalCount = totalCount;
             Count = value?.Count ?? 0;

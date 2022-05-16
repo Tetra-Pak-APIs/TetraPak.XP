@@ -7,7 +7,7 @@ namespace TetraPak.XP
     {
         public const char NumberDecimalSeparator = '.';
 
-        static readonly Lazy<IFormatProvider> s_formatProvider = new Lazy<IFormatProvider>(() => new NumberFormatInfo()
+        static readonly Lazy<IFormatProvider> s_formatProvider = new(() => new NumberFormatInfo()
         {
             NumberDecimalSeparator = NumberDecimalSeparator.ToString()
         });

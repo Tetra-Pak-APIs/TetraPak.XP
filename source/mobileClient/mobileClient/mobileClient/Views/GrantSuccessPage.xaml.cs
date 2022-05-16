@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using mobileClient.ViewModels;
-using TetraPak.Auth.Xamarin.common;
+using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -10,7 +10,7 @@ namespace mobileClient.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
     // ReSharper disable once RedundantExtendsListEntry
-    public partial class GrantSuccessPage : ContentPage
+    public sealed partial class GrantSuccessPage : ContentPage
     {
         void addTokens(IEnumerable<TokenInfo> tokens)
         {

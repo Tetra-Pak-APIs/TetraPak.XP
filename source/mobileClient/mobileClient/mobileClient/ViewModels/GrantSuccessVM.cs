@@ -10,7 +10,7 @@ using Xamarin.Forms;
 
 namespace mobileClient.ViewModels
 {
-    public class GrantSuccessVM : BaseViewModel
+    public sealed class GrantSuccessVM : BaseViewModel
     {
         readonly Outcome<Grant> _outcome;
 

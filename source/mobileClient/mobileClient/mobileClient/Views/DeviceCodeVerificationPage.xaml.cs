@@ -4,7 +4,7 @@ using Xamarin.Forms.Xaml;
 namespace mobileClient.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class DeviceCodeVerificationPage
+    public sealed partial class DeviceCodeVerificationPage
     {
         protected override void OnDisappearing()
         {

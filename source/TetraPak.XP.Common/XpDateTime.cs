@@ -16,8 +16,6 @@ namespace TetraPak.XP
 
         public const string ConfigurationSectionKey = nameof(DateTimeSource);
         
-        // public static IDateTimeSource Current { get; set; } = new XpDateTime();
-
         /// <summary>
         ///   Gets the set start date and time. 
         /// </summary>

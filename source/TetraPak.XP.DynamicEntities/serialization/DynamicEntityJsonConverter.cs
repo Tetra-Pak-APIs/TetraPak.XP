@@ -237,12 +237,12 @@ namespace TetraPak.XP.DynamicEntities
                 if (reader.TokenType == JsonTokenType.EndArray)
                     return initialNullValues == 0
                         ? Array.Empty<object>()
-                        : Collection.ArrayOf<object>(initialNullValues, _ => null!);
+                        : CollectionHelper.MakeArrayOf<object>(initialNullValues, _ => null!);
                 
                 switch (reader.TokenType)
                 {
                     case JsonTokenType.StartObject:
-                        var list = Collection.ListOf<DynamicEntity>(null!, initialNullValues);
+                        var list = CollectionHelper.MakeListOf<DynamicEntity>(null!, initialNullValues);
                         do
                         {
                             var item = OnConstructEntity(key, ref reader, options);
@@ -252,7 +252,7 @@ namespace TetraPak.XP.DynamicEntities
                         return list.ToArray();
 
                     case JsonTokenType.String:
-                        var strings = Collection.ListOf<string>(initialNullValues, _ => null!);
+                        var strings = CollectionHelper.MakeListOf<string>(initialNullValues, _ => null!);
                         do
                         {
                             strings.Add(reader.GetString()!);

@@ -5,7 +5,7 @@ using Xamarin.Forms.Xaml;
 namespace mobileClient.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class DeviceCodePage
+    public sealed partial class DeviceCodePage
     {
         public DeviceCodePage()
         {

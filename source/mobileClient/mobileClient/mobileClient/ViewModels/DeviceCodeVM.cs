@@ -10,7 +10,7 @@ using Xamarin.Forms;
 
 namespace mobileClient.ViewModels
 {
-    public class DeviceCodeVM : GrantViewModel
+    public sealed class DeviceCodeVM : GrantViewModel
     {
         readonly IDeviceCodeGrantService _grantService;
         string? _userCode;

@@ -6,7 +6,7 @@ namespace mobileClient.Views
 {
 
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class GrantFailPage : ContentPage
+    public sealed partial class GrantFailPage : ContentPage
     {
         public GrantFailPage(GrantFailVM vm)
         {

@@ -3,7 +3,7 @@ using TetraPak.XP.Auth.Abstractions;
 
 namespace mobileClient.ViewModels
 {
-    public class GrantFailVM : BaseViewModel
+    public sealed class GrantFailVM : BaseViewModel
     {
         readonly Outcome<Grant>? _outcome;
 

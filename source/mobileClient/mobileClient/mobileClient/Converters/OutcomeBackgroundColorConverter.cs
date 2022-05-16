@@ -5,17 +5,17 @@ using Xamarin.Forms;
 
 namespace mobileClient.Converters
 {
-    public class OutcomeBackgroundColorConverter : IValueConverter
+    public sealed class OutcomeBackgroundColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             // todo Get colors from resource dictionary
-            if (!(value is Outcome outcome))
+            if (value is not Outcome outcome)
                 return value;
 
             var color = outcome
-                ? App.Current.Resources["Success"]
-                : App.Current.Resources["Failure"];
+                ? Application.Current.Resources["Success"]
+                : Application.Current.Resources["Failure"];
             return color;
         }
 

@@ -6,16 +6,16 @@ using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Mobile;
 using UIKit;
 
-[assembly:XpService(typeof(IPlatformService), typeof(PlatformService))]
+[assembly:XpService(typeof(IPlatformService), typeof(IosPlatformService))]
 
 namespace mobileClient.iOS
 {
-    public class PlatformService : IPlatformService
+    public sealed class IosPlatformService : IPlatformService
     {
         public async Task<Outcome> TryCloseTopWindowAsync(bool isModalWindow, bool animated = true)
         {
             var window = UIApplication.SharedApplication.KeyWindow;
-            var viewController = window?.RootViewController;
+            var viewController = window.RootViewController;
             if (viewController is null)
                 return Outcome.Fail("Couldn't obtain top window view controller");
 
@@ -35,7 +35,7 @@ namespace mobileClient.iOS
             }
         }
 
-        public PlatformService()
+        public IosPlatformService()
         {
             Console.WriteLine($"nisse - instantiating iOS {typeof(IPlatformService)}");
         }

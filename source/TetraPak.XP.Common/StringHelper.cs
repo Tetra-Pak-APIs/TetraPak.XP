@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -306,9 +305,7 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        /// <seealso cref="TrimPrefix"/>
         /// <seealso cref="TrimPrefix(string,char,bool)"/>
-        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePrefix(
             this string self, 
@@ -339,9 +336,7 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        /// <seealso cref="TrimPrefix"/>
         /// <seealso cref="TrimPrefix(string,char,bool)"/>
-        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePrefix(
             this string self, 
@@ -375,9 +370,7 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,char,bool)"/>
-        /// <seealso cref="TrimPrefix"/>
         /// <seealso cref="TrimPrefix(string,char,bool)"/>
-        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePostfix(
             this string self, 
@@ -408,9 +401,7 @@ namespace TetraPak.XP
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
-        /// <seealso cref="TrimPrefix"/>
         /// <seealso cref="TrimPrefix(string,char,bool)"/>
-        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="TrimPostfix(string,char,bool)"/>
         public static string EnsurePostfix(
             this string self, 
@@ -442,7 +433,6 @@ namespace TetraPak.XP
         ///   The <see cref="string"/> without the specified prefix.
         /// </returns>
         /// <seealso cref="TrimPrefix(string,char,bool)"/>
-        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="TrimPostfix(string,char,bool)"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
@@ -474,8 +464,6 @@ namespace TetraPak.XP
         /// <returns>
         ///   The <see cref="string"/> without the specified prefix.
         /// </returns>
-        /// <seealso cref="TrimPrefix"/>
-        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="TrimPostfix(string,char,bool)"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
@@ -507,7 +495,6 @@ namespace TetraPak.XP
         /// <returns>
         ///   The <see cref="string"/> without the specified postfix.
         /// </returns>
-        /// <seealso cref="TrimPrefix"/>
         /// <seealso cref="TrimPrefix(string,char,bool)"/>
         /// <seealso cref="TrimPostfix(string,char,bool)"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
@@ -540,9 +527,7 @@ namespace TetraPak.XP
         /// <returns>
         ///   The <see cref="string"/> without the specified postfix.
         /// </returns>
-        /// <seealso cref="TrimPrefix"/>
         /// <seealso cref="TrimPrefix(string,char,bool)"/>
-        /// <seealso cref="TrimPostfix"/>
         /// <seealso cref="EnsurePrefix(string,string,StringComparison)"/>
         /// <seealso cref="EnsurePrefix(string,char,bool)"/>
         /// <seealso cref="EnsurePostfix(string,string,StringComparison)"/>
@@ -901,8 +886,8 @@ namespace TetraPak.XP
             return allowWhitespace || self.Any(c => !char.IsWhiteSpace(c));
         }
 
-        public static bool IsUnassigned(this string? self, bool isWhitespaceAllowed = false) =>
-            !self.IsAssigned(isWhitespaceAllowed);
+        public static bool IsUnassigned(this string? self, bool allowWhitespace = false) =>
+            !self.IsAssigned(allowWhitespace);
 
         /// <summary>
         ///   Constructs and returns the string trimmed of all leading/trailing whitespace.

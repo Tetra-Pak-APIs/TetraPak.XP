@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP.OAuth2.AuthCode;
-using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
 
 namespace mobileClient.ViewModels

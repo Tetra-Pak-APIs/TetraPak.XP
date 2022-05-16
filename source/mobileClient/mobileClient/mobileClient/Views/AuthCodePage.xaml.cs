@@ -5,13 +5,8 @@ using Xamarin.Forms.Xaml;
 namespace mobileClient.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class AuthCodePage
+    public sealed partial class AuthCodePage
     {
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-        }
-
         public AuthCodePage()
         {
             InitializeComponent();

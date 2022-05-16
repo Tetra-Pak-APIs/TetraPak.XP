@@ -4,7 +4,10 @@ using System.Linq;
 
 namespace TetraPak.XP
 {
-    public static class DictionaryExtensions
+    /// <summary>
+    ///   Provides convenient helper methods for working with dictionaries.
+    /// </summary>
+    public static class DictionaryHelper
     {
         /// <summary>
         ///   Generates a new <see cref="IDictionary{TKey,TValue}"/> where all keys are
@@ -26,7 +29,6 @@ namespace TetraPak.XP
         /// <returns>
         ///   A remapped dictionary.
         /// </returns>
-        /// <seealso cref="MapSafe{TValue}(System.Collections.Generic.IDictionary{string,TValue},KeyMapInfo,bool)"/>
         public static IDictionary<string, TValue> Map<TValue>(
             this IDictionary<string, TValue> self, 
             IDictionary<string,string> keyMap,

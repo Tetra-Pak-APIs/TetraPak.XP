@@ -5,7 +5,7 @@ using TetraPak.XP.OAuth2.AuthCode;
 
 namespace mobileClient.ViewModels
 {
-    public class AuthCodeVM : GrantViewModel
+    public sealed class AuthCodeVM : GrantViewModel
     {
         readonly IAuthorizationCodeGrantService _grantService;
 

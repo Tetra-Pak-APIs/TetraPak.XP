@@ -5,11 +5,14 @@ using System.Reflection;
 
 namespace TetraPak.XP
 {
-    public static class Collection
+    /// <summary>
+    ///   Provides convenient helper methods or working with collections.
+    /// </summary>
+    public static class CollectionHelper
     {
         public static T[] Join<T>(this T[]? self, T[]? other)
         {
-            self ??= System.Array.Empty<T>();
+            self ??= Array.Empty<T>();
             if (other is null || other.Length == 0)
                 return self;
 
@@ -51,7 +54,7 @@ namespace TetraPak.XP
             return list.ToArray();
         }
 
-        public static T[] ArrayOf<T>(int count, CollectionItemActivator<T>? activator = null)
+        public static T[] MakeArrayOf<T>(int count, CollectionItemActivator<T>? activator = null)
         {
             var array = new T[count]; 
             for (var i = 0; i < count; i++)
@@ -69,30 +72,46 @@ namespace TetraPak.XP
             return array;
         }
         
-        public static T[] ArrayOf<T>(T value, int count) => ArrayOf(count, _ => value);
+        public static T[] MakeArrayOf<T>(T value, int count) => MakeArrayOf(count, _ => value);
 
-        public static IList ListOf(Type itemType, object value, int count) 
-            => ListOf(itemType, count, _ => value);
-
-        public static IList ListOf(Type itemType, int count, CollectionItemActivator? activator = null)
+        /// <summary>
+        ///   Constructs and returns a <see cref="IList"/> of items of a specified type.
+        /// </summary>
+        /// <param name="itemType">
+        ///   The type of items to be contained by the list.
+        /// </param>
+        /// <param name="count">
+        ///   The number of items to be created.
+        /// </param>
+        /// <param name="itemFactory">
+        ///   A callback handler charged with constructing and returning the items for the constructed list.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="IList"/> object that contains items constructed by <see cref="itemFactory"/>.
+        /// </returns>
+        /// <exception cref="TargetInvocationException">
+        ///   <see cref="Activator.CreateInstance(string,string)"/> failed to construct and activate
+        ///   an <see cref="IList"/> instance.
+        /// </exception>
+        /// <seealso cref=" MakeListOf"/>
+        public static IList MakeListOf(Type itemType, int count, CollectionItemActivator? itemFactory = null)
         {
             var listType = itemType.MakeGenericType(itemType);
-            var list = (IList) Activator.CreateInstance(listType);
-            if (list is null)
+            if (Activator.CreateInstance(listType) is not IList list)
                 throw new TargetInvocationException($"Failed to activate list of {itemType}", null);
             
             for (var i = 0; i < count; i++)
             {
-                var item = activator?.Invoke(i) ?? Activator.CreateInstance(itemType);
+                var item = itemFactory?.Invoke(i) ?? Activator.CreateInstance(itemType);
                 list.Add(item);
             }
 
             return list;
         }
 
-        public static List<T> ListOf<T>(T value, int count) => ListOf<T>(count, _ => value);
+        public static List<T> MakeListOf<T>(T value, int count) => MakeListOf(count, _ => value);
         
-        public static List<T> ListOf<T>(int count, CollectionItemActivator<T>? activator = null)
+        public static List<T> MakeListOf<T>(int count, CollectionItemActivator<T>? activator = null)
         {
             var list = new List<T>(); 
             for (var i = 0; i < count; i++)
@@ -106,5 +125,6 @@ namespace TetraPak.XP
     }
 
     public delegate T CollectionItemActivator<out T>(int index);
+    
     public delegate object CollectionItemActivator(int index);
 }

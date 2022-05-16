@@ -7,7 +7,7 @@ using UserInformation = TetraPak.XP.Identity.UserInformation;
 
 namespace mobileClient.ViewModels
 {
-    public class UserInformationVM : BaseViewModel
+    public sealed class UserInformationVM : BaseViewModel
     {
         readonly Grant _grant;
         readonly IUserInformationService _service;

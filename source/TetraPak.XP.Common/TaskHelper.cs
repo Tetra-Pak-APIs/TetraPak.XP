@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace TetraPak.XP
 {
+    /// <summary>
+    ///   Provides convenient helper methods for working with <see cref="Task"/>s.
+    /// </summary>
     public static class TaskHelper
     {
         /// <summary>

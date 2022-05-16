@@ -29,7 +29,7 @@ namespace mobileClient.ViewModels
 
         protected bool SetProperty<T>(ref T backingStore, T value,
             [CallerMemberName] string propertyName = "",
-            Action onChanged = null!, 
+            Action? onChanged = null, 
             params string[] triggerOtherProperties)
         {
             if (EqualityComparer<T>.Default.Equals(backingStore, value))
@@ -63,14 +63,14 @@ namespace mobileClient.ViewModels
         }
 
         #region .  INotifyPropertyChanged  .
+#pragma warning disable CS8618
         public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore CS8618
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             var changed = PropertyChanged;
-            if (changed == null)
-                return;
-
-            changed.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+            changed?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
     }

@@ -10,6 +10,7 @@ namespace TetraPak.XP
         /// <summary>
         ///   Gets the conflicting identity.
         /// </summary>
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string Identity { get; }
 
         /// <summary>

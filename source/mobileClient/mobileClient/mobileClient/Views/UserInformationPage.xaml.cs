@@ -9,7 +9,7 @@ using Xamarin.Forms.Xaml;
 namespace mobileClient.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class UserInformationPage : ContentPage
+    public sealed partial class UserInformationPage : ContentPage
     {
         async Task populateFrom(UserInformationVM vm)
         {
