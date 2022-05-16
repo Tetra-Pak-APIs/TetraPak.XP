@@ -26,6 +26,8 @@
     <ProjectReference Include="..\TetraPak.XP.Caching\TetraPak.XP.Caching.csproj" />
     <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
     <ProjectReference Include="..\TetraPak.XP.DependencyInjection\TetraPak.XP.DependencyInjection.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.Identity\TetraPak.XP.Identity.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.OAuth2\TetraPak.XP.OAuth2.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="TetraPak.XP.Mobile.csproj.DotSettings" />

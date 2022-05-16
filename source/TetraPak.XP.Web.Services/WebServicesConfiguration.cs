@@ -6,7 +6,7 @@ using TetraPak.XP.Configuration;
 namespace TetraPak.XP.Web.Services
 {
     // todo move to a more "web" oriented lib
-    public class WebServicesConfiguration : ConfigurationSectionDecorator, IWebServicesConfiguration
+    public sealed class WebServicesConfiguration : ConfigurationSectionDecorator, IWebServicesConfiguration
     {
         internal const string SectionKey = "WebServices";
         static readonly ConfigPath s_webServicesPath = new(new[] { TetraPakConfiguration.SectionKey, SectionKey });
