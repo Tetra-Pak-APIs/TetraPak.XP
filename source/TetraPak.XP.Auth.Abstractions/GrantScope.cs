@@ -91,7 +91,7 @@ namespace TetraPak.XP.Auth.Abstractions
         
         public static bool TryParse(string? stringValue, out GrantScope? value)
         {
-            if (!MultiStringValue.TryParseAs(typeof(GrantScope), stringValue, out var msv) 
+            if (!TryParseAs(typeof(GrantScope), stringValue, out var msv) 
                 || msv is not GrantScope grantScope)
             {
                 value = null;

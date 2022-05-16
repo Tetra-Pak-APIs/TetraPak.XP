@@ -71,7 +71,8 @@ namespace TetraPak.XP.OAuth2.TokenExchange
                         clientCredentials.Secret!); // todo Do we need ro check if secret was assigned?
                 }
                 client.DefaultRequestHeaders.Authorization = basicAuthCredentials.ToAuthenticationHeaderValue();
-                var discoOutcome = await _discoveryDocumentProvider.GetDiscoveryDocumentAsync(subjectToken);
+                var idToken = subjectToken.IsJwt ? subjectToken : null!; 
+                var discoOutcome = await _discoveryDocumentProvider.GetDiscoveryDocumentAsync(idToken, options);
                 if (!discoOutcome)
                     return Outcome<Grant>.Fail(
                         HttpServerException.InternalServerError(

@@ -21,10 +21,7 @@ namespace TetraPak.XP
         /// </returns>
         public static bool TryParseAsRuntimeEnvironment(this string? self, out RuntimeEnvironment runtimeEnvironment)
         {
-            self = self?.Trim();
-            if (string.IsNullOrWhiteSpace(self)) 
-                throw new ArgumentNullException(nameof(self));
-            
+            self = self.ThrowIfUnassigned(nameof(self)).Trim();
             if (self.Length != 3 && self.Length != 4)
                 return Enum.TryParse(self, out runtimeEnvironment);
 

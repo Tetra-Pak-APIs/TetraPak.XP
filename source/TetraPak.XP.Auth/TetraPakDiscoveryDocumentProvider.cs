@@ -127,7 +127,7 @@ namespace TetraPak.XP.Auth
             
             return Uri.TryCreate(input, UriKind.Absolute, out var uri) 
                 ? tryParseUrl(uri.AbsoluteUri) 
-                : tryResolveUrlFromAssumedJwtToken(input!);
+                : tryResolveUrlFromAssumedJwtToken(input);
         }
 
         static Outcome<DiscoveryEndpoint> tryResolveUrlFromAssumedJwtToken(string input)

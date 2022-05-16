@@ -1,7 +1,6 @@
 ﻿using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
-using TetraPak.XP.Desktop;
 
 namespace authClient.console
 {
@@ -16,6 +15,7 @@ namespace authClient.console
                 GrantType.CC => "CC-",
                 GrantType.DC => "DC-",
                 GrantType.RF => "RF-",
+                GrantType.TX => "TX-",
                 _ => string.Empty
             };
             var keyClientId = $"{prefix}{nameof(IAuthConfiguration.ClientId)}";
@@ -39,7 +39,7 @@ namespace authClient.console
             
             return string.IsNullOrEmpty(clientId)
                 ? conf.MissingConfigurationOutcome<Credentials>(nameof(IAuthConfiguration.ClientId))
-                : Outcome<Credentials>.Success(new Credentials(clientId!, clientSecret));
+                : Outcome<Credentials>.Success(new Credentials(clientId, clientSecret));
         }
     }
 }

@@ -64,14 +64,14 @@ namespace authClient.console
                 
                     case GrantType.TX:
                         Console.WriteLine();
-                        if (_lastGrant?.AccessToken is null)
+                        if (_lastGrant?.IdToken is null)
                         {
-                            Console.WriteLine("Token Exchange requires an existing token. Please execute other grant first");
+                            Console.WriteLine("Token Exchange requires an existing identity token. Please execute OIDC or Device Code grant first");
                             break;
                         }
                         var tx = provider.GetRequiredService<ITokenExchangeGrantService>();
                         Console.WriteLine("Token Exchange grant requested ...");
-                        onOutcome(await tx.AcquireTokenAsync(_lastGrant.AccessToken, options));
+                        onOutcome(await tx.AcquireTokenAsync(_lastGrant.IdToken, options));
                         break;
                 
                     default:
@@ -135,12 +135,16 @@ namespace authClient.console
             sb.AppendLine("SUCCESS!");
             var grant = outcome.Value!;
             sb.AppendLine("Token(s):");
+            sb.AppendLine();
             foreach (var token in grant.Tokens!)
             {
-                sb.AppendLine($"  {token.Role}={token.Token}");
+                sb.AppendLine($"  {token.Role}:");
+                sb.AppendLine($"    {token.Token}");
+                sb.AppendLine();
             }
 
-            sb.AppendLine($"Scope={grant.Scope}");
+            sb.AppendLine("Scope:");
+                sb.AppendLine($"    {grant.Scope}");
             _log.Information(sb.ToString());
         }
 

@@ -287,7 +287,7 @@ namespace TetraPak.XP.Auth
             Log = log;
             Authority = _authority = authority;
             TokenIssuer = _tokenIssuer = tokenIssuer;
-            RedirectUri = redirectUri ?? throw new ArgumentNullException(nameof(redirectUri));
+            RedirectUri = redirectUri.ThrowIfNull(nameof(redirectUri));
             ClientId = clientId.IsAssigned() ? clientId : throw new ArgumentNullException(nameof(clientId));
             Browser = browser;
             Scope = scope;

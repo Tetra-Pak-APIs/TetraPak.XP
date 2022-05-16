@@ -81,7 +81,7 @@ namespace TetraPak.XP.Auth.Abstractions
         TokenCache(ISecureCache secureCache, ILog? log)
         : base(log)
         {
-            _secureCache = secureCache ?? throw new ArgumentNullException(nameof(secureCache));
+            _secureCache = secureCache.ThrowIfNull(nameof(secureCache));
             if (!secureCache.ContainsDelegate<ISecureCacheDelegate>()) 
                 throw new Exception(
                     "Could not activate token cache because provided secure cache was not correctly provided");

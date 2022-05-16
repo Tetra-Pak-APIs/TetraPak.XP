@@ -61,7 +61,7 @@ namespace TetraPak.XP.Auth
         /// </summary>
         protected AbstractAuthenticator(AuthConfig config)
         {
-            Config = config ?? throw new ArgumentNullException(nameof(config));
+            Config = config.ThrowIfNull(nameof(config));
         }
     }
 }

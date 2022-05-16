@@ -7,7 +7,7 @@ namespace TetraPak.XP.OAuth2.TokenExchange
     {
         public static Outcome<TokenExchangeResponse> TryParse(TokenExchangeResponseBody body)
         {
-            if (!body.AccessToken.IsUnassigned())
+            if (body.AccessToken.IsUnassigned())
                 return Outcome<TokenExchangeResponse>.Fail(
                     new FormatException($"Unexpected response. access_token was unassigned"));
 

@@ -57,7 +57,7 @@ namespace TetraPak.XP.Auth.Abstractions
             TokenRole role,
             DateTime? expires)
         {
-            Token = token ?? throw new ArgumentNullException(nameof(token));
+            Token = token.ThrowIfNull(nameof(token));
             Role = role;
             Expires = expires;
         }

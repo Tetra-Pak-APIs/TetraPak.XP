@@ -15,7 +15,7 @@ namespace TetraPak.XP.Auth
     /// </remarks>
     /// <seealso cref="Authorization.GetAuthenticator(AuthConfig,ILog)"/>
     [DebuggerDisplay("{" + nameof(StringValue) + "}")]
-    public class AuthApplication
+    public sealed class AuthApplication // obsolete?
     {
         const string Format = "[<platform>;] [<environment>;] <clientId>; <redirectUri>";
         static readonly char[] s_separators = { ',', ';'};
@@ -172,7 +172,7 @@ namespace TetraPak.XP.Auth
         ///   Determines whether this instance and another specified <seealso cref="AuthApplication"/>
         ///   object are semantically equal.
         /// </summary>
-        protected bool Equals(AuthApplication other)
+        bool Equals(AuthApplication other)
         {
             return ClientId == other.ClientId && Equals(RedirectUri, other.RedirectUri) && Environment == other.Environment && RuntimePlatform == other.RuntimePlatform;
         }
@@ -209,7 +209,7 @@ namespace TetraPak.XP.Auth
         public AuthApplication(string clientId, Uri redirectUri, RuntimeEnvironment environment, RuntimePlatform runtimePlatform = default)
         {
             RuntimePlatform = runtimePlatform;
-            ClientId = clientId.Trim();
+            ClientId = clientId.ThrowIfNull(nameof(clientId)).Trim();
             if (string.IsNullOrEmpty(ClientId))
                 throw new ArgumentNullException(nameof(clientId));
 
