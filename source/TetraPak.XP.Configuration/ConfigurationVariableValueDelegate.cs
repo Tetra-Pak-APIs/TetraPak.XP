@@ -1,25 +1,28 @@
 ﻿using System;
-using TetraPak.XP;
-using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Configuration;
 using TetraPak.XP.DynamicEntities;
 using TetraPak.XP.StringValues;
 
-namespace authClient.console
+namespace TetraPak.XP.Configuration
 {
-    sealed class ConfigurationVariablesDelegate : IConfigurationValueDelegate
+    /// <summary>
+    ///   This configuration value delegate can be inserted into the configuration framework
+    ///   to support referencing environment variables in configuration files.
+    /// </summary>
+    /// <seealso cref="Configure.InsertValueDelegate"/>
+    public class ConfigurationVariableValueDelegate : IConfigurationValueDelegate
     {
-        const string EnvironmentIdent = "Env";
+        const string EnvironmentIdent = "Environment";
 
         public bool IsFallbackDelegate => false;
 
-        public Outcome<T> GetValue<T>(ConfigurationValueArgs<T> args)
+        /// <inheritdoc />
+        public virtual Outcome<T> GetValue<T>(ConfigurationValueArgs<T> args)
         {
-            if (!isClientCredentials(args) || typeof(T) != typeof(string))
-                return Outcome<T>.Fail(new Exception("Not concerned with this"));
+            // if (!isClientCredentials(args) || typeof(T) != typeof(string)) obsolete
+            //     return Outcome<T>.Fail(new Exception("Not concerned with this"));
 
             var value = args.Configuration[args.Key]?.Trim();
-            if (string.IsNullOrEmpty(value))
+            if (value.IsUnassigned())
                 return Outcome<T>.Fail(new Exception($"No '{args.Key}' value found in configuration"));
 
             if (!value!.StartsWith("$(") || !value.EndsWith(')')) 
@@ -37,17 +40,17 @@ namespace authClient.console
             };
         }
 
-        static bool isClientCredentials<T>(ConfigurationValueArgs<T> args)
-        {
-            return args.Key.EndsWith(nameof(IAuthConfiguration.ClientId)) || args.Key.EndsWith(nameof(IAuthConfiguration.ClientSecret));
-        }
+        // static bool isClientCredentials<T>(ConfigurationValueArgs<T> args) obsolete
+        // {
+        //     return args.Key.EndsWith(nameof(IAuthConfiguration.ClientId)) || args.Key.EndsWith(nameof(IAuthConfiguration.ClientSecret));
+        // }
 
         // todo consider supporting more variable sources 
         static Outcome<T> getValueFromEnvironmentVariables<T>(IStringValue path)
         {
             var key = path.StringValue;
             var value = Environment.GetEnvironmentVariable(key)?.Trim();
-            return string.IsNullOrEmpty(value)
+            return value.IsUnassigned()
                 ? Outcome<T>.Fail($"Environment variable not found: {path}")
                 : Outcome<T>.Success((T) (object) value!);
         }

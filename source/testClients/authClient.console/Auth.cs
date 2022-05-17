@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
 using TetraPak.XP.Auth.Abstractions;
-using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Identity;
@@ -16,7 +15,6 @@ using TetraPak.XP.OAuth2;
 using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
-using TetraPak.XP.OAuth2.OIDC;
 using TetraPak.XP.OAuth2.TokenExchange;
 using TetraPak.XP.Web.Services;
 using UserInformation = TetraPak.XP.Identity.UserInformation;
@@ -201,19 +199,17 @@ namespace authClient.console
             var info = args.BuildTetraPakDesktopHost(collection =>
             {
                 collection
+                    .AddTetraPakDesktopAuthorization(
+                        GrantType.OIDC,
+                        GrantType.DeviceCode, 
+                        GrantType.ClientCredentials, 
+                        GrantType.TokenExchange)
                     .AddTetraPakWebServices()
-                    .AddDesktopTokenCache() 
                     .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
-                    .AddTetraPakOidcGrant()
-                    .AddTetraPakClientCredentialsGrant()
-                    .AddTetraPakDeviceCodeGrant()
-                    .AddTetraPakTokenExchangeGrant()
-                    .AddTetraPakUserInformation()
                     // just a very basic log (abstracted by the ILog interface, you can use something else here, like NLog, SemiLog, Log4Net or whatever)
                     // .AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging())
                     .AddMicrosoftLogging(new LogFormatOptions { OmitRank = true, OmitPrefix = true});
             });
-            Configure.InsertValueDelegate(new ConfigurationVariablesDelegate());
             _serviceProvider = info.ServiceCollection.BuildXpServiceProvider();
             _log = _serviceProvider.GetService<ILog>();
         }

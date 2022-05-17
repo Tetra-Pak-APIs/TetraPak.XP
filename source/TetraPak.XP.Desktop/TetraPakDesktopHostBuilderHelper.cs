@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using TetraPak.XP.Auth;
 using TetraPak.XP.Auth.Abstractions;
+using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 
 namespace TetraPak.XP.Desktop
@@ -50,6 +50,7 @@ namespace TetraPak.XP.Desktop
                 .ConfigureAppConfiguration((_, builder) => builder.Build())
                 .Build();
 
+            Configure.InsertValueDelegate(new ConfigurationVariableValueDelegate());
             var collection = tcs.Task.Result;
             return new TetraPakHostInfo(host, collection);
         }
@@ -110,10 +111,11 @@ namespace TetraPak.XP.Desktop
 
     public sealed class TetraPakHostInfo
     {
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
+        // ReSharper disable UnusedAutoPropertyAccessor.Global
         public IHost Host { get; }
 
         public IServiceCollection ServiceCollection { get; }
+        // ReSharper restore UnusedAutoPropertyAccessor.Global
 
         internal TetraPakHostInfo(IHost host, IServiceCollection serviceCollectionCollection)
         {

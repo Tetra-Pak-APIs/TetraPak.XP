@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.Browsers\TetraPak.XP.Browsers.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.Identity\TetraPak.XP.Identity.csproj" />
     <ProjectReference Include="..\TetraPak.XP.OAuth2\TetraPak.XP.OAuth2.csproj" />
   </ItemGroup>
   <ItemGroup>

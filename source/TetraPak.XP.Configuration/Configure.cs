@@ -29,7 +29,8 @@ namespace TetraPak.XP.Configuration
                 return s_valueParsers.ToArray();
         }
 
-        public static void InsertConfigurationDecorator(IConfigurationDecoratorDelegate decoratorDelegate,
+        public static void InsertConfigurationDecorator(
+            IConfigurationDecoratorDelegate decoratorDelegate,
             int index = -1)
         {
             lock (s_decorators)
@@ -67,6 +68,35 @@ namespace TetraPak.XP.Configuration
             }
         }
 
+        public static void InsertValueDelegateBefore<T>(IConfigurationValueDelegate valueDelegate)
+        where T : IConfigurationValueDelegate
+        {
+            int index;
+            lock (s_valueDelegates)
+            {
+                index = s_valueDelegates.IndexOf(vDelegate => vDelegate is T);
+            }
+            InsertValueDelegate(valueDelegate, index);
+        }
+
+        /// <summary>
+        ///   Inserts a custom configuration value delegate.
+        /// </summary>
+        /// <param name="valueDelegate">
+        ///   The value delegate to be inserted.
+        /// </param>
+        /// <param name="index">
+        ///   (optional; default=-1)<br/>
+        ///   Specifies at what position to insert the delegate. Passing a negative value equates to zero (0)
+        ///   and will insert the delegate as the first one in the internal list of delegates (the first one
+        ///   to be invoked when values are being requested from the configuration framework).
+        ///   Passing a positive value will insert the delegate at the specified position.
+        ///   Please note that if the delegate is marked as a "fallback delegate", index will be ignored
+        ///   and the delegate will always be invoked only when other (non-fallback 
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///   The value delegate was already inserted.
+        /// </exception>
         public static void InsertValueDelegate(IConfigurationValueDelegate valueDelegate, int index = -1)
         {
             lock (s_valueDelegates)
@@ -74,36 +104,55 @@ namespace TetraPak.XP.Configuration
                 if (s_valueDelegates.Contains(valueDelegate))
                     throw new ArgumentException("Delegate was already inserted", nameof(valueDelegate));
 
-                if (index >= 0)
+                if (valueDelegate.IsFallbackDelegate)
+                {
+                    insertFallbackDelegate();
+                    return;
+                }
+                    
+                if ( index >= 0)
                 {
                     s_valueDelegates.Insert(index, valueDelegate);
                     return;
                 }
 
-                if (!valueDelegate.IsFallbackDelegate || s_valueDelegates.Count == 0)
-                {
-                    s_valueDelegates.Insert(0, valueDelegate);
-                    return;
-                }
+                s_valueDelegates.Insert(0, valueDelegate);
 
-                // insert fallback delegate ...
-                for (var i = s_valueDelegates.Count - 1; i >= 0; i--)
+                void insertFallbackDelegate()
                 {
-                    var del = s_valueDelegates[i];
-                    if (del.IsFallbackDelegate)
-                        continue;
-
-                    if (i + 1 > s_valueDelegates.Count - 1)
+                    var idxFallbackDelegate = s_valueDelegates.IndexOf(d => d.IsFallbackDelegate);
+                    if (idxFallbackDelegate == -1)
                     {
                         s_valueDelegates.Add(valueDelegate);
                         return;
                     }
 
-                    s_valueDelegates.Insert(i + 1, valueDelegate);
-                    return;
-                }
+                    if (index < 0)
+                    {
+                        s_valueDelegates.Insert(idxFallbackDelegate, valueDelegate);
+                        return;
+                    }
 
-                s_valueDelegates.Insert(0, valueDelegate);
+                    index = Math.Max(s_valueDelegates.Count-1, idxFallbackDelegate + index);
+                    s_valueDelegates.Insert(index, valueDelegate);
+                }
+                // for (var i = s_valueDelegates.Count - 1; i >= 0; i--) obsolete
+                // {
+                //     var @delegate = s_valueDelegates[i];
+                //     if (@delegate.IsFallbackDelegate)
+                //         continue;
+                //
+                //     if (i + 1 > s_valueDelegates.Count - 1)
+                //     {
+                //         s_valueDelegates.Add(valueDelegate);
+                //         return;
+                //     }
+                //
+                //     s_valueDelegates.Insert(i + 1, valueDelegate);
+                //     return;
+                // }
+                //
+                // s_valueDelegates.Insert(0, valueDelegate);
             }
         }
 
