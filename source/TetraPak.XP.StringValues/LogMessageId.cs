@@ -10,9 +10,9 @@ namespace TetraPak.XP.StringValues
 
         public static implicit operator string?(LogMessageId? messageId) => messageId?.StringValue;
 
-        public static implicit operator LogMessageId?(string? stringValue) => string.IsNullOrEmpty(stringValue) 
+        public static implicit operator LogMessageId?(string? stringValue) => stringValue.IsUnassigned() 
             ? null 
-            : new LogMessageId(stringValue);
+            : new LogMessageId(stringValue!);
         
         LogMessageId(string stringValue)
         {

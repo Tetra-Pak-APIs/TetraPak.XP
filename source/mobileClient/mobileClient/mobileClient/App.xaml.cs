@@ -27,7 +27,7 @@ namespace mobileClient
             {
                 var logOptions = LogFormatOptions.Default.WithOmitTimestamp(true);
                 collection
-                    .AddTetraPakMobileAuthorization(GrantType.OIDC, GrantType.DeviceCode)
+                    .AddTetraPakXamarinAuthorization(GrantType.OIDC, GrantType.DeviceCode)
                     .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
                     .AddTetraPakWebServices()
                     .AddViewModels()

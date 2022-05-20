@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TetraPak.XP;
+using TetraPak.XP.ApplicationInformation;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
@@ -16,6 +17,7 @@ using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.TokenExchange;
+using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Services;
 using UserInformation = TetraPak.XP.Identity.UserInformation;
 
@@ -196,7 +198,7 @@ namespace authClient.console
         
         public Auth(string[] args)
         {
-            var info = args.BuildTetraPakDesktopHost(collection =>
+            var info = args.BuildTetraPakDesktopHost(ApplicationFramework.Console, collection =>
             {
                 collection
                     .AddTetraPakDesktopAuthorization(

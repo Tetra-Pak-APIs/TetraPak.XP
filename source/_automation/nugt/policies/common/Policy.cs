@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using TetraPak.XP;
-using TetraPak.XP.Logging;
+using TetraPak.XP.CLI;
+using TetraPak.XP.FileManagement;
 using TetraPak.XP.Logging.Abstractions;
+using TetraPak.XP.ProjectManagement;
 
 namespace nugt.policies
 {
-    abstract class Policy
+    public abstract class Policy
     {
         const string ArgPath1 = "-p";
         const string ArgPath2 = "--path";
@@ -22,13 +24,13 @@ namespace nugt.policies
         protected ProjectFile[]? ProjectFiles { get; private set; }
         protected NugetPackageFile[]? NugetPackageFiles { get;  set; }
 
-        DirectoryInfo RootFolder { get; set; }
+        protected DirectoryInfo RootFolder { get; private set; }
         
         bool IsRecursive { get; set; }
         
         protected bool IsSimulating { get; private set; }
 
-        public string[] Args { get; }
+        public CommandLineArgs Args { get; }
 
         public ILog Log { get; }
         
@@ -47,7 +49,7 @@ namespace nugt.policies
 
             return ProjectFiles = getProjectFilesRecursively(callback);
         }
-
+        
         protected NugetPackageFile[] GetNugetPackageFiles(Func<NugetPackageFile,FileHelper.GetFilesPolicy>? callback = null)
         {
             if (NugetPackageFiles is { })
@@ -59,6 +61,11 @@ namespace nugt.policies
             NugetPackageFiles = getNugetFilesRecursively(callback);
             return NugetPackageFiles;
         }
+        
+        protected ProjectFile[] GetNugetProjectFiles() => GetProjectFiles(
+            projectFile 
+                => 
+                projectFile.IsBuildingNugetPackage ? FileHelper.GetFilesPolicy.GetAndBreak : FileHelper.GetFilesPolicy.Skip);
 
         ProjectFile[] getProjectFilesRecursively(Func<ProjectFile,FileHelper.GetFilesPolicy>? callback)
         {
@@ -108,16 +115,7 @@ namespace nugt.policies
             return list.ToArray();
         }
 
-        // static FileInfo[] getFilesRecursively(
-        //     DirectoryInfo folder, 
-        //     // ICollection<FileInfo> list,
-        //     string fileSuffix,
-        //     Func<FileInfo,FileHelper.GetFilesPolicy>? callback)
-        // {
-        //     return folder.GetAllFiles(fileSuffix, info => callback?.Invoke(info) ?? FileHelper.GetFilesPolicy.Get);
-        // }
-
-        protected virtual Outcome TryInit(string[] args)
+        protected virtual Outcome TryInit(CommandLineArgs args)
         {
             if (!args.TryGetValue(out var path, ArgPath1, ArgPath2))
                 return Outcome.Fail(new CodedException(Errors.MissingArgument, $"Expected root folder (preceded by {ArgPath1} | {ArgPath2}"));
@@ -133,12 +131,12 @@ namespace nugt.policies
             return Outcome.Success();
         }
         
-        Outcome tryInit(string[] args) => TryInit(args);
+        Outcome tryInit(CommandLineArgs args) => TryInit(args);
 
         public Outcome OutcomeFromInit { get; protected set; }
 
 #pragma warning disable CS8618
-        public Policy(string[] args, ILog log)
+        public Policy(CommandLineArgs args, ILog log)
         {
             Args = args; 
             Log = log;

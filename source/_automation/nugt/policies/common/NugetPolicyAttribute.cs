@@ -3,7 +3,7 @@
 namespace nugt.policies
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class NugetPolicyAttribute : Attribute
+    public sealed class NugetPolicyAttribute : Attribute
     {
         public string Name { get; }
 

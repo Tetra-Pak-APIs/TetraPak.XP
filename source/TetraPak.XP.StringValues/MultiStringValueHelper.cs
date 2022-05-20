@@ -32,13 +32,12 @@ namespace TetraPak.XP.StringValues
         /// <seealso cref="Join(MultiStringValue,string[],bool)"/>
         public static MultiStringValue Join(this MultiStringValue self, MultiStringValue other, bool trimDuplicates)
         {
-            if (self == null) throw new ArgumentNullException(nameof(self));
-                
-            var list = new List<string>(self.Items ?? Array.Empty<string>());
-            if (other.Items?.Length == 0)
+            self.ThrowIfNull(nameof(self));
+            var list = new List<string>(self.Items);
+            if (other.Items.Length == 0)
                 return new MultiStringValue(list.ToArray());
             
-            list.AddRange(other.Items!);
+            list.AddRange(other.Items);
             var items = list.ToArray();
             return trimDuplicates
                 ? MultiStringValue.WithoutDuplicates(items)
@@ -108,7 +107,7 @@ namespace TetraPak.XP.StringValues
                     ? new MultiStringValue()
                     : throw new ArgumentOutOfRangeException(nameof(count), $"Cannot trim {count} items from start of {self}");
             
-            var items = new string[self.Items!.Length - count];
+            var items = new string[self.Items.Length - count];
             var j = count;
             for (var i = 0; i < items.Length; i++, j++)
             {
@@ -290,7 +289,7 @@ namespace TetraPak.XP.StringValues
             if (pattern.Count > self.Count)
                 return false;
 
-            return !pattern.Where((t, i) => !self.Items[i].Equals(pattern.Items[i], stringComparison)).Any();
+            return !pattern.Where((_, i) => !self.Items[i].Equals(pattern.Items[i], stringComparison)).Any();
         }
 
         /// <summary>

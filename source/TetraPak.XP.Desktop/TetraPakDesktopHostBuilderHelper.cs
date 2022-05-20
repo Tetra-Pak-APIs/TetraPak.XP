@@ -3,9 +3,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TetraPak.XP.ApplicationInformation;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
+using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Desktop
 {
@@ -14,12 +16,15 @@ namespace TetraPak.XP.Desktop
         static readonly object s_syncRoot = new();
         static bool s_isTokenCacheAdded;
         static bool s_isFileSystemAdded;
-        
+
         /// <summary>
         ///   Builds and configures a host for use with a desktop app.
         /// </summary>
         /// <param name="args">
         ///   A collection of string arguments.
+        /// </param>
+        /// <param name="framework">
+        ///   Specifies the framework/idiom used for building the native app (Console, WPF, WinService etc.) 
         /// </param>
         /// <param name="configureServices">
         ///   (optional)<br/>
@@ -30,6 +35,7 @@ namespace TetraPak.XP.Desktop
         /// </returns>
         public static TetraPakHostInfo BuildTetraPakDesktopHost(
             this string[] args,
+            ApplicationFramework framework,
             Action<IServiceCollection>? configureServices = null)
         {
             var tcs = new TaskCompletionSource<IServiceCollection>();
@@ -38,7 +44,7 @@ namespace TetraPak.XP.Desktop
                 {
                     collection =
                         XpServices
-                            .BuildFor().Desktop().WithServiceCollection(collection)
+                            .BuildFor().Desktop(framework).WithServiceCollection(collection)
                             .AddXpDateTime()
                             .AddTetraPakConfiguration()
                             .AddDesktopFileSystem()

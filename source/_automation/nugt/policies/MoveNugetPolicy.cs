@@ -1,4 +1,5 @@
-﻿using TetraPak.XP.Logging;
+﻿using TetraPak.XP.CLI;
+using TetraPak.XP.FileManagement;
 using TetraPak.XP.Logging.Abstractions;
 
 namespace nugt.policies
@@ -8,7 +9,8 @@ namespace nugt.policies
     {
         const string Name = "move";
         
-        public MoveNugetPolicy(string[] args, ILog log) : base(args, log)
+        public MoveNugetPolicy(CommandLineArgs args, ILog log) 
+        : base(args, log)
         {
             Method = RepositionMethod.Move;
         }

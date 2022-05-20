@@ -13,4 +13,8 @@
     <PackageReleaseNotes>Early alpha for internal testing</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.StringValues\TetraPak.XP.StringValues.csproj" />
+  </ItemGroup>
 </Project>

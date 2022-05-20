@@ -1,3 +1,5 @@
+using System.IO;
+using TetraPak.XP.ProjectManagement;
 using Xunit;
 
 namespace TetraPak.XP.Nuget
@@ -30,6 +32,15 @@ namespace TetraPak.XP.Nuget
             Assert.Equal("1.0.0-alpha.1", b);
             b = ((NugetVersion)"1.0.0-alpha.2").Adjust("1.0.0-beta.1");
             Assert.Equal("1.0.0-beta.1", b);
+        }
+
+        [Fact]
+        public void Ensure_correct_nuget_version_is_written_to_code()
+        {
+            var fileName = typeof(NugetVersionTests).Assembly.GetName().Name;
+            Assert.NotNull(fileName);
+            var file = new FileInfo($"../../{fileName}.csproj");
+            var projectFile = new ProjectFile(file, true);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace TetraPak.XP.Desktop.Tests
                     if (environmentResolver is {})
                     {
                         provider = XpServices
-                            .BuildFor().Desktop().WithServiceCollection(collection)
+                            .BuildFor().DesktopCustom("test").WithServiceCollection(collection)
                             .AddSingleton<IRuntimeEnvironmentResolver>(_ => environmentResolver)
                             .AddTetraPakConfiguration()
                             .BuildXpServices();
@@ -35,7 +35,7 @@ namespace TetraPak.XP.Desktop.Tests
                     else
                     {
                         provider = XpServices
-                            .BuildFor().Desktop().WithServiceCollection(collection)
+                            .BuildFor().DesktopCustom("test").WithServiceCollection(collection)
                             .AddTetraPakConfiguration()
                             .BuildXpServices();
                     }
@@ -132,7 +132,7 @@ namespace TetraPak.XP.Desktop.Tests
 
         public ConfigurationSectionTests()
         {
-            XpServices.BuildFor().Desktop().Include(typeof(ConfigurationSection)).BuildXpServices();
+            XpServices.BuildFor().DesktopCustom("test").Include(typeof(ConfigurationSection)).BuildXpServices();
         }
 
         class SandboxEnvironment : IRuntimeEnvironmentResolver

@@ -202,7 +202,7 @@ namespace TetraPak.XP.StringValues
                 return false;
             }
 
-            stringValue = (IStringValue)Activator.CreateInstance(stringValueType, s);
+            stringValue = (IStringValue)Activator.CreateInstance(stringValueType, s)!;
             return true;
 
             bool isSingleParameterOrRestAreOptional(IReadOnlyList<ParameterInfo> parameterInfos)

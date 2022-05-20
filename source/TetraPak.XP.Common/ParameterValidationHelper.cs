@@ -17,6 +17,10 @@ namespace TetraPak.XP
         /// <param name="paramName">
         ///   The parameter name.
         /// </param>
+        /// <param name="message">
+        ///   (optional)<br/>
+        ///   An additional message to be included with the exception. 
+        /// </param>
         /// <typeparam name="T">
         ///   The parameter <see cref="Type"/>.
         /// </typeparam>
@@ -27,10 +31,10 @@ namespace TetraPak.XP
         ///   The parameter <paramref name="value"/> was <c>null</c>.
         /// </exception>
         /// <seealso cref="ThrowIfUnassigned"/>
-        public static T ThrowIfNull<T>(this T value, string paramName)
+        public static T ThrowIfNull<T>(this T value, string paramName, string? message = null)
         {
             if (value is null)
-                throw new ArgumentNullException(paramName);
+                throw new ArgumentNullException(paramName, message);
 
             return value;
         }

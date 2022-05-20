@@ -8,7 +8,7 @@ namespace TetraPak.XP.StringValues
 {
     [JsonConverter(typeof(JsonStringValueSerializer<RandomString>))]
     [DebuggerDisplay("{" + nameof(StringValue) + "}")]
-    public class RandomString : IStringValue
+    public sealed class RandomString : IStringValue
     {
         static readonly Random s_rnd = new Random(XpDateTime.Now.Millisecond);
         static readonly char[] s_lowercase = makeLowercaseLetters();

@@ -6,7 +6,7 @@ using TetraPak.XP;
 
 namespace nugt.policies
 {
-    public class PolicyDispatcher
+    public sealed class PolicyDispatcher
     {
         readonly Dictionary<string, Type> _policyTypes;
 
