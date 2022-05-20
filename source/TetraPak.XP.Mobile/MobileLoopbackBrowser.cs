@@ -14,7 +14,7 @@ using Xamarin.Forms;
 
 namespace TetraPak.XP.Mobile
 {
-    public class MobileLoopbackBrowser : LoopbackBrowser
+    public sealed class MobileLoopbackBrowser : LoopbackBrowser
     {
         readonly ITetraPakConfiguration _tetraPakConfig;
 
