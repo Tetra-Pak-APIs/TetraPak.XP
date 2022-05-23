@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -88,23 +89,28 @@ namespace nugt
             {
                 showHelp();
             }
-            if (Args!.TryGetValue(out var logFilePath, ArgLogFile1, ArgLogFile2))
-            {
-                var sb = new StringBuilder();
-                foreach (var logEvent in s_logEvents)
-                {
-                    sb.AppendLine(logEvent.Format());
-                }
 
-                try
-                {
-                    await File.WriteAllTextAsync(logFilePath, sb.ToString());
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;  
-                }
+            if (!s_logEvents.Any())
+                Environment.Exit(code);
+                
+            var logFilePath = Args!.TryGetValue(out var lfp, ArgLogFile1, ArgLogFile2)
+                ? lfp
+                : Path.Combine(Environment.CurrentDirectory, "_fail.log");
+            
+            var sb = new StringBuilder();
+            foreach (var logEvent in s_logEvents)
+            {
+                sb.AppendLine(logEvent.Format());
+            }
+
+            try
+            {
+                await File.WriteAllTextAsync(logFilePath, sb.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;  
             }
             
             Environment.Exit(code);

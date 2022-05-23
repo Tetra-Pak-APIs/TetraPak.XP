@@ -35,7 +35,11 @@ namespace nugt.policies
             {
                 try
                 {
-                    var code = await File.ReadAllTextAsync(csFile.FullName);
+                    string code;
+                    using (var stream = File.OpenText(csFile.FullName))
+                    {
+                        code = await stream.ReadToEndAsync();
+                    }
                     var idxStart = code.IndexOf(Pattern, StringComparison.Ordinal);
                     if (idxStart == -1)
                         continue;
@@ -54,7 +58,12 @@ namespace nugt.policies
                     }
                     else
                     {
-                        await File.WriteAllTextAsync(csFile.FullName, sb.ToString());
+                        var fileMode = File.Exists(csFile.FullName)
+                            ? FileMode.Truncate
+                            : FileMode.CreateNew;
+                        await using var stream = File.Open(csFile.FullName, fileMode);
+                        await using var writer = new StreamWriter(stream);
+                        await writer.WriteAsync(sb);
                     }
                     if (IsBreakOnFirst)
                         return Outcome.Success();
