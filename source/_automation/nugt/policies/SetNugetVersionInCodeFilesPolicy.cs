@@ -10,7 +10,7 @@ using TetraPak.XP.Nuget;
 namespace nugt.policies
 {
     [NugetPolicy(Name)]
-    public sealed class SetNugetVersionInCodeFilesPolicy : Policy
+    public sealed class SetNugetVersionInCodeFilesPolicy : Policy // instantiated via NugetPolicy attribute
     {
         const string Name = "to-code";
         const string Pattern = "const string NugetVersionSource = \"$(";

@@ -24,7 +24,7 @@ namespace nugt.policies
     ///     get that same version
     /// </remarks>
     [NugetPolicy(Name)]
-    class SetVersionsPolicy : Policy
+    class SetVersionsPolicy : Policy // instantiated via NugetPolicy attribute
     {
         const string Name = "set-version";
 

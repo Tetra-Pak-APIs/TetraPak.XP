@@ -5,7 +5,7 @@ using TetraPak.XP.Logging.Abstractions;
 namespace nugt.policies
 {
     [NugetPolicy(Name)]
-    class CopyNugetPolicy : DistributeNugetPolicy
+    class CopyNugetPolicy : DistributeNugetPolicy // instantiated via NugetPolicy attribute
     {
         const string Name = "copy";
         
