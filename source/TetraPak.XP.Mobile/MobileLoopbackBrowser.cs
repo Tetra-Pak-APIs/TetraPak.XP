@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Browsers;
+using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Mobile;
@@ -17,6 +18,7 @@ namespace TetraPak.XP.Mobile
     public class MobileLoopbackBrowser : LoopbackBrowser
     {
         readonly ITetraPakConfiguration _tetraPakConfig;
+        readonly BrowserExperience _browserExperience;
 
         protected override async Task OnOpenBrowserAsync(Uri uri)
         {
@@ -47,11 +49,19 @@ namespace TetraPak.XP.Mobile
         }
 
         public MobileLoopbackBrowser(
-            ITetraPakConfiguration tetraPakConfig, 
+            ITetraPakConfiguration tetraPakConfig,
             ILog? log = null) 
         : base(log)
         {
             _tetraPakConfig = tetraPakConfig;
+            _browserExperience = tetraPakConfig.GetNamed<BrowserExperience>("");
+        }
+
+        public MobileLoopbackBrowser(BrowserExperience browserExperience, ILog? log)
+        : base(log)
+        {
+            _tetraPakConfig = null!;
+            _browserExperience = browserExperience;
         }
     }
 }

@@ -50,7 +50,7 @@ namespace TetraPak.XP.Desktop
                 .ConfigureAppConfiguration((_, builder) => builder.Build())
                 .Build();
 
-            Configure.InsertValueDelegate(new ConfigurationVariableValueDelegate());
+            Configure.InsertValueDelegate(new ConfigurationValueSourceDelegate());
             var collection = tcs.Task.Result;
             return new TetraPakHostInfo(host, collection);
         }

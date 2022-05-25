@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using TetraPak.XP;
 using TetraPak.XP.DependencyInjection;
-using TetraPak.XP.Mobile;
 using TetraPak.XP.Mobile.iOS;
 using UIKit;
 
@@ -11,6 +11,8 @@ namespace TetraPak.XP.Mobile.iOS
 {
     sealed class PlatformService : IPlatformService
     {
+        public RuntimePlatform RuntimePlatform => RuntimePlatform.IOS;
+
         async Task<Outcome> IPlatformService.TryCloseTopWindowAsync(bool isModalWindow, bool animated)
         {
             var window = UIApplication.SharedApplication.KeyWindow;

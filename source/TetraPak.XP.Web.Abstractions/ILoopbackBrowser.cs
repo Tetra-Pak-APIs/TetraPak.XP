@@ -35,7 +35,7 @@ namespace TetraPak.XP.Web.Abstractions
         ///   Specifies a custom requisite for accepting a loopback request.
         ///   The default filter will accept any HTTP 'GET' request.  
         /// </param>
-        /// <param name="cancellationToken">
+        /// <param name="cancellationTokenSource">
         ///   (optional)<br/>
         ///   Enables cancellation of the operation.
         /// </param>
@@ -51,7 +51,7 @@ namespace TetraPak.XP.Web.Abstractions
             Uri target, 
             Uri loopbackHost, 
             LoopbackFilter? filter = null,
-            CancellationToken? cancellationToken = null,
+            CancellationTokenSource? cancellationTokenSource = null,
             TimeSpan? timeout = null);
     }
 }

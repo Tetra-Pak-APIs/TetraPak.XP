@@ -8,7 +8,7 @@ namespace TetraPak.XP.Auth.Abstractions
     ///   to support referencing environment variables in configuration files.
     /// </summary>
     /// <seealso cref="Configure.InsertValueDelegate"/>
-    public sealed class CredentialsConfigurationVariableValueDelegate : ConfigurationVariableValueDelegate
+    public sealed class CredentialsConfigurationValueSourceDelegate : ConfigurationValueSourceDelegate
     {
         /// <inheritdoc />
         public override Outcome<T> GetValue<T>(ConfigurationValueArgs<T> args)

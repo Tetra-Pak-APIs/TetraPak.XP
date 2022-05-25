@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
@@ -168,7 +167,8 @@ namespace TetraPak.XP.OAuth2.AuthCode
                 target,
                 loopbackHostUri,
                 loopbackFilter,
-                CancellationToken.None); // todo support timeout
+                CancellationTokenSource,
+                options.Timeout); 
             if (!outcome)
                 return Outcome<Grant>.Fail(new AuthenticationException("Authority never returned authorization code"));
 

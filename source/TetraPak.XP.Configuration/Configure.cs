@@ -136,23 +136,6 @@ namespace TetraPak.XP.Configuration
                     index = Math.Max(s_valueDelegates.Count-1, idxFallbackDelegate + index);
                     s_valueDelegates.Insert(index, valueDelegate);
                 }
-                // for (var i = s_valueDelegates.Count - 1; i >= 0; i--) obsolete
-                // {
-                //     var @delegate = s_valueDelegates[i];
-                //     if (@delegate.IsFallbackDelegate)
-                //         continue;
-                //
-                //     if (i + 1 > s_valueDelegates.Count - 1)
-                //     {
-                //         s_valueDelegates.Add(valueDelegate);
-                //         return;
-                //     }
-                //
-                //     s_valueDelegates.Insert(i + 1, valueDelegate);
-                //     return;
-                // }
-                //
-                // s_valueDelegates.Insert(0, valueDelegate);
             }
         }
 
@@ -265,6 +248,7 @@ namespace TetraPak.XP.Configuration
                     return false;
                 },
 
+                // timespan
                 (string? stringValue, Type tgtType, out object? o, object useDefault) =>
                 {
                     if (tgtType != typeof(TimeSpan))

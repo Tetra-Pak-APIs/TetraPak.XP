@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using TetraPak.XP.Auth.Abstractions.OIDC;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.Diagnostics;
@@ -12,7 +13,11 @@ namespace TetraPak.XP.Auth.Abstractions
     {
         internal IRuntimeEnvironmentResolver RuntimeEnvironmentResolver { get; }
 
+        /// <inheritdoc />
         public virtual RuntimeEnvironment RuntimeEnvironment => this.GetFromRoot<RuntimeEnvironment>();
+
+        /// <inheritdoc />
+        public virtual BrowserExperience BrowserExperience => this.Get(getDerived: true, useDefault:BrowserExperience.InternalSystem);
 
         /// <inheritdoc />
         [StateDump]
@@ -21,22 +26,13 @@ namespace TetraPak.XP.Auth.Abstractions
             get
             {
                 var value = this.Get<string?>(getDerived: true);
-                return !string.IsNullOrWhiteSpace(value) 
-                    ? value! 
+                return !string.IsNullOrWhiteSpace(value)
+#if NET5_0_OR_GREATER                
+                    ? value
+#else
+                    ? value!
+#endif
                     : TetraPakAuthDefaults.Domain(RuntimeEnvironment);
-
-                // return RuntimeEnvironment switch obsolete
-                // {
-                //     RuntimeEnvironment.Production => TetraPakAuthDefaults.ProductionDomain,
-                //     RuntimeEnvironment.Migration => TetraPakAuthDefaults.MigrationDomain,
-                //     RuntimeEnvironment.Development => TetraPakAuthDefaults.DevelopmentDomain,
-                //     RuntimeEnvironment.Sandbox => TetraPakAuthDefaults.SandboxDomain,
-                //     RuntimeEnvironment.Unknown => throw error(),
-                //     _ => throw error()
-                // };
-                //
-                // ConfigurationException error()
-                //     => new($"Could not resolve authority domain from runtime environment '{RuntimeEnvironment}'");
             }
         }
 
@@ -47,9 +43,13 @@ namespace TetraPak.XP.Auth.Abstractions
             get
             {
                 var value = this.Get<string?>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) 
-                    ? $"{TetraPakAuthDefaults.AuthorityUri(RuntimeEnvironment)}" 
+                return string.IsNullOrWhiteSpace(value)
+                    ? $"{TetraPakAuthDefaults.AuthorityUri(RuntimeEnvironment)}"
+#if NET5_0_OR_GREATER
+                    : value;
+#else
                     : value!;
+#endif
             }
         }
 
@@ -62,7 +62,11 @@ namespace TetraPak.XP.Auth.Abstractions
                 var value = this.Get<string?>(getDerived: true);
                 return string.IsNullOrWhiteSpace(value)
                     ? $"{TetraPakAuthDefaults.TokenIssuerUri(RuntimeEnvironment)}"
+#if NET5_0_OR_GREATER
+                    : value;
+#else
                     : value!;
+#endif
             }
         }
 
@@ -73,7 +77,13 @@ namespace TetraPak.XP.Auth.Abstractions
             get
             {
                 var value = this.Get<string?>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{TetraPakAuthDefaults.DeviceCodeIssuerUri(RuntimeEnvironment)}" : value!;
+                return string.IsNullOrWhiteSpace(value)
+                    ? $"{TetraPakAuthDefaults.DeviceCodeIssuerUri(RuntimeEnvironment)}" 
+#if NET5_0_OR_GREATER
+                    : value;
+#else
+                    : value!;
+#endif
             }
         }
 
@@ -87,7 +97,13 @@ namespace TetraPak.XP.Auth.Abstractions
             get
             {
                 var value = this.Get<string?>(getDerived: true);
-                return string.IsNullOrWhiteSpace(value) ? $"{AuthDomain}{DiscoveryDocument.DefaultPath}" : value!;
+                return string.IsNullOrWhiteSpace(value) 
+                    ? $"{AuthDomain}{DiscoveryDocument.DefaultPath}" 
+#if NET5_0_OR_GREATER
+                    : value;
+#else
+                    : value!;
+#endif
             }
         }
 
@@ -118,6 +134,8 @@ namespace TetraPak.XP.Auth.Abstractions
         /// <inheritdoc />
         [StateDump]
         public bool IsCaching => this.Get(getDerived:true, useDefault: TetraPakAuthDefaults.IsCaching);
+
+        public TimeSpan? Timeout => this.Get<TimeSpan?>(getDerived: true);
         
         public AuthConfiguration(ConfigurationSectionDecoratorArgs args)
         : base(args)

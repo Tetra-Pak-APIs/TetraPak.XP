@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace TetraPak.XP.Auth.Abstractions
 {
@@ -12,11 +13,25 @@ namespace TetraPak.XP.Auth.Abstractions
         /// </summary>
         public IAuthConfiguration? Configuration { get; }
 
+        /// <summary>
+        ///   Provides options for a grant request.
+        /// </summary>
         public GrantOptions Options { get; }
         
+        /// <summary>
+        ///   Specifies the auth grant type.
+        /// </summary>
         public GrantType GrantType { get; }
 
+        /// <summary>
+        ///   Allows for forced cancellation of an auth operation.
+        /// </summary>
         public CancellationToken CancellationToken => Options.CancellationTokenSource?.Token ?? CancellationToken.None;
+
+        /// <summary>
+        ///   Gets a value specifying a maximum allowed time for the affected operation to complete, or be cancelled.
+        /// </summary>
+        public TimeSpan? Timeout => Configuration?.Timeout;
 
         /// <summary>
         ///   Initializes the <see cref="AuthContext"/>.
@@ -35,6 +50,7 @@ namespace TetraPak.XP.Auth.Abstractions
             GrantType = grantType;
             Options = options.WithAuthInfo(configuration);
             Configuration = configuration;
+            options.Timeout ??= Timeout;
         }
     }
 }

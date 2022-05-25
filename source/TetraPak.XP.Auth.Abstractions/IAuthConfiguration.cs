@@ -1,5 +1,6 @@
 
 
+using System;
 using Microsoft.Extensions.Configuration;
 
 namespace TetraPak.XP.Auth.Abstractions
@@ -13,6 +14,11 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Gets the <see cref="RuntimeEnvironment"/> for the running host.
         /// </summary>
         RuntimeEnvironment RuntimeEnvironment { get; }
+        
+        /// <summary>
+        ///   Gets the preferred browser experience (see <see cref="BrowserExperience"/>).
+        /// </summary>
+        BrowserExperience BrowserExperience { get; }
         
         /// <summary>
         ///   Gets the authority domain to be used.
@@ -46,5 +52,10 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   configuration is honored.
         /// </remarks>
         bool IsCaching { get; }
+        
+        /// <summary>
+        ///   Gets a value specifying a maximum allowed time for the affected operation to complete, or be cancelled.
+        /// </summary>
+        TimeSpan? Timeout { get; }
     }
 }

@@ -15,7 +15,7 @@ namespace TetraPak.XP.Configuration
 
         public ILog? Log { get; }
 
-        public bool Parse(string stringValue, out T value)
+        public bool TryParse(string stringValue, out T value)
         {
             foreach (var parser in _parsers)
             {

@@ -28,6 +28,11 @@
         /// <summary>
         ///  Indicates Mac OS runtime platform.
         /// </summary>
-        MacOS
+        MacOS,
+        
+        /// <summary>
+        ///  Indicates Linux runtime platform.
+        /// </summary>
+        Linux
     }
 }

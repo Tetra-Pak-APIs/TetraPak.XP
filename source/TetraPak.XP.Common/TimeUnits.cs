@@ -8,7 +8,7 @@ namespace TetraPak.XP
         /// <summary>
         ///   Qualifies day/days.
         /// </summary>
-        public const string Days = "d";
+        public const string Days = "D";
 
         /// <summary>
         ///   Qualifies hour/hours.
@@ -29,5 +29,10 @@ namespace TetraPak.XP
         ///   Qualifies millisecond/milliseconds.
         /// </summary>
         public const string Milliseconds = "ms";
+
+        /// <summary>
+        ///   Qualifies millisecond/milliseconds.
+        /// </summary>
+        public const string Ticks = "t";
     }
 }

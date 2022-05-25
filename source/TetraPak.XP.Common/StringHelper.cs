@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -933,6 +934,33 @@ namespace TetraPak.XP
             } 
             
             return hash.ToArray();
+        }
+
+        public static bool TryEatEnclosed(
+            this string? text, 
+            string prefix, 
+            string suffix, 
+#if NET5_0_OR_GREATER            
+            [NotNullWhen(true)]
+#endif            
+            out string? enclosed, 
+            int startIndex = 0, 
+            StringComparison comparison = StringComparison.Ordinal)
+        {
+            enclosed = null;
+            if (text.IsUnassigned())
+                return false;
+
+            var idxPrefix = text!.IndexOf(prefix, startIndex, comparison);
+            if (idxPrefix == -1)
+                return false;
+
+            var idxSuffix = text.IndexOf(prefix, idxPrefix, comparison);
+            if (idxSuffix == -1)
+                return false;
+
+            enclosed = text.Substring(idxPrefix + 1, idxSuffix - idxPrefix);
+            return true;
         }
     }
 }

@@ -42,7 +42,9 @@ namespace TetraPak.XP
             StandardDateTimeFormat8
         };
             
-        static readonly Regex s_timeSpanRegex = new(@"(?<num>[\d\,\.]*)(?<unit>[d,h,m,s,ms]?)", RegexOptions.Compiled);
+        static readonly Regex s_timeSpanRegex = new(
+            @"(?<num>[\d\,\.]*)(?<unit>d|h|ms|m|s|t)?", 
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         
         public static bool TryParseTimeSpan(this string stringValue, string defaultUnit, out TimeSpan timeSpan, CultureInfo? cultureInfo = null)
@@ -86,6 +88,10 @@ namespace TetraPak.XP
 
                 case TimeUnits.Milliseconds:
                     timeSpan = TimeSpan.FromMilliseconds(dValue);
+                    return true;
+                
+                case TimeUnits.Ticks:
+                    timeSpan = TimeSpan.FromTicks((long) dValue);
                     return true;
                 
                 default: return false;

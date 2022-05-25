@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -85,7 +86,25 @@ namespace TetraPak.XP
 
             return task.Status >= TaskStatus.RanToCompletion;
         }
-        
+
+        /// <summary>
+        ///   Awaits the outcome of a task completion source while applying cancellation and/or timout support. 
+        /// </summary>
+        /// <param name="tcs">
+        ///   The extended task completion source.
+        /// </param>
+        /// <param name="timeout">
+        ///   (optional; default=<see cref="TimeSpan.MaxValue"/>)<br/>
+        ///   A timeout value that will automatically cancel the task if exceeded.
+        /// </param>
+        /// <param name="cts">
+        ///   (optional)<br/>
+        ///   Allows manual cancellation.
+        /// </param>
+        /// <typeparam name="T">
+        ///   The expected value type.
+        /// </typeparam>
+        /// <returns>
         /// <summary>
         ///   Blocks the thread while waiting for the outcome.
         /// </summary>
@@ -107,69 +126,128 @@ namespace TetraPak.XP
         ///   An <see cref="Outcome"/> value, signalling success/failure while also carrying the requested
         ///   result on success; otherwise an <see cref="Exception"/>.
         /// </returns>
-        public static Outcome<T> AwaitOutcome<T>(
-            this TaskCompletionSource<T> tcs, 
-            TimeSpan? timeout = null, 
-            CancellationTokenSource? cts = null)
+        public static Task<Outcome<T>> GetOutcomeAsync<T>(
+            this TaskCompletionSource<Outcome<T>> tcs,
+            CancellationTokenSource? cts = null,
+            TimeSpan? timeout = null) 
+            =>
+            tcs.getOutcomeAsync(cts, timeout);
+
+        /// <summary>
+        ///   Blocks execution while awaiting the outcome of a task completion source while applying cancellation and/or timout support. 
+        /// </summary>
+        /// <param name="tcs">
+        ///   The <see cref="TaskCompletionSource{TResult}"/> in use for signalling result is available.
+        /// </param>
+        /// <param name="timeout">
+        ///   (optional)<br/>
+        ///   Specifies a timeout. If operation times our a default result will be sent back.
+        /// </param>
+        /// <param name="cts">
+        ///   (optional)<br/>
+        ///   A cancellation token source, allowing operation cancellation (from a different thread).
+        /// </param>
+        /// <typeparam name="T">
+        ///   The type of result being requested.
+        /// </typeparam>
+        /// <returns>
+        ///   An <see cref="Outcome"/> value, signalling success/failure while also carrying the requested
+        ///   result on success; otherwise an <see cref="Exception"/>.
+        /// </returns>
+        public static Outcome<T> GetOutcome<T>(
+            this TaskCompletionSource<Outcome<T>> tcs, 
+            CancellationTokenSource? cts = null,
+            TimeSpan? timeout = null)
         {
-            var isTimedOut = false;
-            var isCancelled = false;
-            if (tcs.Task.Status < TaskStatus.RanToCompletion)
+            // // todo This method is unused/untested 
+            Task.Run(async () => await tcs.getOutcomeAsync(cts, timeout));
+            return tcs.Task.Result;
+            //
+            // // var isTimedOut = false; obsolete
+            // var isCancelled = false;
+            // T result;
+            // if (tcs.Task.Status < TaskStatus.RanToCompletion)
+            // {
+            //     var awaiter = tcs.Task.ConfigureAwait(false).GetAwaiter();
+            //     if (cts is { } && timeout is { })
+            //     {
+            //         cts.CancelAfter(timeout.Value);
+            //     }
+            //     // var useTimeout = timeout.HasValue 
+            //     //     ? XpDateTime.Now.Add(timeout.Value) 
+            //     //     : DateTime.MaxValue;
+            //     //
+            //
+            //     result = tcs.Task.GetAwaiter().GetResult();
+            //     // while (!awaiter.IsCompleted && isCancelled)
+            //     // {
+            //     //     Task.Delay(10);
+            //     //     // isTimedOut = XpDateTime.Now >= useTimeout;
+            //     //     isCancelled = cts?.IsCancellationRequested ?? false;
+            //     // }
+            // }
+            //
+            // isCancelled = cts?.IsCancellationRequested ?? false;
+            //
+            // switch (tcs.Task.Status)
+            // {
+            //     case TaskStatus.Created:
+            //     case TaskStatus.WaitingForActivation:
+            //     case TaskStatus.WaitingToRun:
+            //     case TaskStatus.Running:
+            //     case TaskStatus.WaitingForChildrenToComplete:
+            //         return isCancelled
+            //             ? Outcome<T>.Cancel() 
+            //             : Outcome<T>.Fail("Result could not be created before operation timed out");
+            //     
+            //     case TaskStatus.RanToCompletion:
+            //         return Outcome<T>.Success(tcs.Task.Result);
+            //         
+            //     case TaskStatus.Canceled:
+            //         return Outcome<T>.Cancel("Result could not be created. Operation was cancelled");
+            //         
+            //     case TaskStatus.Faulted:
+            //         return Outcome<T>.Fail(
+            //             tcs.Task.Exception ?? new Exception("Result could not be created (unhandled error)"));
+            //         
+            //     default:
+            //         throw new ArgumentOutOfRangeException();
+            // }
+        }
+        
+        static async Task<Outcome<T>> getOutcomeAsync<T>(
+            this TaskCompletionSource<Outcome<T>> tcs,
+            CancellationTokenSource? cts = null,
+            TimeSpan? timeout = null)
+        {
+            var tasks = new List<Task>(new[] { tcs.Task });
+            Task? timeoutTask = null;
+            if (timeout is { })
             {
-                var awaiter = tcs.Task.ConfigureAwait(false).GetAwaiter();
-                var useTimeout = timeout.HasValue ? XpDateTime.Now.Add(timeout.Value) : DateTime.MaxValue;
-                while (!awaiter.IsCompleted && !isTimedOut && !isCancelled)
-                {
-                    Task.Delay(10);
-                    isTimedOut = XpDateTime.Now >= useTimeout;
-                    isCancelled = cts?.IsCancellationRequested ?? false;
-                }
+                cts?.CancelAfter(timeout.Value);
+                timeoutTask = Task.Delay(timeout.Value);
+                tasks.Add(timeoutTask);
             }
 
-            switch (tcs.Task.Status)
+            try
             {
-                case TaskStatus.Created:
-                case TaskStatus.WaitingForActivation:
-                case TaskStatus.WaitingToRun:
-                case TaskStatus.Running:
-                case TaskStatus.WaitingForChildrenToComplete:
-                    return Outcome<T>.Fail(
-                        isTimedOut
-                            ? "Result could not be created before operation timed out"
-                            : "Result could not be created. Operation was cancelled");
-                
-                case TaskStatus.RanToCompletion:
-                    return Outcome<T>.Success(tcs.Task.Result);
-                    
-                case TaskStatus.Canceled:
-                    return Outcome<T>.Cancel("Result could not be created. Operation was cancelled");
-                    
-                case TaskStatus.Faulted:
-                    return Outcome<T>.Fail(
-                        tcs.Task.Exception ?? new Exception("Result could not be created (unhandled error)"));
-                    
-                default:
-                    throw new ArgumentOutOfRangeException();
+                await Task.WhenAny(tasks);
+                var isTimedOut = timeoutTask is { Status: TaskStatus.RanToCompletion } ||
+                                 (cts?.IsCancellationRequested ?? false);
+                if (isTimedOut)
+                    return Outcome<T>.Cancel("Operation timed out");
+
+                var value = await tcs.Task;
+                return tcs.Task.IsCanceled
+                    ? Outcome<T>.Cancel("Operation timed out")
+                    : Outcome<T>.Success(value!);
             }
-            // if (tcs.Task.Status == TaskStatus.RanToCompletion)
-            //     return Outcome<T>.Success(tcs.Task.Result);
-            //
-            // var exception = new Exception(
-            //     tcs.Task.Status
-            //     );
-            // tcs.Task.Exception
-            //
-            // return Outcome<T>.Fail(
-            //     isTimedOut
-            //         ? "Result could not be created before operation timed out"
-            //         : "Result could not be created. Operation was cancelled"); 
-            //
-            // return tcs.Task.Status >= TaskStatus.RanToCompletion
-            //     ? Outcome<T>.Success(tcs.Task.Result)
-            //     : Outcome<T>.Fail(
-            //         isTimedOut
-            //             ? "Result could not be created before operation timed out"
-            //             : "Result could not be created. Operation was cancelled");
+            catch (Exception ex)
+            {
+                return tcs.Task.IsCanceled
+                    ? Outcome<T>.Cancel()
+                    : Outcome<T>.Fail(ex);
+            }
         }
     }
 }

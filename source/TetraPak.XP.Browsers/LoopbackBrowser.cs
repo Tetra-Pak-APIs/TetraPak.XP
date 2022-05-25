@@ -55,13 +55,14 @@ namespace TetraPak.XP.Browsers
             Uri target, 
             Uri loopbackHost, 
             LoopbackFilter? filter = null,
-            CancellationToken? cancellationToken = null, 
+            CancellationTokenSource? cancellationTokenSource = null, 
             TimeSpan? timeout = null)
         {
             try
             {
                 this.WithLoopBackFilter(filter ?? DefaultLoopbackPatternFilter);
-                return invokeAsync(target, loopbackHost, cancellationToken ?? CancellationToken.None, timeout);
+                var cancellationToken = cancellationTokenSource?.Token ?? CancellationToken.None;
+                return invokeAsync(target, loopbackHost, cancellationToken, timeout);
 
             }
             catch (Exception ex)

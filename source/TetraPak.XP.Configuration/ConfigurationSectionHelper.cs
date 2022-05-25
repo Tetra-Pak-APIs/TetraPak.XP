@@ -289,6 +289,12 @@ namespace TetraPak.XP.Configuration
                 return true;
             }
 
+            if (stringValue.TryParseTimeSpan(TimeUnits.Milliseconds, out timeSpan))
+            {
+                value = timeSpan;
+                return true;
+            }
+            
             value = TimeSpan.Zero;
             return false;
         }

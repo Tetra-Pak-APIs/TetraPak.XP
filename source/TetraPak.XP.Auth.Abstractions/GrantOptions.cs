@@ -45,6 +45,8 @@ namespace TetraPak.XP.Auth.Abstractions
         /// </summary>
         public bool IsCaching => (Flags & GrantFlags.Cached) == GrantFlags.Cached;
 
+        public TimeSpan? Timeout { get; set; }
+
         public override string ToString()
         {
             return $"{base.ToString()} [{Flags}]" ;
@@ -174,7 +176,6 @@ namespace TetraPak.XP.Auth.Abstractions
                 Flags = GrantFlags.Forced,
                 CancellationTokenSource = cancellationTokenSource,
                 ActorId = actorId,
-                
             };
         }
         
