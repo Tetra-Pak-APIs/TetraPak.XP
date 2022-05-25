@@ -5,7 +5,7 @@ using TetraPak.XP.Web.Abstractions;
 
 namespace TetraPak.XP.Web.Http
 {
-    public class TetraPakMessageIdClientDecorator : IHttpClientDecorator
+    sealed class TetraPakMessageIdClientDecorator : IHttpClientDecorator
     {
         public Task<Outcome<HttpClient>> DecorateAsync(HttpClient client)
         {

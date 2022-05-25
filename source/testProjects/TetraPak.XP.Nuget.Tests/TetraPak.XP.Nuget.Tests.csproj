@@ -4,11 +4,15 @@
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
 
-        <IsPackable>false</IsPackable>
+        <IsPackable>true</IsPackable>
 
         <RootNamespace>TetraPak.XP.Nuget</RootNamespace>
 
         <LangVersion>preview</LangVersion>
+
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+        <PackageVersion>1.42.17-alpha.17</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>

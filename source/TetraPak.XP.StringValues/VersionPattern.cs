@@ -52,7 +52,7 @@ namespace TetraPak.XP.StringValues
             if (string.IsNullOrWhiteSpace(stringValue))
                 return false;
 
-            var split = stringValue!.Split(new[] { Separator }, StringSplitOptions.RemoveEmptyEntries);
+            var split = stringValue.Split(new[] { Separator }, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length != 4)
                 return false;
 

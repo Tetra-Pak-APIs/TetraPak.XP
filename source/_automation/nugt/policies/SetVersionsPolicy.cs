@@ -5,9 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TetraPak.XP;
-using TetraPak.XP.Logging;
+using TetraPak.XP.CLI;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Nuget;
+using TetraPak.XP.ProjectManagement;
 using TetraPak.XP.StringValues;
 
 namespace nugt.policies
@@ -23,7 +24,7 @@ namespace nugt.policies
     ///     get that same version
     /// </remarks>
     [NugetPolicy(Name)]
-    class SetVersionsPolicy : Policy
+    class SetVersionsPolicy : Policy // instantiated via NugetPolicy attribute
     {
         const string Name = "set-version";
 
@@ -42,7 +43,7 @@ namespace nugt.policies
 
         string? TargetProjectName { get; set; }
 
-        NugetVersion NugetVersion { get; set; }
+        NugetVersion? NugetVersion { get; set; }
         
         VersionPattern? AssemblyVersion { get; set; }
 
@@ -58,10 +59,10 @@ namespace nugt.policies
 
         public override async Task<Outcome> RunAsync()
         {
-            var projectFiles = getNugetProjectFiles();
+            var projectFiles = GetNugetProjectFiles();
             var nugetVersion = NugetVersion;
             
-            if (VersioningPolicy == VersioningPolicy.Hard && nugetVersion.IsPattern)
+            if (VersioningPolicy == VersioningPolicy.Hard && nugetVersion!.IsPattern)
             {
                 NugetVersion? hardVersion;
                 if (TargetProjectName is { })
@@ -71,7 +72,7 @@ namespace nugt.policies
                     if (targetProject is null)
                         return Outcome.Fail(new FileNotFoundException($"Target project not found: {TargetProjectName}"));
 
-                    hardVersion = nugetVersion.Adjust(targetProject.NugetVersion, VersioningPolicy);
+                    hardVersion = nugetVersion.Adjust(targetProject.GetNugetVersion(), VersioningPolicy);
                 }
                 else
                 {
@@ -87,7 +88,7 @@ namespace nugt.policies
             for (var i = 0; i < projectFiles.Length; i++)
             {
                 var pf = projectFiles[i];
-                pf.NugetVersion = nugetVersion.Adjust(pf.NugetVersion, VersioningPolicy);
+                pf.SetNugetVersion(nugetVersion!.Adjust(pf.GetNugetVersion(), VersioningPolicy));
                 if (AssemblyVersion is { })
                 {
                     pf.Version = AssemblyVersion.Adjust(pf.Version, VersioningPolicy);
@@ -96,14 +97,14 @@ namespace nugt.policies
                 }
                 else if (IsVersionNugetHarmonized)
                 {
-                    var version = nugetVersion.ToVersion(); 
+                    var version = nugetVersion!.ToVersion(); 
                     pf.Version = version.Adjust(pf.Version, VersioningPolicy);
                     pf.FileVersion = version.Adjust(pf.FileVersion, VersioningPolicy);
                     pf.AssemblyVersion = version.Adjust(pf.AssemblyVersion, VersioningPolicy);
                 }
 
                 await pf.SaveAsync();
-                Log.Information($"{pf.Name} nv{pf.NugetVersion} (av:{pf.AssemblyVersion}, fv:{pf.FileVersion}, v:{pf.Version})");
+                Log.Information($"{pf.Name} nv{pf.GetNugetVersion()} (av:{pf.AssemblyVersion}, fv:{pf.FileVersion}, v:{pf.Version})");
             }
             
             return Outcome.Success();
@@ -111,32 +112,28 @@ namespace nugt.policies
 
         NugetVersion? getHighestNugetVersionFromProjects(out ProjectFile[] projectFiles)
         {
-            projectFiles = getNugetProjectFiles();
+            projectFiles = GetNugetProjectFiles();
             if (projectFiles.Length == 0)
                 return null;
                 
             var pf = projectFiles[0];
-            var max = pf.NugetVersion;
+            var max = pf.GetNugetVersion();
             for (var i = 1; i < projectFiles.Length; i++)
             {
                 pf = projectFiles[i];
-                if (max < pf.NugetVersion)
+                var projectNugetVersion = pf.GetNugetVersion();
+                if (max < projectNugetVersion)
                 {
-                    max = pf.NugetVersion;
+                    max = projectNugetVersion;
                 } 
             }
 
             return max;
         }
 
-        ProjectFile[] getNugetProjectFiles() => GetProjectFiles(
-            projectFile 
-            => 
-            projectFile.IsBuildingNugetPackage ? FileHelper.GetFilesPolicy.GetAndBreak : FileHelper.GetFilesPolicy.Skip);
-
         bool tryGetTargetProjectFile([NotNullWhen(true)] out ProjectFile? projectFile)
         {
-            var projectFiles = getNugetProjectFiles();
+            var projectFiles = GetNugetProjectFiles();
             projectFile = projectFiles.FirstOrDefault(pf =>
             {
                 var name = pf.Name.TrimPostfix(".csproj");
@@ -153,7 +150,7 @@ namespace nugt.policies
             return sb.ToString();
         }
 
-        protected override Outcome TryInit(string[] args)
+        protected override Outcome TryInit(CommandLineArgs args)
         {
             var outcome = base.TryInit(args);
             if (!outcome)
@@ -198,7 +195,7 @@ namespace nugt.policies
                             Errors.InvalidArgument,
                             $"Target project not found: {TargetProjectName}"));
                     
-                    NugetVersion = targetProject.NugetVersion;
+                    NugetVersion = targetProject.GetNugetVersion();
                 }
                 else
                 {
@@ -260,14 +257,14 @@ namespace nugt.policies
 
         Outcome checkAtLeastOneVersionIsSpecified()
         {
-            if (NugetVersion.IsEmpty && AssemblyVersion is null)
+            if (NugetVersion!.IsEmpty && AssemblyVersion is null)
                 return Outcome.Fail(new CodedException(
                     Errors.MissingArgument, $"No versioning specified. Please state {ArgNugetVersion1} and/or {ArgAsmVersion1}"));
 
             return Outcome.Success();
         }
 
-        public SetVersionsPolicy(string[] args, ILog log) 
+        public SetVersionsPolicy(CommandLineArgs args, ILog log) 
         : base(args, log)
         {
         }

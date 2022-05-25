@@ -1,10 +1,12 @@
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.ApplicationInformation;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Identity;
 using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.OIDC;
+using Xamarin.Forms;
 
 namespace TetraPak.XP.Mobile
 {
@@ -17,7 +19,15 @@ namespace TetraPak.XP.Mobile
         ///   Just a convenient (fluent api) method to automatically register all services
         ///   of the "Mobile" package. 
         /// </summary>
-        public static XpServicesBuilder Mobile(this XpPlatformServicesBuilder builder) => builder.Build();
+        public static XpServicesBuilder Mobile(this XpPlatformServicesBuilder builder)
+        {
+            ApplicationInfo.Current = new ApplicationInfo(
+                ApplicationType.Mobile, 
+                ApplicationFramework.Xamarin,
+                Device.RuntimePlatform,
+                SdkHelper.NugetPackageVersion);
+            return builder.Build();
+        }
 
         /// <summary>
         ///   Configures a mobile app for default Tetra Pak mobile authorization. 
@@ -32,7 +42,7 @@ namespace TetraPak.XP.Mobile
         /// <returns>
         ///   The service <paramref name="collection"/>.
         /// </returns>
-        public static IServiceCollection AddTetraPakMobileAuthorization(
+        public static IServiceCollection AddTetraPakXamarinAuthorization(
             this IServiceCollection collection, 
             HostAuthorizationOptions? options = null)
         {
@@ -82,14 +92,14 @@ namespace TetraPak.XP.Mobile
         /// <returns>
         ///   The service <paramref name="collection"/>.
         /// </returns>
-        public static IServiceCollection AddTetraPakMobileAuthorization(
+        public static IServiceCollection AddTetraPakXamarinAuthorization(
             this IServiceCollection collection,
             bool? isGrantCachingSupported = null,
             bool? isUserInformationSupported = null,
             params GrantType[] grantTypes)
         {
             grantTypes = grantTypes.Any() ? grantTypes : MobileHostAuthorizationOptionsHelper.DefaultGrantTypes;
-            return collection.AddTetraPakMobileAuthorization(new HostAuthorizationOptions(grantTypes)
+            return collection.AddTetraPakXamarinAuthorization(new HostAuthorizationOptions(grantTypes)
             {
                 IsGrantCacheSupported = isGrantCachingSupported ?? MobileHostAuthorizationOptionsHelper.DefaultIsGrantCacheSupported,
                 IsUserInformationSupported = isUserInformationSupported ?? MobileHostAuthorizationOptionsHelper.DefaultIsUserInformationSupported
@@ -110,11 +120,11 @@ namespace TetraPak.XP.Mobile
         /// <returns>
         ///   The service <paramref name="collection"/>.
         /// </returns>
-        public static IServiceCollection AddTetraPakMobileAuthorization(
+        public static IServiceCollection AddTetraPakXamarinAuthorization(
             this IServiceCollection collection,
             params GrantType[] grantTypes)
         {
-            return collection.AddTetraPakMobileAuthorization(
+            return collection.AddTetraPakXamarinAuthorization(
                 MobileHostAuthorizationOptionsHelper.DefaultIsGrantCacheSupported,
                 MobileHostAuthorizationOptionsHelper.DefaultIsUserInformationSupported,
                 grantTypes);

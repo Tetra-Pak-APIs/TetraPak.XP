@@ -16,5 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="..\TetraPak.XP.Common\TetraPak.XP.Common.csproj" />
     <ProjectReference Include="..\TetraPak.XP.DynamicEntities\TetraPak.XP.DynamicEntities.csproj" />
+    <ProjectReference Include="..\TetraPak.XP.ProjectManagement\TetraPak.XP.ProjectManagement.csproj" />
   </ItemGroup>
 </Project>

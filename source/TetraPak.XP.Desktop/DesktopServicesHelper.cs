@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using TetraPak.XP.ApplicationInformation;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Identity;
@@ -7,16 +9,42 @@ using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.OIDC;
 using TetraPak.XP.OAuth2.TokenExchange;
+using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Desktop
 {
     public static class DesktopServicesHelper
     {
+        
         /// <summary>
-        ///   Just a convenient (fluent api) method to automatically register all services
-        ///   of the "Desktop" package. 
+        ///   (fluent api)<br/>
+        ///   Prepares a desktop host for a specified framework and returns a <see cref="XpServicesBuilder"/>. 
         /// </summary>
-        public static XpServicesBuilder Desktop(this XpPlatformServicesBuilder builder) => builder.Build();
+        /// <seealso cref="DesktopCustom"/>
+        public static XpServicesBuilder Desktop(this XpPlatformServicesBuilder builder, ApplicationFramework framework)
+        {
+            ApplicationInfo.Current = new ApplicationInfo(
+                ApplicationType.Desktop, 
+                framework, 
+                Environment.OSVersion.ToString(), 
+                 SdkHelper.NugetPackageVersion);
+            return builder.Build();
+        }
+        
+        /// <summary>
+        ///   (fluent api)<br/>
+        ///   Prepares a desktop host with a custom framework and returns a <see cref="XpServicesBuilder"/>. 
+        /// </summary>
+        /// <seealso cref="DesktopCustom"/>
+        public static XpServicesBuilder DesktopCustom(this XpPlatformServicesBuilder builder, string framework)
+        {
+            ApplicationInfo.Current = new ApplicationInfo(
+                ApplicationType.Desktop, 
+                framework, 
+                Environment.OSVersion.ToString(), 
+                SdkHelper.NugetPackageVersion);
+            return builder.Build();
+        }
 
         /// <summary>
         ///   Configures a mobile app for default Tetra Pak mobile authorization. 

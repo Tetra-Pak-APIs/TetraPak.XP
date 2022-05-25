@@ -43,10 +43,10 @@ namespace TetraPak.XP.StringValues
         ///   Gets the string elements of the value as an <see cref="Array"/> of <see cref="string"/>.
         /// </summary>
         [JsonIgnore]
-        public string[] Items { get; private set; }
+        public string[] Items { get; protected set; }
         
         [JsonIgnore]
-        public bool IsEmpty { get; private set; }
+        public bool IsEmpty { get; protected set; }
 
         /// <summary>
         ///   Constructs and returns an empty <see cref="MultiStringValue"/>.
@@ -107,7 +107,7 @@ namespace TetraPak.XP.StringValues
             => Outcome<string>.Success(item);
 
         /// <summary>
-        ///   Implicitly converts a <see cref="MultiStringValue"/> value into its <see cref="string"/> representation.
+            ///   Implicitly converts a <see cref="MultiStringValue"/> value into its <see cref="string"/> representation.
         /// </summary>
         /// <param name="value">
         ///   A <see cref="MultiStringValue"/> value to be implicitly converted into its <see cref="string"/> representation.
@@ -578,7 +578,7 @@ namespace TetraPak.XP.StringValues
         ///   Specifies how to perform comparison for <see cref="MultiStringValue"/>s.
         /// </param>
         public MultiStringValue(
-            string[] items, 
+            IEnumerable<string> items, 
             string? separator = null, 
             StringComparison comparison = StringComparison.Ordinal) 
         : base(WithArgs(items.ConcatEnumerable(), separator, comparison))

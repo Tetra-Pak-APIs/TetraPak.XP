@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using TetraPak.XP;
-using TetraPak.XP.Logging;
+using TetraPak.XP.CLI;
+using TetraPak.XP.FileManagement;
 using TetraPak.XP.Logging.Abstractions;
 
 namespace nugt.policies
@@ -53,35 +54,7 @@ namespace nugt.policies
             throw new NotImplementedException();
         }
         
-        // NugetPackageFile[] selectLatestNugetPackageFiles() obsolete
-        // {
-        //     var nugetFilesList = NugetPackageFiles!.ToList();
-        //     if (!nugetFilesList.Any())
-        //         return Array.Empty<NugetPackageFile>();
-        //     
-        //     nugetFilesList.Sort((left, right) 
-        //         => string.Compare(left.Name, right.Name, StringComparison.Ordinal));
-        //
-        //     NugetPackageFile? latest = null;
-        //     var list = new List<NugetPackageFile>();
-        //     foreach (var nugetFile in nugetFilesList)
-        //     {
-        //         if (latest is {} && nugetFile.Name != latest.Name)
-        //         {
-        //             list.Add(nugetFile);
-        //         }
-        //         latest = nugetFile;
-        //     }
-        //     list.Add(latest!);
-        //     return list.ToArray();
-        // }
-        //
-        // NugetPackageFile[] selectNugetPackageFileVersion(NugetVersion version)
-        // {
-        //     return NugetPackageFiles!.Where(f => f.NugetVersion == version).ToArray();
-        // }
-
-        protected override Outcome TryInit(string[] args)
+        protected override Outcome TryInit(CommandLineArgs args)
         {
             var baseOutcome = base.TryInit(args);
             if (!baseOutcome)
@@ -137,16 +110,9 @@ namespace nugt.policies
             return Outcome.Success();
         }
 
-        public DistributeNugetPolicy(string[] args, ILog log) 
+        public DistributeNugetPolicy(CommandLineArgs args, ILog log) 
         : base(args, log)
         {
         }
-    }
-    
-    enum RepositionMethod
-    {
-        Copy,
-        
-        Move
     }
 }

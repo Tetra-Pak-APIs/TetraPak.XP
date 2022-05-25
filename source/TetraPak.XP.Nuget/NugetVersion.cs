@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json.Serialization;
 using TetraPak.XP.DynamicEntities;
+using TetraPak.XP.ProjectManagement;
 using TetraPak.XP.Serialization;
 
 namespace TetraPak.XP.Nuget
@@ -184,6 +186,12 @@ namespace TetraPak.XP.Nuget
             Prerelease = new NugetPrereleaseVersion(items[3]);
             return Outcome<string[]>.Success(items);
         }
+
+        public static NugetVersion GetFromProjectFile(string filePath)
+        {
+            var projectFile = new ProjectFile(new FileInfo(filePath), false);
+            return projectFile.GetNugetVersion();
+        }
         
         NugetVersion() 
         {
@@ -193,5 +201,24 @@ namespace TetraPak.XP.Nuget
         : base(stringValue, VersionDefaultSeparator)
         {
         }
+    }
+    
+    public static class NugetProjectFileHelper
+    {
+        public static NugetVersion GetNugetVersion(this ProjectFile projectFile)
+        {
+            var node = projectFile.Document.SelectSingleNode($"//{ProjectFile.TagKeyPropertyGroup}/PackageVersion");
+            return node?.InnerText ?? NugetVersion.Empty;
+        }
+
+        public static void SetNugetVersion(this ProjectFile projectFile, NugetVersion value)
+        {
+            var node = projectFile.Document.SelectSingleNode($"//{ProjectFile.TagKeyPropertyGroup}/PackageVersion");
+            if (node is null || node.IsReadOnly)
+                return;
+
+            node.InnerText = value.StringValue;
+        }
+        
     }
 }

@@ -1,190 +1,181 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using nugt.policies;
 using TetraPak.XP;
+using TetraPak.XP.ApplicationInformation;
+using TetraPak.XP.CLI;
 using TetraPak.XP.DependencyInjection;
 using TetraPak.XP.Desktop;
 using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 
-namespace nugt;
-
-static class Program
+namespace nugt
 {
-    const string Executable = "nugt";
-    
-    const string ArgHelp1 = "-?";
-    const string ArgHelp2 = "-h";
-    const string ArgHelp3 = "--help";
-    
-    const string ArgSilent1 = "-s";
-    const string ArgSilent2 = "--silent";
-
-    static bool IsInteractive { get; set; }
-
-    static bool IsHelpRequested { get; set; }
-    
-    static async Task Main(string[] args)
+    static class Program
     {
-        IsInteractive = !args.TryGetFlag(ArgSilent1, ArgSilent2);
-        var info = args.BuildTetraPakDesktopHost(collection =>
+        const string Executable = "nugt";
+
+        const string ArgHelp1 = "-?";
+        const string ArgHelp2 = "-h";
+        const string ArgHelp3 = "--help";
+
+        const string ArgSilent1 = "-s";
+        const string ArgSilent2 = "--silent";
+
+        const string ArgLogFile1 = "-lf";
+        const string ArgLogFile2 = "--log-file";
+
+        static bool IsInteractive { get; set; }
+
+        static bool IsHelpRequested { get; set; }
+        
+        static CommandLineArgs? Args { get; set; }
+
+        static ILog? s_log;
+        static readonly List<LogEventArgs> s_logEvents = new();
+
+        static async Task Main(string[] args)
         {
-            collection.AddSingleton<PolicyDispatcher>();
-            if (IsInteractive)
+            Args = new CommandLineArgs(args);
+            IsInteractive = !args.TryGetFlag(ArgSilent1, ArgSilent2);
+            var info = args.BuildTetraPakDesktopHost(ApplicationFramework.Console, collection =>
             {
-                collection.AddSingleton(p => new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging());
+                collection.AddSingleton<PolicyDispatcher>();
+                collection.AddSingleton(p => new LogBase(p.GetRequiredService<IConfiguration>()).WithConsoleLogging());
+                if (IsInteractive)
+                {
+                    collection.AddSingleton(p =>
+                    {
+                        var log = new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging();
+                        log.Logged += (_, e) => s_logEvents.Add(e);
+                        return log;
+                    });
+                }
+            });
+            var provider = info.ServiceCollection.BuildXpServices();
+            s_log = provider.GetService<ILog>();
+            var policyOutcome = initPolicy(
+                Args,
+                provider.GetRequiredService<PolicyDispatcher>(),
+                provider.GetService<ILog>());
+
+            if (!policyOutcome)
+            {
+                await exitWithOutcome(policyOutcome);
+                return;
             }
-        });
-        var p = info.ServiceCollection.BuildXpServices();
-        var policyOutcome = initPolicy(
-            args, 
-            p.GetRequiredService<PolicyDispatcher>(),
-            p.GetService<ILog>());
-        
-        if (!policyOutcome)
-        {
-            exitWithOutcome(policyOutcome);
-            return;
+
+            var policy = policyOutcome.Value!;
+            await exitWithOutcome(await policy.RunAsync());
         }
 
-        var policy = policyOutcome.Value!;
-        exitWithOutcome(await policy.RunAsync());
-    }
-    
-    static void exitWithOutcome(Outcome outcome)
-    {
-        if (outcome)
+        static async Task exitWithOutcome(Outcome outcome)
         {
-            writeToConsole(outcome);
-            Environment.Exit(0);
-            return;
-        }
+            writeToLog(outcome);
+            if (outcome)
+            {
+                Environment.Exit(0);
+                return;
+            }
 
-        
-        var code = outcome.Exception is CodedException codedException ? codedException.Code : 1;
-        writeToConsole(outcome);
-        if (IsHelpRequested)
-        {
-            showHelp();
-        }
-        Environment.Exit(code);
-    }
+            var code = outcome.Exception is CodedException codedException ? codedException.Code : 1;
+            if (IsHelpRequested)
+            {
+                showHelp();
+            }
 
-    static void showHelp()
-    {
-        writeToConsole("TODO: Add help");
-    }
-
-    static Outcome<Policy> initPolicy(string[] args, PolicyDispatcher policies, ILog? log)
-    {
-        if (!args.TryGetFirstValue(out var policyName))
-        {
-            IsHelpRequested = IsInteractive;
-            return Outcome<Policy>.Fail(new CodedException(Errors.MissingArgument,"A policy name was expected (first argument)"));
-        }
-        
-        var outcome = policies.GetPolicyType(policyName);
-        if (!outcome)
-            return Outcome<Policy>.Fail(outcome.Exception!);
-
-        var policyType = outcome.Value!; 
-        var ctor = policyType.GetConstructor(new Type[] { typeof(string[]), typeof(ILog) });
-        if (ctor is null)
-            return Outcome<Policy>.Fail($"Expected policy ctor with argument types: {typeof(string[]).Name} and {nameof(ILog)}");
-
-        try
-        {
-            var policy = (Policy)ctor.Invoke(new object?[] { args, log });
-            return policy.OutcomeFromInit
-                ? Outcome<Policy>.Success(policy)
-                : Outcome<Policy>.Fail(policy.OutcomeFromInit.Exception!);
-        }
-        catch (Exception ex)
-        {
-            return Outcome<Policy>.Fail($"Error when initializing policy \"{policyName}\" ({policyType})");
-        }
-    }
-    
-    static void writeToConsole(string message, ConsoleColor? color = ConsoleColor.Yellow)
-    {
-        if (!IsInteractive) 
-            return;
-
-        Console.ForegroundColor = color ?? ConsoleColor.Green;
-        Console.WriteLine(message);
-        Console.ResetColor();
-    }
-
-    static void writeToConsole(Outcome outcome, ConsoleColor? color = null)
-    {
-        if (!IsInteractive) 
-            return;
-
-        if (outcome)
-        {
-            Console.ForegroundColor = color ?? ConsoleColor.Green;
-            Console.WriteLine("SUCCESS");
-            Console.ResetColor();
-            return;
-        }
-        
-        Console.ForegroundColor = color ?? ConsoleColor.Red;
-        Console.WriteLine(outcome.Exception!.Message);
-        Console.ResetColor();
-    }
-}
-
-public static class ArgsHelper
-{
-    internal static bool TryGetValue(this IReadOnlyList<string> args, [NotNullWhen(true)] out string? value, params string[] keys)
-    {
-        for (var i = 0; i < args.Count-1; i++)
-        {
-            if (!keys.Any(key => key.Equals(args[i], StringComparison.Ordinal))) 
-                continue;
+            if (!s_logEvents.Any())
+                Environment.Exit(code);
+                
+            var logFilePath = Args!.TryGetValue(out var lfp, ArgLogFile1, ArgLogFile2)
+                ? lfp
+                : Path.Combine(Environment.CurrentDirectory, "_fail.log");
             
-            value = args[i + 1];
-            return true;
+            var sb = new StringBuilder();
+            foreach (var logEvent in s_logEvents)
+            {
+                sb.AppendLine(logEvent.Format());
+            }
+
+            try
+            {
+                await File.WriteAllTextAsync(logFilePath, sb.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;  
+            }
+            
+            Environment.Exit(code);
         }
 
-        value = null;
-        return false;
-    }
-    
-    internal static bool TryGetFlag(this IReadOnlyList<string> args, params string[] keys)
-    {
-        for (var i = 0; i < args.Count; i++)
+        static void showHelp()
         {
-            if (keys.Any(key => key.Equals(args[i], StringComparison.Ordinal))) 
-                return true;
+            writeToConsole("TODO: Add help");
         }
-        return false;
-    }
-    
-    internal static bool TryGetFirstValue(this IReadOnlyList<string> args, [NotNullWhen(true)] out string? value)
-    {
-        value = args.Count >= 1 ? args[0] : null;
-        return value is {};
-    }
-}
 
-sealed class CodedException : Exception
-{
-    public int Code { get; }
+        static Outcome<Policy> initPolicy(CommandLineArgs args, PolicyDispatcher policies, ILog? log)
+        {
+            if (!args.TryGetFirstValue(out var policyName))
+            {
+                IsHelpRequested = IsInteractive;
+                return Outcome<Policy>.Fail(new CodedException(Errors.MissingArgument,
+                    "A policy name was expected (first argument)"));
+            }
 
-    public CodedException(int code, string message, Exception? innerException = null) : base(message, innerException)
-    {
-        Code = code;
+            var outcome = policies.GetPolicyType(policyName);
+            if (!outcome)
+                return Outcome<Policy>.Fail(outcome.Exception!);
+
+            var policyType = outcome.Value!;
+            var ctor = policyType.GetConstructor(new[] { typeof(CommandLineArgs), typeof(ILog) });
+            if (ctor is null)
+                return Outcome<Policy>.Fail(
+                    $"Expected policy ctor with argument types: {nameof(CommandLineArgs)} and {nameof(ILog)}");
+
+            try
+            {
+                var policy = (Policy)ctor.Invoke(new object?[] { args, log });
+                return policy.OutcomeFromInit
+                    ? Outcome<Policy>.Success(policy)
+                    : Outcome<Policy>.Fail(policy.OutcomeFromInit.Exception!);
+            }
+            catch (Exception ex)
+            {
+                ex = new Exception($"Error when initializing policy \"{policyName}\" ({policyType})", ex);
+                return Outcome<Policy>.Fail(ex);
+            }
+        }
+
+        static void writeToConsole(string message, ConsoleColor? color = ConsoleColor.Yellow)
+        {
+            if (!IsInteractive)
+                return;
+
+            Console.ForegroundColor = color ?? ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+
+        static void writeToLog(Outcome outcome)
+        {
+            if (!IsInteractive)
+                return;
+        
+            if (outcome)
+            {
+                s_log.Information("SUCCESS");
+                return;
+            }
+            
+            s_log.Error(outcome.Exception!);
+        }
     }
-}
-
-static class Errors
-{
-    public const int MissingArgument = 10;
-    public const int InvalidArgument = 20;
 }
