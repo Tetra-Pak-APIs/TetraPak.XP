@@ -198,7 +198,7 @@ namespace authClient.console
         
         public Auth(string[] args)
         {
-            var info = args.BuildTetraPakDesktopHost(ApplicationFramework.Console, collection =>
+            var info = args.BuildTetraPakDesktopHost(ApplicationPlatform.Console, collection =>
             {
                 collection
                     .AddTetraPakDesktopAuthorization(

@@ -47,7 +47,12 @@ namespace TetraPak.XP
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         
-        public static bool TryParseTimeSpan(this string stringValue, string defaultUnit, out TimeSpan timeSpan, CultureInfo? cultureInfo = null)
+        public static bool TryParseTimeSpan(
+            this string stringValue, 
+            string defaultUnit, 
+            out TimeSpan timeSpan,
+            CultureInfo? cultureInfo = null,
+            bool ignoreCase = false)
         {
             timeSpan = TimeSpan.Zero;
             if (string.IsNullOrWhiteSpace(stringValue))
@@ -68,6 +73,16 @@ namespace TetraPak.XP
             if (!double.TryParse(numeric, NumberStyles.Float, cultureInfo, out var dValue))
                 return false;
 
+            if (ignoreCase)
+            {
+                unit = unit.ToLower();
+                if (unit == TimeUnits.Days.ToLower())
+                {
+                    timeSpan = TimeSpan.FromDays(dValue);
+                    return true;
+                }
+            }
+
             switch (unit)
             {
                 case TimeUnits.Days:
@@ -81,7 +96,7 @@ namespace TetraPak.XP
                 case TimeUnits.Minutes:
                     timeSpan = TimeSpan.FromMinutes(dValue);
                     return true;
-           
+
                 case TimeUnits.Seconds:
                     timeSpan = TimeSpan.FromSeconds(dValue);
                     return true;
@@ -89,11 +104,11 @@ namespace TetraPak.XP
                 case TimeUnits.Milliseconds:
                     timeSpan = TimeSpan.FromMilliseconds(dValue);
                     return true;
-                
+
                 case TimeUnits.Ticks:
-                    timeSpan = TimeSpan.FromTicks((long) dValue);
+                    timeSpan = TimeSpan.FromTicks((long)dValue);
                     return true;
-                
+
                 default: return false;
             }
         }

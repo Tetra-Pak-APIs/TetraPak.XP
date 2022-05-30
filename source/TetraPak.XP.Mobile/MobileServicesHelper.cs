@@ -22,8 +22,7 @@ namespace TetraPak.XP.Mobile
         public static XpServicesBuilder Mobile(this XpPlatformServicesBuilder builder)
         {
             ApplicationInfo.Current = new ApplicationInfo(
-                ApplicationType.Mobile, 
-                ApplicationFramework.Xamarin,
+                ApplicationPlatform.Xamarin,
                 Device.RuntimePlatform,
                 SdkHelper.NugetPackageVersion);
             return builder.Build();

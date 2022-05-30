@@ -66,7 +66,14 @@ namespace TetraPak.XP.Logging.Abstractions
         ///   (optional)<br/>
         ///   A unique string value for tracking related events through the log (mainly for diagnostics purposes).
         /// </param>
-        public static void Trace(this ILog? log, Func<string> messageHandler, string? messageId = null,
+        /// <param name="source">
+        ///   (optional)<br/>
+        ///   Describes the log event source (eg. method, class or whatever makes sense).
+        /// </param>
+        public static void Trace(
+            this ILog? log, 
+            Func<string> messageHandler, 
+            string? messageId = null,
             LogEventSource? source = null)
         {
             if (log is null || !log.IsEnabled(LogRank.Trace))

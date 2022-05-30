@@ -46,10 +46,11 @@ namespace TetraPak.XP
         /// <returns>
         ///   <c>true</c> if the task has finished; otherwise <c>false</c>.
         /// </returns>
-        public static bool IsFinished<T>(this TaskCompletionSource<T> tcs)
-        {
-            return tcs.Task.Status >= TaskStatus.RanToCompletion;
-        }
+        public static bool IsFinished<T>(this TaskCompletionSource<T> tcs) => tcs.Task.Status >= TaskStatus.RanToCompletion;
+
+        public static bool IsCanceled<T>(this TaskCompletionSource<T> tcs) => tcs.Task.Status == TaskStatus.Canceled;
+
+        public static bool IsFaulted<T>(this TaskCompletionSource<T> tcs) => tcs.Task.Status == TaskStatus.Faulted;
 
         /// <summary>
         ///   Blocks the thread while waiting for a result.
@@ -70,8 +71,8 @@ namespace TetraPak.XP
         /// </returns>
         public static bool Await(
             this Task task,
-            TimeSpan? timeout = null, 
-            CancellationTokenSource? cts = null)
+            CancellationTokenSource? cts = null,
+            TimeSpan? timeout = null)
         {
             var awaiter = task.ConfigureAwait(false).GetAwaiter();
             var useTimeout = timeout.HasValue ? XpDateTime.Now.Add(timeout.Value) : DateTime.MaxValue;
@@ -105,33 +106,23 @@ namespace TetraPak.XP
         ///   The expected value type.
         /// </typeparam>
         /// <returns>
-        /// <summary>
-        ///   Blocks the thread while waiting for the outcome.
-        /// </summary>
-        /// <param name="tcs">
-        ///   The <see cref="TaskCompletionSource{TResult}"/> in use for signalling result is available.
-        /// </param>
-        /// <param name="timeout">
-        ///   (optional)<br/>
-        ///   Specifies a timeout. If operation times our a default result will be sent back.
-        /// </param>
-        /// <param name="cts">
-        ///   (optional)<br/>
-        ///   A cancellation token source, allowing operation cancellation (from a different thread).
-        /// </param>
-        /// <typeparam name="T">
-        ///   The type of result being requested.
-        /// </typeparam>
-        /// <returns>
         ///   An <see cref="Outcome"/> value, signalling success/failure while also carrying the requested
         ///   result on success; otherwise an <see cref="Exception"/>.
         /// </returns>
+        public static Task<Outcome<T>> GetOutcomeAsync<T>(
+            this TaskCompletionSource<T> tcs,
+            CancellationTokenSource? cts = null,
+            TimeSpan? timeout = null) 
+            =>
+            tcs.getOutcomeAsync(cts, timeout);
+        
         public static Task<Outcome<T>> GetOutcomeAsync<T>(
             this TaskCompletionSource<Outcome<T>> tcs,
             CancellationTokenSource? cts = null,
             TimeSpan? timeout = null) 
             =>
             tcs.getOutcomeAsync(cts, timeout);
+
 
         /// <summary>
         ///   Blocks execution while awaiting the outcome of a task completion source while applying cancellation and/or timout support. 
@@ -155,13 +146,26 @@ namespace TetraPak.XP
         ///   result on success; otherwise an <see cref="Exception"/>.
         /// </returns>
         public static Outcome<T> GetOutcome<T>(
-            this TaskCompletionSource<Outcome<T>> tcs, 
+            this TaskCompletionSource<T> tcs, 
             CancellationTokenSource? cts = null,
             TimeSpan? timeout = null)
         {
-            // // todo This method is unused/untested 
-            Task.Run(async () => await tcs.getOutcomeAsync(cts, timeout));
-            return tcs.Task.Result;
+            // // todo This method is unused/untested
+            if (tcs.IsFinished())
+                return tcs.IsCanceled()
+                    ? Outcome<T>.Cancel()
+                    : tcs.IsFaulted()
+                        ? tcs.Task.Exception is {} ? Outcome<T>.Fail(tcs.Task.Exception) : Outcome<T>.Fail("Operation failed") 
+                        : Outcome<T>.Success(tcs.Task.Result);
+
+            Task.Run(async () => await tcs.GetOutcomeAsync(cts, timeout));
+            tcs.Task.Wait();
+            return tcs.IsCanceled()
+                ? Outcome<T>.Cancel()
+                : tcs.IsFaulted()
+                    ? tcs.Task.Exception is {} ? Outcome<T>.Fail(tcs.Task.Exception) : Outcome<T>.Fail("Operation failed") 
+                    : Outcome<T>.Success(tcs.Task.Result);
+            
             //
             // // var isTimedOut = false; obsolete
             // var isCancelled = false;
@@ -216,6 +220,41 @@ namespace TetraPak.XP
         }
         
         static async Task<Outcome<T>> getOutcomeAsync<T>(
+            this TaskCompletionSource<T> tcs,
+            CancellationTokenSource? cts = null,
+            TimeSpan? timeout = null)
+        {
+            var tasks = new List<Task>(new[] { tcs.Task });
+            Task? timeoutTask = null;
+            if (timeout is { })
+            {
+                cts?.CancelAfter(timeout.Value);
+                timeoutTask = Task.Delay(timeout.Value);
+                tasks.Add(timeoutTask);
+            }
+
+            try
+            {
+                await Task.WhenAny(tasks);
+                var isTimedOut = timeoutTask is 
+                                     { Status: TaskStatus.RanToCompletion } || (cts?.IsCancellationRequested ?? false);
+                if (isTimedOut)
+                    return Outcome<T>.Cancel("Operation timed out");
+
+                var value = await tcs.Task;
+                return tcs.Task.IsCanceled
+                    ? Outcome<T>.Cancel("Operation timed out")
+                    : Outcome<T>.Success(value!);
+            }
+            catch (Exception ex)
+            {
+                return tcs.Task.IsCanceled
+                    ? Outcome<T>.Cancel()
+                    : Outcome<T>.Fail(ex);
+            }
+        }
+        
+        static async Task<Outcome<T>> getOutcomeAsync<T>(
             this TaskCompletionSource<Outcome<T>> tcs,
             CancellationTokenSource? cts = null,
             TimeSpan? timeout = null)
@@ -232,15 +271,15 @@ namespace TetraPak.XP
             try
             {
                 await Task.WhenAny(tasks);
-                var isTimedOut = timeoutTask is { Status: TaskStatus.RanToCompletion } ||
-                                 (cts?.IsCancellationRequested ?? false);
+                var isTimedOut = timeoutTask is 
+                    { Status: TaskStatus.RanToCompletion } || (cts?.IsCancellationRequested ?? false);
                 if (isTimedOut)
                     return Outcome<T>.Cancel("Operation timed out");
 
-                var value = await tcs.Task;
+                var outcome = await tcs.Task;
                 return tcs.Task.IsCanceled
                     ? Outcome<T>.Cancel("Operation timed out")
-                    : Outcome<T>.Success(value!);
+                    : outcome;
             }
             catch (Exception ex)
             {
@@ -249,5 +288,6 @@ namespace TetraPak.XP
                     : Outcome<T>.Fail(ex);
             }
         }
+
     }
 }

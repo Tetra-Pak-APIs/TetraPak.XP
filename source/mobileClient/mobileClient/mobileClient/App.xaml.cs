@@ -43,7 +43,7 @@ namespace mobileClient
                             ? new LoopbackBrowserVM(p.GetService<ILog>()) 
                             : p.GetRequiredService<ILoopbackBrowser>();
                     })
-                    .AddTetraPakMobileAuthorization(GrantType.OIDC, GrantType.DeviceCode)
+                    .AddTetraPakXamarinAuthorization(GrantType.OIDC, GrantType.DeviceCode)
                     .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
                     .AddTetraPakWebServices()
                     .AddViewModels()

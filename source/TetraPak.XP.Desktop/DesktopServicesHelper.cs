@@ -9,7 +9,6 @@ using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.OIDC;
 using TetraPak.XP.OAuth2.TokenExchange;
-using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Desktop
 {
@@ -21,11 +20,10 @@ namespace TetraPak.XP.Desktop
         ///   Prepares a desktop host for a specified framework and returns a <see cref="XpServicesBuilder"/>. 
         /// </summary>
         /// <seealso cref="DesktopCustom"/>
-        public static XpServicesBuilder Desktop(this XpPlatformServicesBuilder builder, ApplicationFramework framework)
+        public static XpServicesBuilder Desktop(this XpPlatformServicesBuilder builder, ApplicationPlatform platform)
         {
             ApplicationInfo.Current = new ApplicationInfo(
-                ApplicationType.Desktop, 
-                framework, 
+                platform, 
                 Environment.OSVersion.ToString(), 
                  SdkHelper.NugetPackageVersion);
             return builder.Build();
@@ -39,7 +37,6 @@ namespace TetraPak.XP.Desktop
         public static XpServicesBuilder DesktopCustom(this XpPlatformServicesBuilder builder, string framework)
         {
             ApplicationInfo.Current = new ApplicationInfo(
-                ApplicationType.Desktop, 
                 framework, 
                 Environment.OSVersion.ToString(), 
                 SdkHelper.NugetPackageVersion);

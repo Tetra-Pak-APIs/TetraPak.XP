@@ -23,7 +23,7 @@ namespace TetraPak.XP.Desktop
         /// <param name="args">
         ///   A collection of string arguments.
         /// </param>
-        /// <param name="framework">
+        /// <param name="platform">
         ///   Specifies the framework/idiom used for building the native app (Console, WPF, WinService etc.) 
         /// </param>
         /// <param name="configureServices">
@@ -35,7 +35,7 @@ namespace TetraPak.XP.Desktop
         /// </returns>
         public static TetraPakHostInfo BuildTetraPakDesktopHost(
             this string[] args,
-            ApplicationFramework framework,
+            ApplicationPlatform platform,
             Action<IServiceCollection>? configureServices = null)
         {
             var tcs = new TaskCompletionSource<IServiceCollection>();
@@ -44,7 +44,7 @@ namespace TetraPak.XP.Desktop
                 {
                     collection =
                         XpServices
-                            .BuildFor().Desktop(framework).WithServiceCollection(collection)
+                            .BuildFor().Desktop(platform).WithServiceCollection(collection)
                             .AddXpDateTime()
                             .AddTetraPakConfiguration()
                             .AddDesktopFileSystem()

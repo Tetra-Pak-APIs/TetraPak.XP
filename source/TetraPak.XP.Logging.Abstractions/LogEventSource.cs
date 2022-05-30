@@ -1,24 +1,26 @@
 using System.Runtime.CompilerServices;
+using TetraPak.XP.StringValues;
 
 namespace TetraPak.XP.Logging.Abstractions
 {
 
     /// <summary>
-    ///   Represents the source of a log event (such as a method).
+    ///   Represents the source of a log event (such as a class, method or whatever makes sense).
     /// </summary>
-    public sealed class LogEventSource
+    public sealed class LogEventSource : IStringValue
     {
-        readonly string _stringValue;
+        public string StringValue { get; }
 
-        public override string ToString() => _stringValue;
 
-        public bool IsRetainedSection => _stringValue == "__retained_section__";
+        public override string ToString() => StringValue;
+
+        public bool IsRetainedSection => StringValue == "__retained_section__";
 
         internal static LogEventSource RetainedSection() => new("__retained_section__");
 
-        bool Equals(LogEventSource other)
+        bool Equals(IStringValue other)
         {
-            return _stringValue == other._stringValue;
+            return StringValue == other.StringValue;
         }
 
         public override bool Equals(object? obj)
@@ -28,9 +30,15 @@ namespace TetraPak.XP.Logging.Abstractions
             return obj.GetType() == GetType() && Equals((LogEventSource)obj);
         }
 
+        public static implicit operator LogEventSource?(string? stringValue) => stringValue.IsAssigned() 
+            ? new(stringValue!) 
+            : null;
+
+        public static implicit operator string(LogEventSource logEventSource) => logEventSource.StringValue;
+
         public override int GetHashCode()
         {
-            return _stringValue.GetHashCode();
+            return StringValue.GetHashCode();
         }
 
         public static bool operator ==(LogEventSource? left, LogEventSource? right)
@@ -44,17 +52,16 @@ namespace TetraPak.XP.Logging.Abstractions
         }
 
         public LogEventSource(
-            [CallerMemberName] string? caller = null, 
+            [CallerMemberName] string? stringValue = null, 
             [CallerFilePath] string? callerFile = null,
             [CallerLineNumber] int callerLine = 0)
         {
-            _stringValue = $"{caller}@{callerFile} (#{callerLine})";
+            StringValue = $"{stringValue}@{callerFile} (#{callerLine})";
         }
 
-        internal LogEventSource(string caller)
+        internal LogEventSource(string stringValue)
         {
-            _stringValue = $"{caller}";
+            StringValue = $"{stringValue}";
         }
-
     }
 }

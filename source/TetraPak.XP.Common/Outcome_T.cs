@@ -121,7 +121,7 @@ namespace TetraPak.XP
         /// <returns>
         ///   The expected (successful) outcome value.
         /// </returns>
-        public static implicit operator T?(Outcome<T?> outcome) => outcome.Value;
+        public static implicit operator T?(Outcome<T?>? outcome) => outcome.Value;
 
         protected Outcome(bool evaluated, string? message, Exception? exception, T? value) 
         : base(evaluated, message, exception)

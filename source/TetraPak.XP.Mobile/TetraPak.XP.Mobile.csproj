@@ -36,6 +36,6 @@
     <Folder Include="_build" />
   </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="dotnet $(ProjectDir)../_automation/nugt/bin/Debug/net5.0/nugt.dll to-code -p '$(ProjectDir)' --break-on-first --log-file '$(ProjectDir)_build/fail.log'" />
+    <Exec Command="if $(ConfigurationName) == Release dotnet $(ProjectDir)../_automation/nugt/bin/Debug/net5.0/nugt.dll to-code -p '$(ProjectDir)' --break-on-first --log-file '$(ProjectDir)_build/fail.log'" />
   </Target>
 </Project>

@@ -20,14 +20,17 @@ namespace TetraPak.XP.ApplicationInformation
         /// </summary>
         public static ApplicationInfo? Current { get; set; }
         
-        [JsonPropertyName("typ")]
-        public string Type { get; } // mobile | desktop | web
+        // [JsonPropertyName("typ")]
+        // public string Type { get; } // eg. mobile | desktop | web
+
+        [JsonPropertyName("pfm")]
+        public string Platform { get; } // eg. Xamarin | Maui | console | WPF | UWP | AspNet
 
         [JsonPropertyName("fwk")]
-        public string Framework { get; } // Xamarin | Maui | console | WPF | UWP | AspNet
+        public string Framework { get; } // eg. ".NETCoreApp,Version=v5.0" 
 
         [JsonPropertyName("ops")]
-        public string OperatingSystem { get; } // Windows / MacOS / Linux / iOS / Android
+        public string OperatingSystem { get; } // eg. Windows / MacOS / Linux / iOS / Android
 
         [JsonPropertyName("sdk")]
         public string Sdk { get; set; }
@@ -39,21 +42,21 @@ namespace TetraPak.XP.ApplicationInformation
 
         public override string ToString() => StringValue;
 
-        string makeStringValue() => $"{Type}({Framework}.{OperatingSystem}); .NET sdk=v{Sdk}";
+        string makeStringValue() => $"{Platform} ({Framework}); {OperatingSystem}; .NET sdk=v{Sdk}";
 
-        public ApplicationInfo(ApplicationType type, ApplicationFramework framework, string operatingSystem, string sdk)
+        public ApplicationInfo(ApplicationPlatform platform, string operatingSystem, string sdk)
         {
-            Type = type.ToString().ToLower();
-            Framework = framework.ToString();
+            Platform = platform.ToString();
+            Framework = AppContext.TargetFrameworkName ?? string.Empty;
             OperatingSystem = operatingSystem.ThrowIfUnassigned(nameof(operatingSystem));
             Sdk = sdk.ThrowIfUnassigned(nameof(sdk));
             StringValue = makeStringValue();
         }
 
-        public ApplicationInfo(ApplicationType type, string framework, string operatingSystem, string sdk)
+        public ApplicationInfo(string framework, string operatingSystem, string sdk)
         {
-            Type = type.ToString().ToLower();
-            Framework = framework.ThrowIfUnassigned(nameof(framework));
+            Platform = framework.ThrowIfUnassigned(nameof(framework));
+            Framework = AppContext.TargetFrameworkName ?? string.Empty;
             OperatingSystem = operatingSystem.ThrowIfUnassigned(nameof(operatingSystem));
             Sdk = sdk.ThrowIfUnassigned(nameof(sdk));
             StringValue = makeStringValue();

@@ -3,7 +3,7 @@
     /// <summary>
     ///   Describes a code framework or idiom. 
     /// </summary>
-    public enum ApplicationFramework
+    public enum ApplicationPlatform
     {
         /// <summary>
         ///   Specifies a ASP.NET app.

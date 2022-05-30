@@ -44,7 +44,7 @@ namespace nugt
         {
             Args = new CommandLineArgs(args);
             IsInteractive = !args.TryGetFlag(ArgSilent1, ArgSilent2);
-            var info = args.BuildTetraPakDesktopHost(ApplicationFramework.Console, collection =>
+            var info = args.BuildTetraPakDesktopHost(ApplicationPlatform.Console, collection =>
             {
                 collection.AddSingleton<PolicyDispatcher>();
                 collection.AddSingleton(p => new LogBase(p.GetRequiredService<IConfiguration>()).WithConsoleLogging());
