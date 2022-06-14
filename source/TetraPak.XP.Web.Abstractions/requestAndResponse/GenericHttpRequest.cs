@@ -3,7 +3,7 @@
     /// <summary>
     ///   An generic representation of a HTTP request.
     /// </summary>
-    public class GenericHttpRequest : AbstractHttpMessage
+    public sealed class GenericHttpRequest : AbstractHttpMessage
     {
     }
 }

@@ -9,7 +9,7 @@ namespace TetraPak.XP.Web.Abstractions
     /// <summary>
     ///   Convenient methods for working with <see cref="GenericHttpResponse"/>s.
     /// </summary>
-    public static class AbstractHttpResponseHelper
+    public static class GenericHttpResponseHelper
     {
         /// <summary>
         ///   Constructs and returns a <see cref="GenericHttpResponse"/> representation of a

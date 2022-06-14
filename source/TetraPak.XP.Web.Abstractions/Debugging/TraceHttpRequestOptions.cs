@@ -9,7 +9,7 @@ namespace TetraPak.XP.Web.Abstractions.Debugging
     /// <summary>
     ///   Used to control how HTTP request gets represented (for tracing).
     /// </summary>
-    public class TraceHttpRequestOptions : AbstractTraceHttpMessageOptions
+    public sealed class TraceHttpRequestOptions : AbstractTraceHttpMessageOptions
     {
         /// <summary>
         ///   Gets default <see cref="TraceHttpRequestOptions"/>

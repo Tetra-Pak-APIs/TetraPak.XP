@@ -49,7 +49,7 @@ namespace TetraPak.XP
         ///     The exception that is the cause of the current exception.
         /// </param>
         public HttpServerException(HttpStatusCode statusCode, string? message = null, Exception? innerException = null)
-            : this(makeResponseMessage(statusCode), message, innerException)
+        : this(makeResponseMessage(statusCode), message, innerException)
         {
             _statusCode = statusCode;
         }
@@ -78,7 +78,7 @@ namespace TetraPak.XP
             HttpResponseMessage response,
             string? message = null,
             Exception? innerException = null)
-            : base(string.IsNullOrEmpty(message) ? response.ReasonPhrase : message, innerException)
+        : base(string.IsNullOrEmpty(message) ? response.ReasonPhrase : message, innerException)
         {
             Response = response;
         }

@@ -25,7 +25,7 @@ namespace nugt
         const string ArgHelp2 = "-h";
         const string ArgHelp3 = "--help";
 
-        const string ArgSilent1 = "-s";
+        const string ArgSilent1 = "-sl";
         const string ArgSilent2 = "--silent";
 
         const string ArgLogFile1 = "-lf";
@@ -72,6 +72,7 @@ namespace nugt
             }
 
             var policy = policyOutcome.Value!;
+            policy.WriteToConsoleHandler = writeToConsole;
             await exitWithOutcome(await policy.RunAsync());
         }
 

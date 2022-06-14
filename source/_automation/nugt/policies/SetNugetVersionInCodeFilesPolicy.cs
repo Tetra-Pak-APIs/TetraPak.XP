@@ -51,7 +51,7 @@ namespace nugt.policies
                     var sb = new StringBuilder();
                     sb.Append(code[..(idxStart + Pattern.Length)]);
                     sb.Append(projectFile.GetNugetVersion());
-                    sb.Append(code[(idxEnd)..]);
+                    sb.Append(code[idxEnd..]);
                     if (IsSimulating)
                     {
                         Log.Debug($"Simulates writing code to {csFile.Name}:\n{sb}");

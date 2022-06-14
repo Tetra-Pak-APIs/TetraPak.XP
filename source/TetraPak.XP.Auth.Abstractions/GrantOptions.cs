@@ -10,7 +10,7 @@ namespace TetraPak.XP.Auth.Abstractions
     ///   Specifies options for a <see cref="Grant"/> request.
     /// </summary>
     [DebuggerDisplay("{ToString()}")]
-    public class GrantOptions
+    public sealed class GrantOptions
     {
         readonly Dictionary<string, object> _data = new();
 
@@ -24,11 +24,11 @@ namespace TetraPak.XP.Auth.Abstractions
         /// </summary>
         internal string? Service { get; set; }
 
-        /// <summary>
-        ///   A (unique) id used to identify the requesting actor.
-        ///   This information is needed for caching purposed by some flows.  
-        /// </summary>
-        public string? ActorId { get; set; }
+        // /// <summary>
+        // ///   A (unique) id used to identify the requesting actor.
+        // ///   This information is needed for caching purposed by some grant types.   obsolete?
+        // /// </summary>
+        // public string? ActorId { get; set; }
 
         /// <summary>
         ///   Enables canceling the request.
@@ -166,6 +166,7 @@ namespace TetraPak.XP.Auth.Abstractions
         /// </remarks>
         /// <seealso cref="GrantFlags"/>
         /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
+        /// <seealso cref="Silent(System.Threading.CancellationTokenSource?,string?,Credentials?)"/>
         public static GrantOptions Forced(
             CancellationTokenSource? cancellationTokenSource = null,
             string? actorId = null,
@@ -175,7 +176,7 @@ namespace TetraPak.XP.Auth.Abstractions
             {
                 Flags = GrantFlags.Forced,
                 CancellationTokenSource = cancellationTokenSource,
-                ActorId = actorId,
+                // ActorId = actorId, obsolete?
             };
         }
         
@@ -201,9 +202,16 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Please see remarks for more details.
         /// </param>
         /// <remarks>
+        ///   <para>
+        ///   Performing a 'forced' grant request prevents the grant service from trying to obtain cached tokens,
+        ///   forcing it to always perform a fresh/full grant request. On success, the grant service should cache
+        ///   the obtained grant (if token caching was set up).  
+        ///   </para>
+        ///   <para>
         ///   Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
         ///   that information, the service is expected to support some other means of obtaining them, such as
-        ///   from a configuration source. 
+        ///   from a configuration source.
+        ///   </para> 
         /// </remarks>
         /// <seealso cref="GrantFlags"/>
         /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
@@ -218,7 +226,7 @@ namespace TetraPak.XP.Auth.Abstractions
                 Service = service,
                 Flags = GrantFlags.Forced,
                 CancellationTokenSource = cancellationTokenSource,
-                ActorId = actorId
+                // ActorId = actorId obsolete?
             }.WithClientCredentials(clientCredentials);
         }
 
@@ -240,12 +248,25 @@ namespace TetraPak.XP.Auth.Abstractions
         ///   Please see remarks for more details.
         /// </param>
         /// <remarks>
-        ///   Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
-        ///   that information, the service is expected to support some other means of obtaining them, such as
-        ///   from a configuration source. 
+        ///   <para>
+        ///     Performing a 'silent' grant request means the grant service will automatically look for a cached
+        ///     valid grant (if token caching has been set up) and, if found, send it back. If no valid cached grant
+        ///     was found the service will instead look for a cached refresh token. If a refresh token was found it
+        ///     will try obtaining a refresh token service to perform a refresh token grant request. If the refresh
+        ///     token grant request failed (or no refresh token grant service was available) the grant service will
+        ///     perform a full grant request, similar to the
+        ///     <see cref="Forced(System.Threading.CancellationTokenSource?,string?,TetraPak.XP.Auth.Abstractions.Credentials?)"/>
+        ///     grant request.
+        ///   </para>
+        ///   <para>
+        ///     Please note that when no (<paramref name="clientCredentials"/>) are passed, and the grant type requires
+        ///     that information, the service is expected to support some other means of obtaining them, such as
+        ///     from a configuration source.
+        ///   </para> 
         /// </remarks>
         /// <seealso cref="GrantFlags"/>
         /// <seealso cref="GrantOptionsHelper.WithClientCredentials"/>
+        /// <seealso cref="Forced(System.Threading.CancellationTokenSource?,string?,TetraPak.XP.Auth.Abstractions.Credentials?)"/>
         public static GrantOptions Silent(
             CancellationTokenSource? cancellationTokenSource = null, 
             string? actorId = null,
@@ -291,7 +312,7 @@ namespace TetraPak.XP.Auth.Abstractions
             {
                 Service = service,
                 Flags = GrantFlags.Silent,
-                ActorId = actorId,
+                // ActorId = actorId, obsolete?
                 CancellationTokenSource = cancellationTokenSource
             }.WithClientCredentials(clientCredentials);
         }

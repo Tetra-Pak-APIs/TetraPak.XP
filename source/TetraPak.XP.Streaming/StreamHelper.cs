@@ -46,6 +46,23 @@ namespace TetraPak.XP.Streaming
                 : Outcome<bool>.Fail(lengthOutcome.Exception!);
         }
         
+        public static Stream MakeSeekable(this Stream stream, bool disposeOriginal = false)
+        {
+            stream.ThrowIfNull(nameof(stream));
+            if (stream.CanSeek)
+                return stream;
+
+            var memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+
+            if (disposeOriginal)
+            {
+                stream.Dispose();
+            }
+            return memoryStream;
+        }
+        
         /// <summary>
         ///   Examines a <see cref="Stream"/> and attempts to resolve its length.
         /// </summary>

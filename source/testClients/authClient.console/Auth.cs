@@ -17,7 +17,6 @@ using TetraPak.XP.OAuth2.AuthCode;
 using TetraPak.XP.OAuth2.ClientCredentials;
 using TetraPak.XP.OAuth2.DeviceCode;
 using TetraPak.XP.OAuth2.TokenExchange;
-using TetraPak.XP.Web.Http;
 using TetraPak.XP.Web.Services;
 using UserInformation = TetraPak.XP.Identity.UserInformation;
 
@@ -143,8 +142,8 @@ namespace authClient.console
                 sb.AppendLine();
             }
 
-            sb.AppendLine("Scope:");
-                sb.AppendLine($"    {grant.Scope}");
+            sb.AppendLine("Scope:"); 
+            sb.AppendLine($"    {grant.Scope}");
             _log.Information(sb.ToString());
         }
 

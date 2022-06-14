@@ -134,6 +134,13 @@ namespace nugt.policies
         Outcome tryInit(CommandLineArgs args) => TryInit(args);
 
         public Outcome OutcomeFromInit { get; protected set; }
+        
+        internal Action<string,ConsoleColor?> WriteToConsoleHandler { get; set; }
+
+        protected void WriteToConsole(string message, ConsoleColor? color = null)
+            =>
+            WriteToConsoleHandler(IsSimulating ? $"(simulating) {message}" : message, color);
+         
 
 #pragma warning disable CS8618
         public Policy(CommandLineArgs args, ILog log)

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,7 +13,7 @@ namespace TetraPak.XP.Web.Abstractions
     /// <summary>
     ///   Convenient methods for working with <see cref="GenericHttpRequest"/>s.
     /// </summary>
-    public static class AbstractHttpRequestHelper
+    public static class GenericHttpRequestHelper
     {
         /// <summary>
         ///   Constructs and returns a <see cref="GenericHttpRequest"/> representation of a
@@ -41,7 +43,7 @@ namespace TetraPak.XP.Web.Abstractions
                 MessageId = messageId,
                 Method = request.Method.Method,
                 Uri = request.RequestUri,
-                Headers = request.Headers,
+                Headers = getAllHeaders(request),
                 Content = request.Content is {} ? await request.Content.ReadAsStreamAsync() : null,
                 ContentAsString = contentAsString && request.Content is {} ? await request.Content.ReadAsStringAsync() : null
             };
@@ -90,7 +92,7 @@ namespace TetraPak.XP.Web.Abstractions
                 Headers = request.Headers.ToKeyValuePairs(),
                 Content = request.GetRequestStream()
             });
-
+        
         /// <summary>
         ///   Constructs and returns the textual representation of the <see cref="HttpRequest"/>'s URI (if any). 
         /// </summary>
@@ -104,6 +106,20 @@ namespace TetraPak.XP.Web.Abstractions
         {
             var uri = request?.GetDisplayUrl();
             return uri is { } ? new Uri(uri) : null;
+        }
+        
+        /// <summary>
+        ///   Gets all headers from the <see cref="HttpRequestMessage"/> and, if available,
+        ///   its <see cref="HttpRequestMessage.Content"/> object.
+        /// </summary>
+        static IEnumerable<KeyValuePair<string,IEnumerable<string>>> getAllHeaders(HttpRequestMessage request)
+        {
+            if (!request.Content?.Headers.Any() ?? true)
+                return request.Headers;
+
+            var headers = new List<KeyValuePair<string, IEnumerable<string>>>(request.Headers);
+            headers.AddRange(request.Content.Headers);
+            return headers;
         }
     }
 }

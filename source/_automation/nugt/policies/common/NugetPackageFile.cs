@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using TetraPak.XP;
 using TetraPak.XP.FileManagement;
-using TetraPak.XP.Logging;
 using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Nuget;
 
@@ -18,6 +17,8 @@ namespace nugt.policies
         public string NugetName { get; }
 
         public NugetVersion NugetVersion { get; }
+
+        public override string ToString() => Name;
 
         (string name, NugetVersion version) parse()
         {

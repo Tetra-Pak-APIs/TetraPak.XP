@@ -23,7 +23,7 @@ namespace TetraPak.XP.Nuget
 
         public int Revision { get; private set; }
 
-        public int Build { get; private set; }
+        // public int Build { get; private set; }
 
         public NugetPrereleaseVersion? Prerelease { get; private set; }
 
@@ -103,10 +103,29 @@ namespace TetraPak.XP.Nuget
             unchecked
             {
                 var hashCode = base.GetHashCode();
+                // ReSharper disable NonReadonlyMemberInGetHashCode
                 hashCode = (hashCode * 397) ^ Major;
                 hashCode = (hashCode * 397) ^ Minor;
                 hashCode = (hashCode * 397) ^ Revision;
-                hashCode = (hashCode * 397) ^ Build;
+                // hashCode = (hashCode * 397) ^ Build; obsolete
+                hashCode = (hashCode * 397) ^ Prerelease?.GetHashCode() ?? 0;
+                // ReSharper restore NonReadonlyMemberInGetHashCode
+                return hashCode;
+            }
+        }
+
+        protected override int OnGetHashCode(string? stringValue)
+        {
+            if (stringValue.IsUnassigned())
+                return 0;
+            
+            unchecked
+            {
+                var hashCode = stringValue!.GetHashCode();
+                hashCode = (hashCode * 397) ^ Major;
+                hashCode = (hashCode * 397) ^ Minor;
+                hashCode = (hashCode * 397) ^ Revision;
+                // hashCode = (hashCode * 397) ^ Build; obsolete
                 hashCode = (hashCode * 397) ^ Prerelease?.GetHashCode() ?? 0;
                 return hashCode;
             }
@@ -123,9 +142,22 @@ namespace TetraPak.XP.Nuget
         public static bool operator <=(NugetVersion left, NugetVersion right) => left.Compare(right) <= 0;
 
         public static bool operator >=(NugetVersion left, NugetVersion right) => left.Compare(right) >= 0;
+        
+        
 
         protected override Outcome<string[]> OnValidate(string[] items)
         {
+            if (items.Length == 3 && items[2].Contains("-"))
+            {
+                items = new[]
+                {
+                    items[0],
+                    items[1],
+                    items[2],
+                    "1"
+                };
+            }
+            
             return items.Length switch
             {
                 0 => Outcome<string[]>.Success(items),
@@ -164,19 +196,20 @@ namespace TetraPak.XP.Nuget
 
         Outcome<string[]> compileForPrerelease(string[] items)
         {
+            // note: items might be 3 or 4 in length; 4 only when the prerelease is versioned (eg. 1.0.0-beta.2)
             IsPattern =
                 items[0].StartsWithAny(new[] { '+', '-' })
                 || items[1].StartsWithAny(new[] { '+', '-' })
                 || items[2].StartsWithAny(new[] { '+', '-' })
-                || items[3].StartsWithAny(new[] { '+', '-' });
+                || items.Length == 4 && items[3].StartsWithAny(new[] { '+', '-' });
             
-            var split = items[2].Split(new[] { '-' });
+            var split = items[2].Split('-');
             if (split.Length == 1)
             {
-                if (!int.TryParse(items[3], out var build))
-                    throw formatError();
-
-                Build = build;
+                // if (!int.TryParse(items[2], out var build)) obsolete
+                //     throw formatError();
+                //
+                // Build = build;
                 return compile(items);
             }
             

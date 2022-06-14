@@ -213,7 +213,7 @@ namespace TetraPak.XP.StringValues
         /// <returns>
         ///   A hash code for the current value.
         /// </returns>
-        public override int GetHashCode() => StringValue.GetHashCode();
+        public override int GetHashCode() => StringValue?.GetHashCode() ?? 0;
 
         /// <summary>
         ///   Comparison operator overload.
@@ -426,8 +426,20 @@ namespace TetraPak.XP.StringValues
 
             Items = validate(outcome.Value!);
             IsEmpty = Items.Length == 0;
-            return new StringValueParseResult(stringValue!, stringValue?.GetHashCode() ?? 0);
+            return new StringValueParseResult(stringValue!, OnGetHashCode(stringValue));
         }
+
+        /// <summary>
+        ///   Invoked after parsing to produce a hash code for the multi string value.
+        ///   Override for custom hash code generation. 
+        /// </summary>
+        /// <param name="stringValue">
+        ///   The multi string value.
+        /// </param>
+        /// <returns>
+        ///   A hash code value (<see cref="int"/>).
+        /// </returns>
+        protected virtual int OnGetHashCode(string? stringValue) => stringValue?.GetHashCode() ?? 0;
 
         protected static bool TryParseAs(Type type, string? stringValue, out MultiStringValue? multiStringValue)
         {

@@ -52,7 +52,7 @@ namespace TetraPak.XP.Nuget
 
 #pragma warning disable CS8618
         public NugetPrereleaseVersion(string stringValue) 
-            : base(stringValue, NugetVersion.VersionDefaultSeparator)
+        : base(stringValue, NugetVersion.VersionDefaultSeparator)
         {
         }
 #pragma warning restore CS8618

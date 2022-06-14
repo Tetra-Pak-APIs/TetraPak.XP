@@ -7,6 +7,43 @@ namespace TetraPak.XP.Nuget
     public sealed class NugetVersionTests
     {
         [Fact]
+        public void Ensure_parsing_production_version()
+        {
+            var nv = (NugetVersion)"1.0.0";
+            Assert.Equal(1, nv.Major);
+            Assert.Equal(0, nv.Minor);
+            Assert.Equal(0, nv.Revision);
+            Assert.False(nv.IsPrerelease);
+            Assert.Null(nv.Prerelease);
+        }
+        
+        [Fact]
+        public void Ensure_parsing_implicit_prerelease_version()
+        {
+            var nv = (NugetVersion)"1.0.0-alpha";
+            Assert.Equal(1, nv.Major);
+            Assert.Equal(0, nv.Minor);
+            Assert.Equal(0, nv.Revision);
+            Assert.True(nv.IsPrerelease);
+            Assert.NotNull(nv.Prerelease);
+            Assert.Equal(ProjectPhase.Alpha, nv.Prerelease!.Phase);
+            Assert.Equal(1, nv.Prerelease.Version);
+        }
+        
+        [Fact]
+        public void Ensure_parsing_explicit_prerelease_version()
+        {
+            var nv = (NugetVersion)"1.0.1-beta.2";
+            Assert.Equal(1, nv.Major);
+            Assert.Equal(0, nv.Minor);
+            Assert.Equal(1, nv.Revision);
+            Assert.True(nv.IsPrerelease);
+            Assert.NotNull(nv.Prerelease);
+            Assert.Equal(ProjectPhase.Beta, nv.Prerelease!.Phase);
+            Assert.Equal(2, nv.Prerelease.Version);
+        }
+        
+        [Fact]
         public void Ensure_comparison_works()
         {
             var a = (NugetVersion)"1.0.0-alpha.2";

@@ -35,9 +35,16 @@
     &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestComparisonExpression.Test1&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F361433D-47D9-4D63-A988-944F8264DDAF::net5.0::TetraPak.XP.Logging.Tests.LogSectionTests.Test_that_retained_section_events_are_written_together&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::40AF57D7-2B90-4C12-820A-D6A8E09B4DC5::net5.0::TetraPak.XP.CLI.Tests.CommandLineArgsTests.Ensure_args_are_correctly_split&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_parsing_implicit_prerelease_version&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_parsing_explicit_prerelease_version&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7d0a0724_002D101d_002D4d21_002D91b9_002D8699c58c5be8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Load_configuration_from_specified_file_and_assert_paths" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=22afd756_002Df2d7_002D4321_002Dbf97_002D097f3ee3a5bf/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Ensure_parsing_explicit_prerelease_version" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7d0a0724_002D101d_002D4d21_002D91b9_002D8699c58c5be8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Load_configuration_from_specified_file_and_assert_paths" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::0C2803EE-A319-4299-B0CB-0E8E3B33BEFD::net5.0::TetraPak.XP.Desktop.Tests.ConfigurationSectionTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_comparison_works&lt;/TestId&gt;&#xD;
@@ -50,6 +57,7 @@
     &lt;TestId&gt;xUnit::334FD242-BDFD-48DF-9EC7-C5940C13575F::net6.0::TetraPak.XP.Scripting.Tests.TestContextValues.Nisse&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F361433D-47D9-4D63-A988-944F8264DDAF::net5.0::TetraPak.XP.Logging.Tests.LogSectionTests.Test_that_retained_section_events_are_written_together&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::40AF57D7-2B90-4C12-820A-D6A8E09B4DC5::net5.0::TetraPak.XP.CLI.Tests.CommandLineArgsTests.Ensure_args_are_correctly_split&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::A325892C-5712-4B68-89A1-85056CE6B4E7::net6.0::TetraPak.XP.Nuget.NugetVersionTests.Ensure_parsing_production_version&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
