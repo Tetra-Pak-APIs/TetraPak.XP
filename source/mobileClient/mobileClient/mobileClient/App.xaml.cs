@@ -24,7 +24,7 @@ namespace mobileClient
         public App()
         {
             InitializeComponent();
-            var s = this.BuildTetraPakMobileHost(collection =>
+            this.BuildTetraPakMobileHost(collection =>
             {
                 var logOptions = LogFormatOptions.Default.WithOmitTimestamp(true);
                 collection
