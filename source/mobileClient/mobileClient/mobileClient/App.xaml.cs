@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using mobileClient.ViewModels;
 using TetraPak.XP;
@@ -10,7 +9,6 @@ using TetraPak.XP.Logging.Abstractions;
 using TetraPak.XP.Mobile;
 using TetraPak.XP.OAuth2;
 using TetraPak.XP.Web.Abstractions;
-using TetraPak.XP.Web.Services;
 using Xamarin.Forms;
 
 [assembly:ExportFont("FontAwesome6Brands.otf", Alias = "FontAwesome6Brands")]
@@ -30,10 +28,8 @@ namespace mobileClient
             {
                 var logOptions = LogFormatOptions.Default.WithOmitTimestamp(true);
                 collection
-                    .WithServiceDelegate((IServiceProvider p, Type type, ref object? service) =>
+                    .AddSingleton<ILoopbackBrowser>(p =>
                     {
-                        if (type != typeof(ILoopbackBrowser))
-                            return;
                         /*
                            For Android we're using an internal web view for loopback web requests. 
                            the reason for this is that on Android, unlike iOS, there is no way to automatically close 
@@ -41,11 +37,15 @@ namespace mobileClient
                            not manage Android devices (at this time -May/2022) so there is no need to 
                            support certificate challenges where the browser needs access to the device cert.
                         */
-                        
+
+                        // var defaultService = p.GetService<ILoopbackBrowser>();
                         var platform = p.GetRequiredService<IPlatformService>().RuntimePlatform;
-                        service = platform == RuntimePlatform.Android 
-                            ? new LoopbackBrowserVM(p.GetService<ILog>()) 
-                            : p.GetRequiredService<ILoopbackBrowser>();
+                        var log = p.GetService<ILog>();
+                        return platform == RuntimePlatform.Android 
+                            ? new LoopbackBrowserVM(log) 
+                            : new MobileLoopbackBrowser(
+                                p.GetRequiredService<ITetraPakConfiguration>(), 
+                                log);
                     })
                     .AddTetraPakXamarinAuthorization(GrantType.OIDC, GrantType.DeviceCode)
                     .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()

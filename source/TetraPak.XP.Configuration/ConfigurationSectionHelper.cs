@@ -18,7 +18,14 @@ namespace TetraPak.XP.Configuration
             [CallerMemberName] string? caller = null,
             bool getDerived = false)
             =>
-            conf.GetNamed(caller!, useDefault, getDerived);
+                conf.GetNamed(caller!, useDefault, getDerived);
+
+        public static void Set(
+            this IConfiguration conf,
+            object? value,
+            [CallerMemberName] string? caller = null)
+            =>
+                conf.SetNamed(caller!, value);
 
         static T? getDerived<T>(
             this ConfigurationSectionDecorator conf,
@@ -30,6 +37,45 @@ namespace TetraPak.XP.Configuration
                 : useDefault;
         }
 
+        /// <summary>
+        ///   Sets or overrides a named value (when extended configuration supports this feature).
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended <see cref="IConfiguration"/>.
+        /// </param>
+        /// <param name="key">
+        ///   Identifies the value. 
+        /// </param>
+        /// <param name="value">
+        ///   The value to be used.
+        /// </param>
+        public static void SetNamed(this IConfiguration conf, string key, object? value)
+        {
+            if (conf is ConfigurationSectionDecorator decorator)
+            {
+                decorator.OverwrittenValues[key.ThrowIfUnassigned(nameof(key))] = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Removes an overridden value (when extended configuration supports this feature),
+        ///   possibly resetting it to the value specified in the original configuration source.
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended <see cref="IConfiguration"/>.
+        /// </param>
+        /// <param name="key">
+        ///   Identifies the value to be cleared. 
+        /// </param>
+        public static void ClearNamed(this IConfiguration conf, string key)
+        {
+            if (conf is ConfigurationSectionDecorator decorator 
+                && decorator.OverwrittenValues.ContainsKey(key.ThrowIfUnassigned(nameof(key))))
+            {
+                decorator.OverwrittenValues.Remove(key);
+            }
+        }
+        
         public static T? GetNamed<T>(
             this IConfiguration conf,
             string key,

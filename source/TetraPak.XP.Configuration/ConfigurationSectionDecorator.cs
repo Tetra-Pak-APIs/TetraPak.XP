@@ -9,6 +9,8 @@ namespace TetraPak.XP.Configuration
 {
     public class ConfigurationSectionDecorator : IConfigurationSection
     {
+        internal readonly Dictionary<string, object?> OverwrittenValues = new();
+
         protected IConfigurationSection? Section { get; }
 
         internal IConfigurationSection? GetSection() => Section;
