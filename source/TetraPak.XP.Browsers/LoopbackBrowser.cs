@@ -137,7 +137,7 @@ namespace TetraPak.XP.Browsers
 
         public void Dispose() => _loopbackHost?.Dispose();
 
-        public LoopbackBrowser(ILog? log)
+        public LoopbackBrowser(ILog? log = null)
         {
             Log = log;
             HtmlResponseOnSuccessFactory = getDefaultHtmlResponseOnSuccess();

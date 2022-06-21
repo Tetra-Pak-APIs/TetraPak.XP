@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using mobileClient.ViewModels;
 using TetraPak.XP;
@@ -25,12 +26,14 @@ namespace mobileClient
         public App()
         {
             InitializeComponent();
-            this.BuildTetraPakMobileHost(collection =>
+            var s = this.BuildTetraPakMobileHost(collection =>
             {
                 var logOptions = LogFormatOptions.Default.WithOmitTimestamp(true);
                 collection
-                    .AddSingleton(p =>
+                    .WithServiceDelegate((IServiceProvider p, Type type, ref object? service) =>
                     {
+                        if (type != typeof(ILoopbackBrowser))
+                            return;
                         /*
                            For Android we're using an internal web view for loopback web requests. 
                            the reason for this is that on Android, unlike iOS, there is no way to automatically close 
@@ -38,21 +41,21 @@ namespace mobileClient
                            not manage Android devices (at this time -May/2022) so there is no need to 
                            support certificate challenges where the browser needs access to the device cert.
                         */
+                        
                         var platform = p.GetRequiredService<IPlatformService>().RuntimePlatform;
-                        return platform == RuntimePlatform.Android 
+                        service = platform == RuntimePlatform.Android 
                             ? new LoopbackBrowserVM(p.GetService<ILog>()) 
                             : p.GetRequiredService<ILoopbackBrowser>();
                     })
                     .AddTetraPakXamarinAuthorization(GrantType.OIDC, GrantType.DeviceCode)
                     .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
-                    .AddTetraPakWebServices()
+                    // .AddTetraPakWebServices()
                     .AddViewModels()
                     // just a very basic log (abstracted by the ILog interface, you can abstract and use something else here, like NLog, SemiLog, Log4Net or whatever)
                     .AddSingleton(p => 
                         new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging(logOptions));
             }).ServiceCollection.BuildXpServiceProvider();
             MainPage = new AppShell();
-            
         }
     }
 }

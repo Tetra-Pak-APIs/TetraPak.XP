@@ -54,7 +54,7 @@ namespace TetraPak.XP.Mobile
         : base(log)
         {
             _tetraPakConfig = tetraPakConfig;
-            _browserExperience = tetraPakConfig.GetNamed<BrowserExperience>("");
+            _browserExperience = tetraPakConfig.GetNamed<BrowserExperience>(nameof(AuthConfiguration.BrowserExperience));
         }
 
         public MobileLoopbackBrowser(BrowserExperience browserExperience, ILog? log)

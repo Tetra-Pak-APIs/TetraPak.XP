@@ -422,11 +422,8 @@ namespace TetraPak.XP.DependencyInjection
             this IServiceCollection collection,
             ServiceProviderOptions options)
         {
-            if (collection == null)
-                throw new ArgumentNullException(nameof(collection));
-
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
+            collection.ThrowIfNull(nameof(collection));
+            options.ThrowIfNull(nameof(options));
 
             var serviceDelegates = collection is XpServiceCollection xpServiceCollection
                 ? xpServiceCollection.GetServiceDelegates()

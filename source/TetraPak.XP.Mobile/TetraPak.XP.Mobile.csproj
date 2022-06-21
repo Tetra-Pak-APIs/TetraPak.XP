@@ -32,10 +32,4 @@
   <ItemGroup>
     <None Remove="TetraPak.XP.Mobile.csproj.DotSettings" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="_build" />
-  </ItemGroup>
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="if $(ConfigurationName) == Release dotnet $(ProjectDir)../_automation/nugt/bin/Debug/net5.0/nugt.dll to-code -p '$(ProjectDir)' --break-on-first --log-file '$(ProjectDir)_build/fail.log'" />
-  </Target>
 </Project>

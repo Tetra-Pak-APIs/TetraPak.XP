@@ -6,11 +6,11 @@ namespace TetraPak.XP.Mobile
 {
     /// <summary>
     ///   Provides a mobile implementation for the <see cref="ITokenCache"/> contract.
-    ///   This service is automatically added by the <see cref="TetraPakMobileHostBuilderHelper.BuildTetraPakMobileHost"/>
+    ///   This service is automatically added by the <see cref="MobileHostBuilderHelper.BuildTetraPakMobileHost"/>
     ///   extension method but can be supplied individually.  
     /// </summary>
-    /// <seealso cref="TetraPakMobileHostBuilderHelper.AddMobileTokenCache"/>
-    /// <seealso cref="TetraPakMobileHostBuilderHelper.BuildTetraPakMobileHost"/>
+    /// <seealso cref="MobileHostBuilderHelper.AddMobileTokenCache"/>
+    /// <seealso cref="MobileHostBuilderHelper.BuildTetraPakMobileHost"/>
     // ReSharper disable once ClassNeverInstantiated.Global
     public class SecureStoreTokenCache : SimpleCache, ITokenCache
     {

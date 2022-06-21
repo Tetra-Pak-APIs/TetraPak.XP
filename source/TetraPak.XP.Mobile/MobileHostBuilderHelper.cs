@@ -11,11 +11,11 @@ namespace TetraPak.XP.Mobile
     /// <summary>
     ///   Provides convenient helper methods for building a Tetra Pak mobile app host.  
     /// </summary>
-    public static class TetraPakMobileHostBuilderHelper
+    public static class MobileHostBuilderHelper
     {
         static readonly object s_syncRoot = new();
         static bool s_isTokenCacheAdded;
-        
+
         /// <summary>
         ///   Builds and configures a host for use with a desktop app.
         /// </summary>
@@ -26,20 +26,26 @@ namespace TetraPak.XP.Mobile
         ///   (optional)<br/>
         ///   Delegate for configuring custom services with the provided <see cref="IServiceCollection"/>.
         /// </param>
+        /// <param name="collection">
+        ///   (optional)<br/>
+        ///   A custom <see cref="IServiceCollection"/> to be used for configuring DI services.  
+        /// </param>
         /// <returns>
-        ///   A <see cref="TetraPakHostInfo"/> object.
+        ///   A <see cref="HostInfo"/> object.
         /// </returns>
-        public static TetraPakHostInfo BuildTetraPakMobileHost(
+        public static HostInfo BuildTetraPakMobileHost(
             this Xamarin.Forms.Application application,
-            Action<IServiceCollection>? configureServices = null)
+            Action<XpServiceCollection>? configureServices = null, 
+            IServiceCollection? collection = null)
         {
-            var collection = XpServices.BuildFor().Mobile().WithServiceCollection(new ServiceCollection())
+            collection = XpServices.BuildFor().Mobile().WithServiceCollection(collection ?? new ServiceCollection())
+                .RegisterXpServices()
                 .addJsonConfiguration(application)
-                .AddXpDateTime()
                 .AddTetraPakConfiguration()
+                .AddXpDateTime()
                 .AddMobileTokenCache();
-            configureServices?.Invoke(collection);
-            return new TetraPakHostInfo(collection);
+            configureServices?.Invoke((XpServiceCollection) collection);
+            return new HostInfo(collection);
         }
 
         static IServiceCollection addJsonConfiguration(
@@ -57,17 +63,17 @@ namespace TetraPak.XP.Mobile
                 }
             }
 
+            var configurationBuilder = new ConfigurationBuilder();
             if (appSettingsResourceNames.Any())
             {
-                var configurationBuilder = new ConfigurationBuilder();
                 foreach (var resourceName in appSettingsResourceNames)
                 {
                     var resourceStream = sharedAssembly.GetManifestResourceStream(resourceName);
                     configurationBuilder.AddJsonStream(resourceStream);
                 }
-                var conf = configurationBuilder.Build();
-                collection.AddSingleton<IConfiguration>(conf);
             }
+            var conf = configurationBuilder.Build();
+            collection.AddSingleton<IConfiguration>(conf);
 
             return collection;
         }
@@ -99,7 +105,7 @@ namespace TetraPak.XP.Mobile
     /// <summary>
     ///   Provides the result from building a Tetra Pak mobile app host.
     /// </summary>
-    public sealed class TetraPakHostInfo
+    public sealed class HostInfo
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         //public IHost Host { get; }
@@ -111,10 +117,21 @@ namespace TetraPak.XP.Mobile
         /// <seealso cref="XpServices.BuildXpServices(IServiceCollection)"/>
         public IServiceCollection ServiceCollection { get; }
 
-        internal TetraPakHostInfo(IServiceCollection serviceCollectionCollection)
+        internal HostInfo(IServiceCollection serviceCollectionCollection)
         {
             // Host = host;
             ServiceCollection = serviceCollectionCollection;
+        }
+    }
+
+    public static class XpServiceCollectionHelper
+    {
+        public static XpServiceCollection WithServiceDelegate(
+            this XpServiceCollection collection, 
+            XpServiceDelegate serviceDelegate)
+        {
+            collection.AddDelegate(serviceDelegate.ThrowIfNull(nameof(serviceDelegate)));
+            return collection;
         }
     }
 }

@@ -118,6 +118,8 @@ namespace TetraPak.XP
 
         static DateTime? getConfiguredStartTime(IConfiguration configuration, DateTime? useDefault = null)
         {
+            configuration.ThrowIfNull(nameof(configuration),
+                $"Cannot configure {typeof(XpDateTime)} ({typeof(IConfiguration)} service is unavailable");
             var section = configuration.GetSection($"{ConfigurationSectionKey}:{nameof(StartTime)}");
             return string.IsNullOrWhiteSpace(section.Value) || !section.Value.TryParseStandardDateTime(out var value)
                 ? useDefault

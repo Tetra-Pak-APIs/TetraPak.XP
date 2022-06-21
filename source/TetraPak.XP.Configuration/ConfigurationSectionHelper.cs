@@ -37,6 +37,7 @@ namespace TetraPak.XP.Configuration
             bool getDerived = false,
             TypedValueParser<T>? typedValueParser = null)
         {
+            key.ThrowIfUnassigned(nameof(key));
             var path = new ConfigPath(key);
             if (path.Count != 1)
             {

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace TetraPak.XP.DependencyInjection
 {
     sealed class XpServiceProvider : IServiceProvider
     {
-        readonly ServiceProvider _provider;
+        readonly IServiceProvider _provider;
         // readonly XpServiceDelegate[] _serviceDelegates;
 
         public object? GetService(Type serviceType) => GetService(serviceType, true);
@@ -40,12 +39,17 @@ namespace TetraPak.XP.DependencyInjection
             return service;
         }
 
+        public bool Debug_IsInternalProvider(IServiceProvider provider) // nisse
+        {
+            return _provider == provider;
+        }
+
         internal XpServiceProvider(
-            IServiceCollection services, 
+            IServiceCollection collection, 
             ServiceProviderOptions options,
             IEnumerable<XpServiceDelegate> serviceDelegates)
         {
-            _provider = services.BuildServiceProvider(options);
+            _provider = collection.BuildServiceProvider(options);
             // _serviceDelegates = serviceDelegates.ToArray();
         }
     }

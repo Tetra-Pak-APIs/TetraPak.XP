@@ -7,11 +7,10 @@ using TetraPak.XP.ApplicationInformation;
 using TetraPak.XP.Auth.Abstractions;
 using TetraPak.XP.Configuration;
 using TetraPak.XP.DependencyInjection;
-using TetraPak.XP.Web.Http;
 
 namespace TetraPak.XP.Desktop
 {
-    public static class TetraPakDesktopHostBuilderHelper
+    public static class DesktopHostBuilderHelper
     {
         static readonly object s_syncRoot = new();
         static bool s_isTokenCacheAdded;
@@ -31,12 +30,12 @@ namespace TetraPak.XP.Desktop
         ///   Delegate for configuring custom services with the provided <see cref="IServiceCollection"/>.
         /// </param>
         /// <returns>
-        ///   A <see cref="TetraPakHostInfo"/> object.
+        ///   A <see cref="HostInfo"/> object.
         /// </returns>
-        public static TetraPakHostInfo BuildTetraPakDesktopHost(
+        public static HostInfo BuildTetraPakDesktopHost(
             this string[] args,
             ApplicationPlatform platform,
-            Action<IServiceCollection>? configureServices = null)
+            Action<XpServiceCollection>? configureServices = null)
         {
             var tcs = new TaskCompletionSource<IServiceCollection>();
             var host = Host.CreateDefaultBuilder(args)
@@ -49,7 +48,7 @@ namespace TetraPak.XP.Desktop
                             .AddTetraPakConfiguration()
                             .AddDesktopFileSystem()
                             .AddDesktopTokenCache();
-                    configureServices?.Invoke(collection);
+                    configureServices?.Invoke((XpServiceCollection) collection);
                     tcs.SetResult(collection);
                 })
                 .ConfigureHostConfiguration(builder => { builder.AddEnvironmentVariables(); })
@@ -58,7 +57,7 @@ namespace TetraPak.XP.Desktop
 
             Configure.InsertValueDelegate(new ConfigurationValueSourceDelegate());
             var collection = tcs.Task.Result;
-            return new TetraPakHostInfo(host, collection);
+            return new HostInfo(host, collection);
         }
         
         /// <summary>
@@ -115,7 +114,7 @@ namespace TetraPak.XP.Desktop
         }
     }
 
-    public sealed class TetraPakHostInfo
+    public sealed class HostInfo
     {
         // ReSharper disable UnusedAutoPropertyAccessor.Global
         public IHost Host { get; }
@@ -123,10 +122,10 @@ namespace TetraPak.XP.Desktop
         public IServiceCollection ServiceCollection { get; }
         // ReSharper restore UnusedAutoPropertyAccessor.Global
 
-        internal TetraPakHostInfo(IHost host, IServiceCollection serviceCollectionCollection)
+        internal HostInfo(IHost host, IServiceCollection collection)
         {
             Host = host;
-            ServiceCollection = serviceCollectionCollection;
+            ServiceCollection = collection;
         }
     }
 }

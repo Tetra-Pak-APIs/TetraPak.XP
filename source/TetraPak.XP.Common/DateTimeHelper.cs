@@ -205,9 +205,8 @@ namespace TetraPak.XP
             }
 
             var provider = collection.BuildServiceProvider();
-            var configuration = provider.GetService<IConfiguration>();
-            var xpDateTime = new XpDateTime(configuration);
-            DateTimeSource.Current = xpDateTime;
+            var xpDateTime = new XpDateTime(provider.GetService<IConfiguration>());
+            DateTimeSource.Current = xpDateTime;    
             collection.AddSingleton<IDateTimeSource>(_ => xpDateTime);
 
             return collection;
