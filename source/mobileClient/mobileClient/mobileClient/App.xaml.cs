@@ -32,10 +32,12 @@ namespace mobileClient
                     {
                         /*
                            For Android we're using an internal web view for loopback web requests. 
-                           the reason for this is that on Android, unlike iOS, there is no way to automatically close 
-                           the system browser after auth is completed on Android. Also, Tetra Pak does
-                           not manage Android devices (at this time -May/2022) so there is no need to 
-                           support certificate challenges where the browser needs access to the device cert.
+                           The reason being on Android, unlike iOS, there is no way to force close 
+                           a system browser after auth is completed. 
+                           
+                           Also, Tetra Pak does not manage Android devices (at this time -May/2022) so there 
+                           is no need to support certificate challenges where the browser needs access to the 
+                           device cert so a system browser isn't needed anyway
                         */
 
                         // var defaultService = p.GetService<ILoopbackBrowser>();
@@ -49,8 +51,8 @@ namespace mobileClient
                     })
                     .AddTetraPakXamarinAuthorization(GrantType.OIDC, GrantType.DeviceCode)
                     .AddAppCredentialsDelegate<CustomAppCredentialsDelegate>()
-                    // .AddTetraPakWebServices()
                     .AddViewModels()
+                    // .AddTetraPakWebServices() -- experiment (stuff we're working on, ignore for now)
                     // just a very basic log (abstracted by the ILog interface, you can abstract and use something else here, like NLog, SemiLog, Log4Net or whatever)
                     .AddSingleton(p => 
                         new LogBase(p.GetService<IConfiguration>()).WithConsoleLogging(logOptions));
