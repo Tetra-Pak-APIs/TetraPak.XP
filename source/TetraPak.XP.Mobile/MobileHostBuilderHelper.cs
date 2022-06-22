@@ -35,7 +35,7 @@ namespace TetraPak.XP.Mobile
         /// </returns>
         public static HostInfo BuildTetraPakMobileHost(
             this Xamarin.Forms.Application application,
-            Action<XpServiceCollection>? configureServices = null, 
+            Action<IServiceCollection>? configureServices = null, 
             IServiceCollection? collection = null)
         {
             collection = XpServices.BuildFor().Mobile().WithServiceCollection(collection ?? new ServiceCollection())
@@ -121,17 +121,6 @@ namespace TetraPak.XP.Mobile
         {
             // Host = host;
             ServiceCollection = serviceCollectionCollection;
-        }
-    }
-
-    public static class XpServiceCollectionHelper
-    {
-        public static XpServiceCollection WithServiceDelegate(
-            this XpServiceCollection collection, 
-            XpServiceDelegate serviceDelegate)
-        {
-            collection.AddDelegate(serviceDelegate.ThrowIfNull(nameof(serviceDelegate)));
-            return collection;
         }
     }
 }

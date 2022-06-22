@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace TetraPak.XP.DependencyInjection
@@ -8,7 +6,6 @@ namespace TetraPak.XP.DependencyInjection
     sealed class XpServiceProvider : IServiceProvider
     {
         readonly IServiceProvider _provider;
-        readonly XpServiceDelegate[] _serviceDelegates;
 
         public object? GetService(Type serviceType) => GetService(serviceType, true);
 
@@ -17,36 +14,22 @@ namespace TetraPak.XP.DependencyInjection
         {
             var service = _provider.GetService(serviceType);
             if (service is { })
-                return thruDelegates(serviceType, service);
+                return service;
 
             if (!tryXpServices)
-                return thruDelegates(serviceType, null);
+                return null;
 
             var outcome = XpServices.TryGet(serviceType, false);
-            return thruDelegates(
-                serviceType,  
-                outcome
-                    ? outcome.Value
-                    : null);
-        }
-
-        object? thruDelegates(Type serviceType, object? service)
-        {
-            foreach (var serviceDelegate in _serviceDelegates)
-            {
-                serviceDelegate(this, serviceType, ref service);
-            }
-
-            return service;
+            return outcome
+                ? outcome.Value
+                : null;
         }
 
         internal XpServiceProvider(
             IServiceCollection collection, 
-            ServiceProviderOptions options,
-            IEnumerable<XpServiceDelegate> serviceDelegates)
+            ServiceProviderOptions options)
         {
             _provider = collection.BuildServiceProvider(options);
-            _serviceDelegates = serviceDelegates.ToArray();
         }
     }
 }

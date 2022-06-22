@@ -8,7 +8,6 @@ namespace TetraPak.XP.DependencyInjection
     public sealed class XpServiceCollection : IServiceCollection
     {
         readonly IServiceCollection _serviceCollection;
-        readonly List<XpServiceDelegate> _serviceDelegates;
 
         public IEnumerator<ServiceDescriptor> GetEnumerator() => _serviceCollection.GetEnumerator();
 
@@ -41,16 +40,11 @@ namespace TetraPak.XP.DependencyInjection
         }
 
         public IServiceProvider BuildServiceProvider(ServiceProviderOptions options)
-            => new XpServiceProvider(this, options, _serviceDelegates);
-
-        public void AddDelegate(XpServiceDelegate serviceDelegate) => _serviceDelegates.Add(serviceDelegate);
-
-        internal IEnumerable<XpServiceDelegate> GetServiceDelegates() => _serviceDelegates;
+            => new XpServiceProvider(this, options);
 
         public XpServiceCollection(IServiceCollection? collection = null)
         {
             _serviceCollection = collection ?? new ServiceCollection();
-            _serviceDelegates = new List<XpServiceDelegate>();
         }
     }
 }

@@ -425,11 +425,8 @@ namespace TetraPak.XP.DependencyInjection
             collection.ThrowIfNull(nameof(collection));
             options.ThrowIfNull(nameof(options));
 
-            var serviceDelegates = collection is XpServiceCollection xpServiceCollection
-                ? xpServiceCollection.GetServiceDelegates()
-                : Array.Empty<XpServiceDelegate>();
             lock (s_syncRoot)
-                return s_provider ??= new XpServiceProvider(collection, options, serviceDelegates);
+                return s_provider ??= new XpServiceProvider(collection, options);
         }
 
         public static IServiceCollection GetServiceCollection(bool useExisting = true)

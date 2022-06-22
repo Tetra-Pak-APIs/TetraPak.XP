@@ -22,6 +22,4 @@ namespace TetraPak.XP.OAuth2.AuthCode
         /// </returns>
         Task<Outcome<Grant>> AcquireTokenAsync(GrantOptions options);
     }
-
-    // todo move to TetraPak.Auth.Abstractions
 }

@@ -28,4 +28,9 @@ namespace mobileClient.iOS
             return base.FinishedLaunching(app, options);
         }
     }
+    
+    
+    /*
+        .WithTetraPakSDK()
+    */
 }
