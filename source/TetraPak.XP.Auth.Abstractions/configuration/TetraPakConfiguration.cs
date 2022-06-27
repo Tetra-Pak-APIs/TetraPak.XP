@@ -7,7 +7,7 @@ namespace TetraPak.XP.Auth.Abstractions
     {
         public const string SectionKey = "TetraPak";
 
-        public string? MessageIdHeader => this.Get(getDerived:true, useDefault: Headers.MessageId);
+        public string? MessageIdHeader => this.Get(useDefault: Headers.MessageId, getDerived: true);
         
         public override RuntimeEnvironment RuntimeEnvironment
         {

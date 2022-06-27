@@ -9,15 +9,17 @@ namespace TetraPak.XP.Configuration
 {
     public class ConfigurationSectionDecorator : IConfigurationSection
     {
-        internal readonly Dictionary<string, object?> OverwrittenValues = new();
+        readonly ConfigurationSectionDecoratorArgs? _args;
 
-        protected IConfigurationSection? Section { get; }
+        internal Dictionary<string,object?>? Overrides { get; set; }
+
+        protected IConfigurationSection? Section => _args?.Section;
 
         internal IConfigurationSection? GetSection() => Section;
 
         readonly Dictionary<string, ConfigurationSectionDecorator>? _childSections;
 
-        readonly IConfiguration _configuration;
+        protected IConfiguration? Configuration => _args?.Configuration; 
 
         readonly IRuntimeEnvironmentResolver _runtimeEnvironmentResolver;
 
@@ -39,10 +41,25 @@ namespace TetraPak.XP.Configuration
             }
         }
 
-        public ILog? Log { get; }
+        public ILog? Log => _args?.Log;
 
-        internal IConfigurationSection? Parent { get; set; }
+        internal IConfigurationSection? Parent { get; private set; }
 
+        public ConfigurationSectionDecorator Clone<T>(bool includeOverrides) where T : ConfigurationSectionDecorator
+        {
+            if (_args is null)
+                throw new InvalidOperationException($"Cannot clone uninitialized {typeof(ConfigurationSectionDecorator)}");
+
+            var cloned = (T)Activator.CreateInstance(typeof(T), _args)!;
+            cloned.Parent = Parent;
+            
+            if (includeOverrides && Overrides is {})
+            {
+                cloned.Overrides = new Dictionary<string, object?>(Overrides);
+            }
+
+            return cloned;
+        }
         public IConfigurationSection? GetSection(string key)
         {
             if (IsEmpty)
@@ -63,9 +80,13 @@ namespace TetraPak.XP.Configuration
             return sectionWrapper;
         }
 
+        public IDictionary<string, object?> GetOverrides() => Overrides ?? new Dictionary<string, object?>();
+
         public IEnumerable<IConfigurationSection> GetChildren() => IsEmpty
             ? Array.Empty<IConfigurationSection>()
-            : _childSections?.Values ?? Section?.GetChildren() ?? Array.Empty<IConfigurationSection>();
+            : _childSections?.Values.Any() ?? false 
+                ? _childSections!.Values 
+                : Section?.GetChildren() ?? Array.Empty<IConfigurationSection>();
 
         public IChangeToken GetReloadToken() => Section?.GetReloadToken() ?? null!;
 
@@ -99,7 +120,7 @@ namespace TetraPak.XP.Configuration
             ConfigurationSectionDecorator parent)
             => new(
                 parent,
-                _configuration,
+                Configuration!,
                 section,
                 _runtimeEnvironmentResolver,
                 Log);
@@ -142,16 +163,17 @@ namespace TetraPak.XP.Configuration
 
         protected ConfigurationSectionDecorator()
         {
-            _configuration = null!;
+            _args = null!;
             _runtimeEnvironmentResolver = null!;
-            Section = null!;
+            // Section = null!; obsolete
         }
 
-        protected ConfigurationSectionDecorator(ConfigurationSectionDecoratorArgs args)
+        public ConfigurationSectionDecorator(ConfigurationSectionDecoratorArgs args)
         {
-            _configuration = args.Configuration;
-            Log = args.Log;
-            Section = args.Section;
+            _args = args;
+            // _configuration = args.Configuration; obsolete
+            // Log = args.Log;
+            // Section = args.Section;
             _runtimeEnvironmentResolver = args.RuntimeEnvironmentResolver;
             _childSections = buildWrapperGraph(this).ToDictionary(i => i.Key);
         }

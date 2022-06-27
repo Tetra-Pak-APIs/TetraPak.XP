@@ -16,7 +16,7 @@ namespace TetraPak.XP.Configuration
         public ConfigurationSectionDecorator? Parent { get; }
 
         public IConfigurationSection Section { get; }
-
+        
         public static ConfigurationSectionDecoratorArgs ForSubSection(string key)
             => ForSubSection(null, key);
 

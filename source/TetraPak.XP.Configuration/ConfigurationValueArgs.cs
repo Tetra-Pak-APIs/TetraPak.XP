@@ -11,11 +11,11 @@ namespace TetraPak.XP.Configuration
 
         public string Key { get; }
 
-        public T DefaultValue { get; }
+        public T? DefaultValue { get; }
 
         public ILog? Log { get; }
 
-        public bool TryParse(string stringValue, out T value)
+        public bool TryParse(string stringValue, out T? value)
         {
             foreach (var parser in _parsers)
             {
@@ -33,7 +33,7 @@ namespace TetraPak.XP.Configuration
         internal ConfigurationValueArgs(
             IConfiguration configuration,
             string key,
-            T defaultValue,
+            T? defaultValue,
             ValueParser[] parsers,
             ILog? log)
         {

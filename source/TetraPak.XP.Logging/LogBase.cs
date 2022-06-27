@@ -43,7 +43,7 @@ namespace TetraPak.XP.Logging
             LogEventSource? source = null,
             DateTime? timestamp = null)
         {
-            Write(new[] {new LogEventArgs(source, rank, message, exception!, messageId!, timestamp)});
+            Write(new LogEventArgs(source, rank, message, exception!, messageId!, timestamp));
         }
         
         /// <inheritdoc />

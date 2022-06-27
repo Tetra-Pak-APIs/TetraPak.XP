@@ -1,9 +1,8 @@
-----> @2022-05-27T09:12:50Z [ERR] The process cannot access the file 'C:\Data\Source\APIs_to_the_world\_nuget\TetraPak.XP\source\TetraPak.XP.Desktop\SdkHelper.cs' because it is being used by another process.System.IO.IOException: The process cannot access the file 'C:\Data\Source\APIs_to_the_world\_nuget\TetraPak.XP\source\TetraPak.XP.Desktop\SdkHelper.cs' because it is being used by another process.
+----> @2022-06-27T06:56:45Z [ERR] The process cannot access the file 'C:\Data\Source\APIs_to_the_world\_nuget\TetraPak.XP\source\TetraPak.XP.Desktop\SdkHelper.cs' because it is being used by another process.System.IO.IOException: The process cannot access the file 'C:\Data\Source\APIs_to_the_world\_nuget\TetraPak.XP\source\TetraPak.XP.Desktop\SdkHelper.cs' because it is being used by another process.
    at System.IO.FileStream.ValidateFileHandle(SafeFileHandle fileHandle)
    at System.IO.FileStream.CreateFileOpenHandle(FileMode mode, FileShare share, FileOptions options)
    at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options)
-   at System.IO.File.AsyncStreamWriter(String path, Encoding encoding, Boolean append)
-   at System.IO.File.WriteAllTextAsync(String path, String contents, Encoding encoding, CancellationToken cancellationToken)
-   at System.IO.File.WriteAllTextAsync(String path, String contents, CancellationToken cancellationToken)
-   at nugt.policies.SetNugetVersionInCodeFilesPolicy.RunAsync() in C:\Data\Source\APIs_to_the_world\_nuget\TetraPak.XP\source\_automation\nugt\policies\SetNugetVersionInCodeFilesPolicy.cs:line 57
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share)
+   at System.IO.File.Open(String path, FileMode mode)
+   at nugt.policies.SetNugetVersionInCodeFilesPolicy.RunAsync() in C:\Data\Source\APIs_to_the_world\_nuget\TetraPak.XP\source\_automation\nugt\policies\SetNugetVersionInCodeFilesPolicy.cs:line 64
 

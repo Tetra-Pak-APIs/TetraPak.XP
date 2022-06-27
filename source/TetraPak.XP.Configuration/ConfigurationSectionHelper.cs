@@ -10,16 +10,58 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace TetraPak.XP.Configuration
 {
+    /// <summary>
+    ///   Provides convenient helper methods for working with the configuration framework. 
+    /// </summary>
     public static class ConfigurationSectionHelper
     {
+        /// <summary>
+        ///   Gets a typed value, using the caller's name as the value key to invoke <see cref="GetNamed{T}"/>.
+        /// </summary>
+        /// <param name="conf">
+        ///     The extended configuration instance.
+        /// </param>
+        /// <param name="useDefault">
+        ///   (optional; default=&lt;default of specified type (<typeparamref name="T"/>)&gt;)<br/>
+        ///   A custom default value to be returned if the configuration does not support the value key.  
+        /// </param>
+        /// <param name="getDerived">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Set this to automatically fall back to the configuration's parent configuration
+        ///   (such as the enclosing section), when available, and resolve the value from it.
+        /// </param>
+        /// <param name="caller">
+        ///   (optional; default=The caller's (property or method) name)<br/>
+        ///   This should not be specified. Doing so is akin to just invoking <see cref="GetNamed{T}"/>.
+        /// </param>
+        /// <typeparam name="T">
+        ///   The requested value type.
+        /// </typeparam>
+        /// <returns>
+        ///   The resolved value if successfully resolved; otherwise <paramref name="useDefault"/>. 
+        /// </returns>
+        /// <seealso cref="GetNamed{T}"/>
         public static T? Get<T>(
             this IConfiguration conf,
             T? useDefault = default,
-            [CallerMemberName] string? caller = null,
-            bool getDerived = false)
+            bool getDerived = false,
+            [CallerMemberName] string? caller = null)
             =>
                 conf.GetNamed(caller!, useDefault, getDerived);
 
+        /// <summary>
+        ///   Sets (overrides) a specified value.
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended configuration instance.
+        /// </param>
+        /// <param name="value">
+        ///   The value to be assigned.
+        /// </param>
+        /// <param name="caller">
+        ///   (optional; default=The caller's (property or method) name)<br/>
+        ///   This should not be specified. Doing so is akin to just invoking <see cref="SetNamed"/>.
+        /// </param>
         public static void Set(
             this IConfiguration conf,
             object? value,
@@ -38,59 +80,52 @@ namespace TetraPak.XP.Configuration
         }
 
         /// <summary>
-        ///   Sets or overrides a named value (when extended configuration supports this feature).
+        ///   Gets a named configuration value.
         /// </summary>
         /// <param name="conf">
-        ///   The extended <see cref="IConfiguration"/>.
+        ///   The extended configuration instance.
         /// </param>
         /// <param name="key">
-        ///   Identifies the value. 
+        ///   Identifies the requested value. 
         /// </param>
-        /// <param name="value">
-        ///   The value to be used.
+        /// <param name="useDefault">
+        ///   (optional; default=&lt;default of specified type (<typeparamref name="T"/>)&gt;)<br/>
+        ///   A custom default value to be returned if the configuration does not support the value key.  
         /// </param>
-        public static void SetNamed(this IConfiguration conf, string key, object? value)
-        {
-            if (conf is ConfigurationSectionDecorator decorator)
-            {
-                decorator.OverwrittenValues[key.ThrowIfUnassigned(nameof(key))] = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Removes an overridden value (when extended configuration supports this feature),
-        ///   possibly resetting it to the value specified in the original configuration source.
-        /// </summary>
-        /// <param name="conf">
-        ///   The extended <see cref="IConfiguration"/>.
+        /// <param name="getDerived">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Set this to automatically fall back to the configuration's parent configuration
+        ///   (such as the enclosing section), when available, and resolve the value from it.
         /// </param>
-        /// <param name="key">
-        ///   Identifies the value to be cleared. 
+        /// <param name="valueParser">
+        ///   (optional)<br/>
+        ///   A (custom) value parser to be invoked to automatically parse a string
+        ///   representation of the requested value. 
         /// </param>
-        public static void ClearNamed(this IConfiguration conf, string key)
-        {
-            if (conf is ConfigurationSectionDecorator decorator 
-                && decorator.OverwrittenValues.ContainsKey(key.ThrowIfUnassigned(nameof(key))))
-            {
-                decorator.OverwrittenValues.Remove(key);
-            }
-        }
-        
+        /// <typeparam name="T">
+        ///   The requested value type.
+        /// </typeparam>
+        /// <returns>
+        ///   The resolved value if successfully resolved; otherwise <paramref name="useDefault"/>. 
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="conf"/> or <paramref name="key"/> was unassigned.
+        /// </exception>
+        /// <seealso cref="Set"/>
         public static T? GetNamed<T>(
             this IConfiguration conf,
             string key,
-            T useDefault = default!,
+            T? useDefault = default,
             bool getDerived = false,
-            TypedValueParser<T>? typedValueParser = null)
+            TypedValueParser<T>? valueParser = null)
         {
-            key.ThrowIfUnassigned(nameof(key));
-            var path = new ConfigPath(key);
+            var path = new ConfigPath(key.ThrowIfUnassigned(nameof(key)));
             if (path.Count != 1)
             {
                 // obtain from child entity ...
-                var section = conf.GetSection(path.Root);
+                var section = conf.ThrowIfNull(nameof(conf)).GetSection(path.Root);
                 key = path.Pop(1, SequentialPosition.Start);
-                return section.GetNamed(key, useDefault, getDerived, typedValueParser);
+                return section.GetNamed(key, useDefault, getDerived, valueParser);
             }
 
             var valueParsers = Configure.GetValueParsers(); 
@@ -106,52 +141,159 @@ namespace TetraPak.XP.Configuration
                 }
             }
 
-            var stringValue = conf[key];
+            string? stringValue = null;
+            var decorator = conf as ConfigurationSectionDecorator;
+            if (decorator is { } && (decorator.Overrides?.TryGetValue(key, out var oValue) ?? false))
+            {
+                if (oValue is T otValue)
+                    return otValue;
+
+                stringValue = oValue as string ?? null;
+            }
+
+            stringValue ??= conf[key];
             if (string.IsNullOrWhiteSpace(stringValue))
             {
-                if (getDerived && conf is ConfigurationSectionDecorator decorator)
+                if (getDerived && decorator is {})
                     return decorator.getDerived(key, useDefault);
 
                 return useDefault;
             }
 
-            if (typedValueParser is { } && typedValueParser(stringValue, out var value))
+            if (valueParser is { } && valueParser(stringValue, out var value))
                 return value;
 
-            foreach (var valueParser in valueParsers)
+            foreach (var parser in valueParsers)
             {
-                if (valueParser(stringValue, typeof(T), out var obj, null!) && obj is T tValue)
+                if (parser(stringValue, typeof(T), out var obj, null!) && obj is T tValue)
                     return tValue;
             }
 
             return useDefault;
         }
-
-        public static T? GetFromRoot<T>(
-            this IConfiguration conf,
-            T useDefault = default!,
-            TypedValueParser<T>? parser = null,
-            [CallerMemberName] string key = null!)
+        
+        /// <summary>
+        ///   Sets or overrides a named value (when extended configuration supports this feature).
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended <see cref="IConfiguration"/>.
+        /// </param>
+        /// <param name="key">
+        ///   Identifies the value. 
+        /// </param>
+        /// <param name="value">
+        ///   The value to be used.
+        /// </param>
+        public static void SetNamed(this IConfiguration conf, string key, object? value)
         {
-            if (conf is not ConfigurationSectionDecorator wrapper) 
-                return conf.GetNamed(key, useDefault, false, parser);
+            key.ThrowIfUnassigned(nameof(key));
+            if (conf is not ConfigurationSectionDecorator decorator) 
+                return;
             
-            if (wrapper.Parent is { })
-                return wrapper.Parent.GetFromRoot(useDefault, parser, key);
-                    
-            return conf.GetNamed(key, useDefault, false, parser);
+            decorator.Overrides ??= new Dictionary<string, object?>();
+            decorator.Overrides[key] = value;
+        }
+        
+        /// <summary>
+        ///   Removes an overridden value (when extended configuration supports this feature),
+        ///   possibly resetting it to the value specified in the original configuration source.
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended <see cref="IConfiguration"/>.
+        /// </param>
+        /// <param name="key">
+        ///   Identifies the value to be cleared. 
+        /// </param>
+        public static void ClearNamed(this IConfiguration conf, string key)
+        {
+            if (conf is ConfigurationSectionDecorator { Overrides: {} } decorator 
+                && decorator.Overrides.ContainsKey(key.ThrowIfUnassigned(nameof(key))))
+            {
+                decorator.Overrides.Remove(key);
+            }
         }
 
+        /// <summary>
+        ///   Retrieves a configured value from the root of a hierarchical configuration tree.
+        /// </summary>
+        /// <param name="conf">
+        ///     The extended configuration instance.
+        /// </param>
+        /// <param name="parser"></param>
+        /// <param name="useDefault">
+        ///   (optional; default=&lt;default of specified type (<typeparamref name="T"/>)&gt;)<br/>
+        ///   A custom default value to be returned if the configuration does not support the value key.  
+        /// </param>
+        /// <param name="caller">
+        ///   (optional; default=The caller's (property or method) name)<br/>
+        ///   This should not be specified.
+        /// </param>
+        /// <typeparam name="T">
+        ///   The requested value type.
+        /// </typeparam>
+        /// <returns>
+        ///   The resolved value if successfully resolved; otherwise <paramref name="useDefault"/>. 
+        /// </returns>
+        public static T? GetFromRoot<T>(
+            this IConfiguration conf,
+            T? useDefault = default,
+            TypedValueParser<T>? parser = null,
+            [CallerMemberName] string caller = null!)
+        {
+            if (conf is not ConfigurationSectionDecorator wrapper) 
+                return conf.GetNamed(caller, useDefault, false, parser);
+            
+            return wrapper.Parent is { } 
+                ? wrapper.Parent.GetFromRoot(useDefault, parser, caller) 
+                : conf.GetNamed(caller, useDefault, false, parser);
+        }
+
+        /// <summary>
+        ///   Intended to be invoked from property getter, this method retrieves a configuration value by first looking
+        ///   for an internal field and (see remarks), if that fails, fall back to a configured value.
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended configuration instance.
+        /// </param>
+        /// <param name="valueParser">
+        ///   (optional)<br/>
+        ///   A (custom) value parser to be invoked to automatically parse a string
+        ///   representation of the requested value. 
+        /// </param>
+        /// <param name="useDefault">
+        ///   (optional; default=&lt;default of specified type (<typeparamref name="T"/>)&gt;)<br/>
+        ///   A custom default value to be returned if the configuration does not support the value key.  
+        /// </param>
+        /// <param name="getDerived">
+        ///   (optional; default=<c>false</c>)<br/>
+        ///   Set this to automatically fall back to the configuration's parent configuration
+        ///   (such as the enclosing section), when available, and resolve the value from it.
+        /// </param>
+        /// <param name="caller">
+        ///   (optional; default=The caller's [property getter] name)<br/>
+        ///   This should not be specified.
+        /// </param>
+        /// <typeparam name="T">
+        ///   The requested value type.
+        /// </typeparam>
+        /// <returns>
+        ///   The resolved value if successfully resolved; otherwise <paramref name="useDefault"/>. 
+        /// </returns>
+        /// <remarks>
+        ///   When trying to resolve the value by looking for an (internal) instance field, the naming convention
+        ///   is: [<paramref name="caller"/> with lower leading character and prefixed by '_']. When calling this method from
+        ///   the getter of a property called "StringValue" the field is assumed to be named "_stringValue".
+        /// </remarks>
         public static T? GetFromFieldThenSection<T>(
             this IConfiguration conf,
             T useDefault = default!,
-            TypedValueParser<T>? parser = null,
-            bool inherited = true,
-            [CallerMemberName] string propertyName = null!)
+            TypedValueParser<T>? valueParser = null,
+            bool getDerived = true,
+            [CallerMemberName] string caller = null!)
         {
-            return conf.TryGetFieldValue<T>(propertyName, out var fieldValue, inherited)
+            return conf.TryGetFieldValue<T>(caller, out var fieldValue, getDerived)
                 ? fieldValue
-                : conf.GetNamed<T>(propertyName);
+                : conf.GetNamed<T>(caller);
         }
 
         internal static bool TryGetFieldValue<T>(
@@ -191,11 +333,34 @@ namespace TetraPak.XP.Configuration
             return fieldInfo;
         }
 
+        /// <summary>
+        ///   Retrieves all sub sections of a configuration graph . 
+        /// </summary>
+        /// <param name="conf">
+        ///     The extended configuration instance.
+        /// </param> 
+        /// <returns>
+        ///   A collection of <see cref="IConfigurationSection"/> (empty if none exists).
+        /// </returns>
         public static IEnumerable<IConfigurationSection> GetSubSections(this IConfiguration conf)
         {
             return conf.GetChildren().Where(i => i.IsConfigurationSection());
         }
 
+        /// <summary>
+        ///   Gets a specified configuration sub section, if available.
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended configuration instance.
+        /// </param>
+        /// <param name="key">
+        ///   Identifies the requested sub section.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="IsConfigurationSection"/> object representing the named configuration if it
+        ///   could be successfully resolved; otherwise <c>null</c>.
+        /// </returns>
+        /// <seealso cref="GetRequiredSubSection"/>
         public static IConfigurationSection? GetSubSection(this IConfiguration conf, string key)
         {
             var path = new ConfigPath(key);
@@ -211,6 +376,21 @@ namespace TetraPak.XP.Configuration
             return section?.GetSubSection(path.Pop(1, SequentialPosition.Start));
         }
 
+        /// <summary>
+        ///   Gets a specified configuration sub section,
+        ///   or throws an <see cref="ArgumentOutOfRangeException"/> otherwise.
+        /// </summary>
+        /// <param name="conf">
+        ///   The extended configuration instance.
+        /// </param>
+        /// <param name="key">
+        ///   Identifies the requested sub section.
+        /// </param>
+        /// <returns>
+        ///   A <see cref="IsConfigurationSection"/> object representing the named configuration if it
+        ///   could be successfully resolved; otherwise a <see cref="ArgumentNullException"/>.
+        /// </returns>
+        /// <seealso cref="GetRequiredSubSection"/>
         public static IConfigurationSection GetRequiredSubSection(this IConfiguration conf, string key)
         {
             var section = conf.GetSubSections().FirstOrDefault(i => i.Key == key);
@@ -219,6 +399,22 @@ namespace TetraPak.XP.Configuration
                    throw new ArgumentOutOfRangeException(nameof(key), $"Configuration section not found: {key}");
         }
 
+        /// <summary>
+        ///   Yeah, this looks like a strange method doesn't it, checking whether a <see cref="IsConfigurationSection"/>
+        ///   is a configuration section? See remarks for more details. 
+        /// </summary>
+        /// <param name="section">
+        ///   The <see cref="IConfigurationSection"/> to be examined.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if <paramref name="section"/> represents a section (2 or more sub values);
+        ///   <c>false</c> otherwise.
+        /// </returns>
+        /// <remarks>
+        ///   The <see cref="IConfiguration"/> code framework returns all values, even the ones with a scalar value,
+        ///   as <see cref="IsConfigurationSection"/> objects. This method checks to see it is actually a 'section'
+        ///   (contains two or more sub values).
+        /// /// </remarks>
         public static bool IsConfigurationSection(this IConfigurationSection section)
         {
             return section is ConfigurationSectionDecorator || section.Value is null;
